@@ -16,6 +16,7 @@ import type { ScenarioResult } from '../engine/scoring';
 import type { Band, Expertise, Profile, ScenarioId } from '../engine/types';
 import type { AppApi } from '../state';
 import { personalizeRequest, usePersonalized } from '../personalize';
+import { printRule, ruleFor } from '../printRule';
 import { timePhrase, useResults } from '../useResults';
 
 const POSTURE_TEXT: Record<string, string> = {
@@ -469,9 +470,20 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
                   <Card className="p-6 text-slate-700">Every fix on our list is already in place. Nice work.</Card>
                 ) : (
                   <div className="space-y-4">
-                    {plan.top.map((r, i) => (
-                      <ActionCard key={r.action.id} r={r} rank={i + 1} expertise={expertise} stops={stopsFor(r)} text={aiAction(r.action.id)} />
-                    ))}
+                    {plan.top.map((r, i) => {
+                      const rule = ruleFor(r.action.id);
+                      return (
+                        <ActionCard
+                          key={r.action.id}
+                          r={r}
+                          rank={i + 1}
+                          expertise={expertise}
+                          stops={stopsFor(r)}
+                          text={aiAction(r.action.id)}
+                          onPrintRule={rule && (() => printRule(rule, state.company))}
+                        />
+                      );
+                    })}
                   </div>
                 )}
               </Block>
@@ -502,7 +514,10 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
                           <div className="text-sm text-slate-600">{sub}</div>
                         </div>
                         <div className="space-y-2">
-                          {items.length === 0 ? <p className="text-sm text-slate-500">Nothing here.</p> : items.map((r) => <CompactAction key={r.action.id} r={r} />)}
+                          {items.length === 0 ? <p className="text-sm text-slate-500">Nothing here.</p> : items.map((r) => {
+                              const rule = ruleFor(r.action.id);
+                              return <CompactAction key={r.action.id} r={r} onPrintRule={rule && (() => printRule(rule, state.company))} />;
+                            })}
                         </div>
                       </div>
                     ))}

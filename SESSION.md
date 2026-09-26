@@ -2,6 +2,17 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — "Print the rule" signs
+
+**Done**
+- A "🖨 Print the rule" button, **only on fixes that are rules people follow**: A19 (load change rule), A7 (bank details change rule), and A17 ("If we get hacked: who to call", on the compact 30/60/90 card and only once it's expanded). No other UI was added.
+- It opens a one-page Letter sign in its own window and prints it (`FE/src/printRule.ts`, content in `FE/src/data/rules.json`). Sign contents: the rule, who can give the second OK, warning signs, a change log to fill in, and a posted-on/initials line. The company name is escaped, and a test covers that.
+- The incident sheet has official numbers checked on the government sites: Canadian Centre for Cyber Security 1-833-CYBER-88 (1-833-292-3788), Canadian Anti-Fraud Centre 1-888-495-8501.
+- The "send to IT person" idea was dropped: the target business has no IT budget or person.
+- FE 142 tests passing.
+
+**Next ideas agreed (not built)**: a guided one-step-at-a-time walkthrough with a "mark done" that re-scores, official vendor help links checked by hand, and stricter Gemini wording for Simple (no jargon like "break glass account").
+
 ## 2026-09-26 (Sat) — Gemini personalization
 
 **Done**

@@ -36,6 +36,7 @@ Tests: `BE/test_api.py` 2 passing (local Postgres 17). FE 112 passing (includes 
 | 6 | Expertise level (Simple default / Standard / Expert) | **Done**: asked on "Before you start", switchable on Results. Changes wording and detail only, never scores |
 | 7 | Consequence chains per risk (carrier/broker/cold storage versions) | **Done**: shown on the Overview, risk cards, risk detail, and each fix |
 | 8 | Results in tabs (Overview · Fix first · Your risks · Supply chain · How we scored) | **Done** |
+| 9 | "Print the rule" signs for rule-type fixes (load change, bank change, who to call) | **Done** |
 
 ## Branches
 

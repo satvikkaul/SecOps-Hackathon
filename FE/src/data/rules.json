@@ -1,0 +1,47 @@
+[
+  {
+    "actionId": "A19",
+    "title": "Load change rule",
+    "lead": "No pickup or delivery address changes until BOTH of these are done:",
+    "must": [
+      "We call the broker or shipper back on a number we already have (from the rate confirmation or our records). Never the number or link in the email.",
+      "A second person OKs the change before the driver is told."
+    ],
+    "approvers": ["Dispatch lead", "Owner", "Other: ____________"],
+    "warnings": ["A last-minute change", "A new consignee or address", "\"Urgent\" or pressure to skip steps", "An email address that is slightly different"],
+    "logTitle": "Change log",
+    "logColumns": ["Date", "Load #", "Change requested", "Called back on (number)", "Approved by"]
+  },
+  {
+    "actionId": "A7",
+    "title": "Bank details change rule",
+    "lead": "Nobody changes a supplier's, carrier's, or customer's bank details until BOTH of these are done:",
+    "must": [
+      "We call the company back on a number we already had on file. Never the number in the email asking for the change.",
+      "A second person approves any large payment to the new details."
+    ],
+    "approvers": ["Owner", "Office manager", "Other: ____________"],
+    "warnings": ["\"We changed banks\" emails", "A request to pay before the usual date", "Pressure to keep it quiet or rush it", "An email address that is slightly different"],
+    "logTitle": "Bank change log",
+    "logColumns": ["Date", "Company", "Change requested", "Called back on (number)", "Approved by"]
+  },
+  {
+    "actionId": "A17",
+    "title": "If we get hacked: who to call",
+    "lead": "If a computer is locked, money goes missing, or an email account is taken over, stay calm and work down this list:",
+    "must": [
+      "Unplug the affected computer from the network (pull the cable or turn off Wi-Fi). Do not turn it off.",
+      "If money was sent, call the bank right away. Speed matters for getting it back.",
+      "Call the people below, then tell customers whose shipments or data could be affected."
+    ],
+    "contacts": [
+      { "role": "Owner / person in charge", "phone": "" },
+      { "role": "Our bank's fraud line", "phone": "" },
+      { "role": "Whoever set up our email and computers", "phone": "" },
+      { "role": "Cyber insurance (if we have it)", "phone": "" },
+      { "role": "Canadian Centre for Cyber Security", "phone": "1-833-CYBER-88 (1-833-292-3788)" },
+      { "role": "Canadian Anti-Fraud Centre", "phone": "1-888-495-8501" },
+      { "role": "Local police (non-emergency)", "phone": "" }
+    ]
+  }
+]

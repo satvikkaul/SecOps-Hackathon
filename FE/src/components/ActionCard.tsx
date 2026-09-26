@@ -117,6 +117,7 @@ export default function ActionCard({
   expertise = 'medium',
   stops,
   text,
+  onPrintRule,
 }: {
   r: RankedAction;
   rank: number;
@@ -125,6 +126,8 @@ export default function ActionCard({
   text?: { title: string; whatToDo: string; why: string; steps: string[] };
   /** The risk this fix lowers most, and how that risk plays out for this business */
   stops?: { name: string; chain: string[] };
+  /** Only for fixes that are rules people follow: prints a one-page sign for the desk */
+  onPrintRule?: () => void;
 }) {
   const basic = expertise === 'basic';
   const [showSteps, setShowSteps] = useState(false);
@@ -187,6 +190,16 @@ export default function ActionCard({
             >
               {showEffect ? 'Hide the effect' : 'See the effect'}
             </button>
+            {onPrintRule && (
+              <button
+                type="button"
+                onClick={onPrintRule}
+                title="A one-page sign to post by the desk, with a log to fill in"
+                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                🖨 Print the rule
+              </button>
+            )}
           </div>
           {showSteps && <Steps steps={text?.steps ?? r.steps} />}
           {showEffect && <WhatIf r={r} />}
@@ -196,7 +209,7 @@ export default function ActionCard({
   );
 }
 
-export function CompactAction({ r }: { r: RankedAction }) {
+export function CompactAction({ r, onPrintRule }: { r: RankedAction; onPrintRule?: () => void }) {
   const [open, setOpen] = useState(false);
   return (
     <div id={`fix-${r.action.id}`} className="scroll-mt-24 rounded-xl border border-slate-200 bg-white p-3.5">
@@ -215,6 +228,11 @@ export function CompactAction({ r }: { r: RankedAction }) {
         <div className="text-sm">
           <p className="mt-3 text-slate-700">{r.action.whatToDo}</p>
           <Steps steps={r.steps} />
+          {onPrintRule && (
+            <button type="button" onClick={onPrintRule} className="mt-3 text-sm font-semibold text-brand-700 hover:text-brand-900">
+              🖨 Print the rule
+            </button>
+          )}
         </div>
       )}
     </div>
