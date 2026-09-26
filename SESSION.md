@@ -2,6 +2,19 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — BE deployed
+
+**Done**
+- BE live on Railway at https://imaginative-tenderness-production-be96.up.railway.app with Supabase (session pooler). All endpoints were smoke-tested on the live URL, and the test row was deleted afterwards.
+- The BE now fails fast with a clear error when `DATABASE_URL` is missing.
+
+**Gotchas hit**
+- An empty `DATABASE_URL` made psycopg try a local socket, which crashed startup and caused 502s.
+- Pasting log lines into the Railway Raw Editor created junk variables, which broke the build with `secret psycopg_pool not found`. Keep the BE variables to exactly `DATABASE_URL`, `FRONTEND_URL`, and `PORT=8080`.
+
+**Open**
+- The Supabase DB password was shared in chat. Rotate it after judging.
+
 ## 2026-09-26 (Sat) — BE storage built
 
 **Done**

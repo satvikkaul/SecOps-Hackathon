@@ -7,8 +7,8 @@ _Last updated: 2026-09-26 (Sat). Overwrite this file at the end of every session
 ## Live
 
 - FE: https://secops-hackathon-production.up.railway.app (static Vite build, auto-deploys from `main`). `?demo` works.
-- BE: https://imaginative-tenderness-production-be96.up.railway.app. The Railway service and domain exist (port 8080), but the code isn't deployed until `BE/` is pushed to `main`.
-- DB: Supabase chosen. The schema is in `BE/schema.sql` and applies itself on BE startup. The Railway Postgres is unused.
+- BE: **live** at https://imaginative-tenderness-production-be96.up.railway.app (port 8080). All endpoints were verified on the live URL on 2026-09-26: health `db:true`, demo share, live DNS, CORS (FE allowed, other origins rejected), create/share, 422 on bad input, 404 on an unknown token.
+- DB: **Supabase live** (session pooler, us-east-1). Schema applied, RLS confirmed on both tables, and `demo-peel-valley` seeded. The Railway Postgres is unused and can be deleted.
 
 ## BE (`BE/`)
 
@@ -30,7 +30,7 @@ Tests: `BE/test_api.py`, 2 passing against local Postgres 17. RLS is confirmed o
 | 1 | Questionnaire → score → ranked plan on the live URL | Done (FE, client-side) |
 | 1a | "One person can change a destination alone" question + action | Missing (FE teammate) |
 | 2 | Two demo profiles with visibly different rankings | One profile only |
-| 3 | Shareable read-only link | BE done locally. Needs BE deploy + FE UI |
+| 3 | Shareable read-only link | BE live. Needs FE UI |
 | 4 | Partner diagram | Exists in FE (`RiskFlow`) |
 | 5 | Gemini-worded plan | Designed |
 
