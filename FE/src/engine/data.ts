@@ -55,7 +55,7 @@ export interface ProfileQuestion {
 export const profileQuestions = profileJson as ProfileQuestion[];
 
 export interface SupplyChain {
-  impacts: { id: string; label: string }[];
+  impacts: { id: string; label: string; description: string }[];
   links: Record<ScenarioId, Record<string, number>>;
 }
 export const supplyChain = supplyChainJson as SupplyChain;

@@ -65,11 +65,18 @@ export function Card({ children, className = '', id }: { children: ReactNode; cl
   );
 }
 
-export function SectionTitle({ children, sub }: { children: ReactNode; sub?: ReactNode }) {
+export function SectionTitle({ children, sub, icon }: { children: ReactNode; sub?: ReactNode; icon?: string }) {
   return (
-    <div className="mb-4">
-      <h2 className="text-2xl font-bold tracking-tight text-slate-900">{children}</h2>
-      {sub && <p className="mt-1 text-slate-600">{sub}</p>}
+    <div className="mb-4 flex items-start gap-3">
+      {icon && (
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-xl" aria-hidden>
+          {icon}
+        </span>
+      )}
+      <div>
+        <h2 className="text-2xl font-bold tracking-tight text-slate-900">{children}</h2>
+        {sub && <p className="mt-1 text-slate-600">{sub}</p>}
+      </div>
     </div>
   );
 }

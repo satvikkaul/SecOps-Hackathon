@@ -14,12 +14,14 @@ export default function RiskRegisterButton({
   profile,
   answers,
   company,
+  className = '',
 }: {
   assessment: Assessment;
   ranked: RankedAction[];
   profile: Profile;
   answers: Answers;
   company?: string;
+  className?: string;
 }) {
   const download = () => {
     const today = new Date();
@@ -32,7 +34,7 @@ export default function RiskRegisterButton({
     URL.revokeObjectURL(url);
   };
   return (
-    <Button variant="secondary" onClick={download}>
+    <Button variant="secondary" onClick={download} className={className}>
       Download risk register (CSV)
     </Button>
   );
