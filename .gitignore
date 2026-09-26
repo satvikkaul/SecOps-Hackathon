@@ -4,5 +4,7 @@ dist/
 *.tsbuildinfo
 .env
 .env.*
+!.env.example
+*.local
 __pycache__/
 .venv/
