@@ -1,0 +1,16 @@
+[
+  {
+    "id": "cccs-cis",
+    "name": "CCCS baseline + CIS Controls",
+    "tagline": "The federal baseline, with the international CIS Controls alongside it.",
+    "bestFor": "Answering customer or insurer questionnaires, which often ask about CIS Controls.",
+    "reportsOn": ["13 CCCS Baseline Cyber Security Controls", "CIS Controls v8.1 safeguards, including Implementation Group 1"]
+  },
+  {
+    "id": "ciosc",
+    "name": "CyberSecure Canada (CAN/CIOSC 104)",
+    "tagline": "The national standard behind the CyberSecure Canada certification and the OCI Cybersecurity Workbook.",
+    "bestFor": "Working toward CyberSecure Canada certification, or an OCI Digital Competence Centre program.",
+    "reportsOn": ["18 sections of CAN/CIOSC 104:2021, numbered as in the OCI workbook", "Sections our questions do not cover are marked Not assessed"]
+  }
+]

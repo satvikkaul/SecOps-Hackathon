@@ -2,11 +2,22 @@ import { dataset as defaultDataset, supplyChain as defaultSupplyChain, type Supp
 import { answerValue, isApplicable, type Assessment } from './scoring';
 import type { Answers, Dataset, Profile, ScenarioId } from './types';
 
+/** Plain-language explanation shown when someone hovers a box in the diagram. */
+export interface FlowInfo {
+  /** Small caption above the title, e.g. "Security gap" */
+  kind: string;
+  title: string;
+  body: string;
+  /** Extra line, e.g. the scenario's risk level or the question it comes from */
+  note?: string;
+}
+
 export interface FlowNode {
   id: string;
   label: string;
   column: 0 | 1 | 2;
   value: number;
+  info: FlowInfo;
 }
 
 export interface FlowLink {
@@ -70,11 +81,39 @@ export function buildFlow(
 
   const sumTo = (id: string) => links.filter((l) => l.target === id).reduce((s, l) => s + l.value, 0);
   const nodes: FlowNode[] = [
-    ...gaps.map((g) => ({ id: g.q.id, label: g.q.gapLabel, column: 0 as const, value: g.total })),
-    ...orderedScenarios.map((s) => ({ id: s.id, label: s.short, column: 1 as const, value: s.risk })),
+    ...gaps.map((g) => ({
+      id: g.q.id,
+      label: g.q.gapLabel,
+      column: 0 as const,
+      value: g.total,
+      info: {
+        kind: 'Security gap',
+        title: g.q.gapLabel,
+        body: g.q.why,
+        note: `From your answer to: “${g.q.text}”`,
+      },
+    })),
+    ...orderedScenarios.map((s) => ({
+      id: s.id,
+      label: s.short,
+      column: 1 as const,
+      value: s.risk,
+      info: {
+        kind: 'What could happen',
+        title: s.name,
+        body: s.description,
+        note: `Your risk: ${s.band} (${s.risk.toFixed(1)} of 5)`,
+      },
+    })),
     ...chain.impacts
       .filter((i) => impactIds.has(i.id))
-      .map((i) => ({ id: i.id, label: i.label, column: 2 as const, value: sumTo(i.id) }))
+      .map((i) => ({
+        id: i.id,
+        label: i.label,
+        column: 2 as const,
+        value: sumTo(i.id),
+        info: { kind: 'Who else feels it', title: i.label, body: i.description },
+      }))
       .sort((a, b) => b.value - a.value),
   ];
   return { nodes, links };

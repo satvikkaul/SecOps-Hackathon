@@ -1,4 +1,4 @@
-import { cccs as defaultCccs, cis as defaultCis, dataset as defaultDataset } from './data';
+import { cccs as defaultCccs, ciosc as defaultCiosc, cis as defaultCis, dataset as defaultDataset } from './data';
 import { isApplicable } from './scoring';
 import type { Answers, AnswerValue, CccsControl, CisSafeguard, Dataset, MappingStrength, Profile, Question } from './types';
 
@@ -82,6 +82,44 @@ export function cccsStatuses(
   });
 }
 
+// ---------- CAN/CIOSC 104 ----------
+
+export interface CioscResult {
+  id: string;
+  name: string;
+  /** Top-level group, e.g. "Baseline controls" */
+  group: string;
+  status: ControlStatus;
+  evidence: Evidence[];
+  cccsIds: string[];
+  cisIds: string[];
+  note?: string;
+}
+
+/** CIOSC 104 is the standardized form of the CCCS baseline, so each section takes its evidence from the matching CCCS controls. */
+export function cioscStatuses(cccsResults: CccsResult[], catalog: typeof defaultCiosc = defaultCiosc): CioscResult[] {
+  const byId = Object.fromEntries(cccsResults.map((c) => [c.id, c]));
+  return catalog.sections.map((sec) => {
+    const matched = sec.cccs.map((id) => byId[id]).filter(Boolean);
+    const evidence = new Map<string, Evidence>();
+    for (const e of matched.flatMap((c) => c.evidence)) {
+      const prev = evidence.get(e.questionId);
+      if (!prev || (prev.strength === 'partial' && e.strength === 'direct')) evidence.set(e.questionId, e);
+    }
+    const ev = [...evidence.values()];
+    return {
+      id: sec.id,
+      name: sec.name,
+      group: catalog.groups[sec.id.split('.')[0]] ?? '',
+      status: statusFrom(ev.map((e) => e.answer)),
+      evidence: ev,
+      cccsIds: sec.cccs,
+      cisIds: sortCis([...new Set(matched.flatMap((c) => c.cisIds))]),
+      ...(sec.note && { note: sec.note }),
+    };
+  });
+}
+
 // ---------- CIS ----------
 
 export interface CisResult extends CisSafeguard {
@@ -139,15 +177,23 @@ export function otherPractices(profile: Profile, answers: Answers, data: Dataset
 
 // ---------- References for a set of questions (used on action cards) ----------
 
-export function frameworkRefs(questionIds: string[], data: Dataset = defaultDataset): { cccs: string[]; cis: string[] } {
+export function frameworkRefs(
+  questionIds: string[],
+  data: Dataset = defaultDataset,
+  cioscCatalog: typeof defaultCiosc = defaultCiosc,
+): { cccs: string[]; cis: string[]; ciosc: string[] } {
   const cccsRefs = new Set<string>();
   const cisRefs = new Set<string>();
+  const cioscRefs = new Set<string>();
   for (const id of questionIds) {
     const q = data.questions.find((x) => x.id === id);
     if (!q) continue;
-    for (const m of q.cccs) (m.reqs.length ? m.reqs : [m.control]).forEach((r) => cccsRefs.add(r));
+    for (const m of q.cccs) {
+      (m.reqs.length ? m.reqs : [m.control]).forEach((r) => cccsRefs.add(r));
+      cioscCatalog.sections.filter((s) => s.cccs.includes(m.control)).forEach((s) => cioscRefs.add(s.id));
+    }
     q.cis.forEach((m) => cisRefs.add(m.safeguard));
   }
   const byNum = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
-  return { cccs: [...cccsRefs].sort(byNum), cis: sortCis([...cisRefs]) };
+  return { cccs: [...cccsRefs].sort(byNum), cis: sortCis([...cisRefs]), ciosc: [...cioscRefs].sort(byNum) };
 }

@@ -8,3 +8,4 @@ dist/
 *.local
 __pycache__/
 .venv/
+.cursor-shots/

@@ -5,10 +5,28 @@ import actionsJson from '../data/actions.json';
 import profileJson from '../data/profile.json';
 import cccsJson from '../data/cccs.json';
 import cisJson from '../data/cis.json';
+import cioscJson from '../data/ciosc.json';
+import templatesJson from '../data/templates.json';
 import rankingJson from '../data/ranking.json';
 import supplyChainJson from '../data/supplyChain.json';
 import demoPersonaJson from '../data/demoPersona.json';
-import type { Action, CccsControl, CisSafeguard, Dataset, RankingConfig, ImpactRules, Question, Scenario, ScenarioId, Section, Answers, Profile } from './types';
+import type {
+  Action,
+  CccsControl,
+  CioscSection,
+  CisSafeguard,
+  Dataset,
+  RankingConfig,
+  ImpactRules,
+  Question,
+  ReportTemplate,
+  Scenario,
+  ScenarioId,
+  Section,
+  Answers,
+  Profile,
+  TemplateId,
+} from './types';
 
 export const scenarios = scenariosJson as Scenario[];
 export const questions = questionsJson.questions as Question[];
@@ -17,6 +35,9 @@ export const impactRules = impactRulesJson as ImpactRules;
 export const actions = actionsJson as Action[];
 export const cccs = cccsJson as { source: string; url: string; controls: CccsControl[] };
 export const cis = cisJson as { source: string; url: string; controls: Record<string, string>; safeguards: CisSafeguard[] };
+export const ciosc = cioscJson as { source: string; url: string; groups: Record<string, string>; sections: CioscSection[] };
+export const templates = templatesJson as ReportTemplate[];
+export const templateById = Object.fromEntries(templates.map((t) => [t.id, t])) as Record<TemplateId, ReportTemplate>;
 export const ranking = rankingJson as RankingConfig;
 export const cisById =Object.fromEntries(cis.safeguards.map((s) => [s.id, s])) as Record<string, CisSafeguard>;
 
@@ -34,7 +55,7 @@ export interface ProfileQuestion {
 export const profileQuestions = profileJson as ProfileQuestion[];
 
 export interface SupplyChain {
-  impacts: { id: string; label: string }[];
+  impacts: { id: string; label: string; description: string }[];
   links: Record<ScenarioId, Record<string, number>>;
 }
 export const supplyChain = supplyChainJson as SupplyChain;

@@ -1,10 +1,30 @@
 {
   "impacts": [
-    { "id": "SPOIL", "label": "Delayed or spoiled shipments to your customers" },
-    { "id": "FRAUD", "label": "Fraudulent invoices sent to partners in your name" },
-    { "id": "PIVOT", "label": "Attackers reaching partners through shared systems" },
-    { "id": "AUDIT", "label": "Failed customer security audit" },
-    { "id": "DATA", "label": "Partner and customer data exposed" }
+    {
+      "id": "SPOIL",
+      "label": "Delayed or spoiled shipments to your customers",
+      "description": "When your computers or equipment go down, loads sit at the dock, trucks cannot be dispatched, or cold goods warm up. Your customers get late or ruined product."
+    },
+    {
+      "id": "FRAUD",
+      "label": "Fraudulent invoices sent to partners in your name",
+      "description": "Criminals use your email or accounts to send fake invoices or bank-change requests to your customers and suppliers. They pay because it looks like it came from you."
+    },
+    {
+      "id": "PIVOT",
+      "label": "Attackers reaching partners through shared systems",
+      "description": "Shared portals, vendor connections, and email threads let an attacker who gets into your business move on into a partner's systems."
+    },
+    {
+      "id": "AUDIT",
+      "label": "Failed customer security audit",
+      "description": "Grocers, processors, and shippers increasingly send suppliers security questionnaires. Gaps like these can fail them and put contracts at risk."
+    },
+    {
+      "id": "DATA",
+      "label": "Partner and customer data exposed",
+      "description": "Information partners trusted you with, like rates, contacts, or payment details, ends up in the wrong hands."
+    }
   ],
   "links": {
     "RANSOM": { "SPOIL": 1.0, "AUDIT": 0.4 },
