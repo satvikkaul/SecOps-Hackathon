@@ -4,6 +4,7 @@ import RiskFlow from '../components/RiskFlow';
 import RiskStory from '../components/RiskStory';
 import ShowTheMath from '../components/ShowTheMath';
 import RankingToggle from '../components/RankingToggle';
+import RiskRegisterButton from '../components/RiskRegisterButton';
 import StandardsPanel from '../components/StandardsPanel';
 import { BAND_STYLES, BandBadge, Button, Card, SCENARIO_COLORS, SectionTitle } from '../components/ui';
 import { profileQuestions, scenarioById } from '../engine/data';
@@ -157,6 +158,7 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
   const actions = (
     <div className="flex flex-wrap gap-2">
       <Button onClick={() => go('summary')}>Supplier Security Summary</Button>
+      <RiskRegisterButton assessment={assessment} ranked={ranked} profile={profile} answers={answers} company={state.company} />
       <Button variant="secondary" onClick={() => go('profile')}>
         Edit answers
       </Button>

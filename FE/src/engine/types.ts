@@ -15,6 +15,8 @@ export interface Scenario {
   /** Lower-case phrase used in sentences, e.g. "fake payment requests" */
   phrase: string;
   description: string;
+  /** Security domain shown in the risk register's Category column */
+  category: string;
   base: Record<Sector, number>;
 }
 

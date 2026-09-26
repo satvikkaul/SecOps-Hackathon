@@ -5,6 +5,7 @@
     "short": "Ransomware",
     "phrase": "ransomware shutting down operations",
     "description": "Criminals lock your computers and demand payment, and your operations stop until you recover.",
+    "category": "Malware and ransomware",
     "base": {
       "farm": 0.5,
       "processor": 0.7,
@@ -19,6 +20,7 @@
     "short": "Payment fraud",
     "phrase": "fake payment requests",
     "description": "Someone impersonates a supplier, carrier, or your boss by email and redirects a payment to their own bank account.",
+    "category": "Payment fraud",
     "base": {
       "farm": 0.5,
       "processor": 0.6,
@@ -33,6 +35,7 @@
     "short": "Stolen logins",
     "phrase": "stolen logins to your online tools",
     "description": "Someone gets into your load board, accounting, banking, or fleet portal using a stolen or guessed password.",
+    "category": "Access control",
     "base": {
       "farm": 0.4,
       "processor": 0.5,
@@ -47,6 +50,7 @@
     "short": "Equipment tampering",
     "phrase": "tampering with connected equipment",
     "description": "Refrigeration, grain dryers, sensors, or cameras are disrupted or accessed remotely by someone who should not be there.",
+    "category": "Connected equipment",
     "base": {
       "farm": 0.5,
       "processor": 0.6,
@@ -61,6 +65,7 @@
     "short": "Vendor breach",
     "phrase": "a breach at a vendor or IT provider",
     "description": "Attackers get into your business through a company you trust, like your IT provider or an equipment vendor.",
+    "category": "Vendors and IT providers",
     "base": {
       "farm": 0.4,
       "processor": 0.5,
@@ -75,6 +80,7 @@
     "short": "Data loss",
     "phrase": "losing data you cannot get back",
     "description": "Files, records, or accounting data are destroyed and there is no way to restore them.",
+    "category": "Backup and recovery",
     "base": {
       "farm": 0.5,
       "processor": 0.5,
@@ -89,6 +95,7 @@
     "short": "Shared accounts",
     "phrase": "misuse of shared or leftover accounts",
     "description": "Shared logins or ex-employee accounts are used without anyone knowing who did it.",
+    "category": "Access control",
     "base": {
       "farm": 0.6,
       "processor": 0.5,
