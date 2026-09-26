@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Button, Card, OptionCard, ProgressBar } from '../components/ui';
 import { demoPersona, profileQuestions } from '../engine/data';
 import { prompts } from '../engine/prompts';
-import { checkDomain, describeFindings, dmarcToAnswer, isValidDomain, normalizeDomain, type Indicator } from '../engine/dns';
+import { describeFindings, dmarcToAnswer, isValidDomain, normalizeDomain, type Indicator } from '../engine/dns';
 import type { AnswerValue } from '../engine/types';
 import type { AppApi } from '../state';
+import { lookupDomain } from '../api';
 
 const DOT: Record<Indicator, string> = {
   green: 'bg-emerald-500',
@@ -41,7 +42,7 @@ export default function DomainCheck({ app }: { app: AppApi }) {
     setError(null);
     setLoading(true);
     // The demo company uses stored results so the demo never depends on the network.
-    const result = domain === demoPersona.domain ? demoPersona.dnsResult : await checkDomain(domain);
+    const result = domain === demoPersona.domain ? demoPersona.dnsResult : await lookupDomain(domain);
     setLoading(false);
 
     const q11 = dmarcToAnswer(result.dmarc);

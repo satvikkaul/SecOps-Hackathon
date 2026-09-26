@@ -30,7 +30,7 @@ Tests: `BE/test_api.py`, 2 passing against local Postgres 17. RLS is confirmed o
 | 1 | Questionnaire → score → ranked plan on the live URL | Done (FE, client-side) |
 | 1a | "One person can change a destination alone" question + action | Missing (FE teammate) |
 | 2 | Two demo profiles with visibly different rankings | One profile only |
-| 3 | Shareable read-only link | BE live. Needs FE UI |
+| 3 | Shareable read-only link | BE live. FE wired (Share button, `?share=` view, DNS via BE) and tested locally against the live BE. **Live after push** |
 | 4 | Partner diagram | Exists in FE (`RiskFlow`) |
 | 5 | Gemini-worded plan | Designed |
 

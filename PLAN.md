@@ -161,6 +161,8 @@ Judge answer: *"The ranking is deterministic and you can check it. Gemini only r
 
 ## FE changes needed (hand to the FE teammate)
 
+**Done 2026-09-26** in `FE/src/api.ts`, `engine/snapshot.ts`, `components/ShareButton.tsx`, and `screens/SharedSummary.tsx`. `VITE_API_URL` is set in Railway. The list below is kept for reference.
+
 1. The domain step calls `GET /api/dns/{domain}`. Keep the direct Cloudflare DoH call as a fallback.
 2. Results screen: a "Share with a partner" button calls `POST /api/assessments` and shows the returned link with a copy button.
 3. On startup, `?share=<token>` loads `GET /api/share/{token}` and renders a read-only Summary (no edit, no start over), with a "DNS verified by Chain of Custody on <date>" badge.

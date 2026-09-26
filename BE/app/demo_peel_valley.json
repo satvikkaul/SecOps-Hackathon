@@ -41,6 +41,7 @@
   },
   "rankingMode": "effort",
   "results": {
+    "sector": "Trucking or freight carrier",
     "posture": {
       "score": 3.2,
       "band": "High"

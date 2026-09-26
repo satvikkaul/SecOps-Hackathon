@@ -2,6 +2,16 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — FE wired to BE
+
+**Done** (at the user's request, in `FE/`)
+- `api.ts` holds the three BE calls. `VITE_API_URL` is set on the Railway FE service.
+- The domain check calls the BE first and falls back to the browser DoH check.
+- Results has a "Share with a partner" button that shows the link and a copy button. `?share=<token>` renders `SharedSummary` from the stored snapshot, with DNS labelled as independently verified.
+- `engine/snapshot.ts` (`buildSnapshot`) is shared by the Share button and `BE/gen_demo.ts`. It has a unit test, and the FE is at 112 tests.
+- The footer copy changed from "answers never leave this computer" to "…unless you create a share link".
+- Verified: the real payload against the live BE (201, CORS from the FE origin, server DNS attached, answers not exposed), and headless-Chrome screenshots of the share page and results. Test rows were deleted.
+
 ## 2026-09-26 (Sat) — BE deployed
 
 **Done**
