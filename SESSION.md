@@ -2,6 +2,20 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — teammate branches integrated into main
+
+**Found**
+- The Railway FE deploys from `nima` (based on the first commit), which is why the live FE lacked the share UI.
+- `nima` (`c421af6`) adds a risk register CSV export matching the OCI DCC workbook, plus a scenario `category`. `Hala's` (`ff90c8f`) adds provider-specific action steps, and a Supabase browser client that nothing uses.
+
+**Done**
+- Cherry-picked both onto `main` with the original authors kept (`0b03c0b` Nima, `3a0c4bf` Hala). Dropped the committed `node_modules` and `tsbuildinfo`. Results shows both the Share and the risk register buttons. `vite-env.d.ts` was merged to include `VITE_API_URL` and the Supabase vars.
+- FE 125 tests pass and the build is clean. The BE demo seed is unchanged.
+
+**Open**
+- The Railway FE branch needs switching `nima` → `main`.
+- Decide what to do with the Supabase browser client (NEXT_STEPS).
+
 ## 2026-09-26 (Sat) — pushed FE + BE integration
 
 **Done**
