@@ -1,5 +1,8 @@
+import { useState } from 'react';
 import { Logo, Button } from './components/ui';
+import ReportChat from './components/ReportChat';
 import { TemplateContext, useAppState } from './state';
+import { useAuth } from './auth/useAuth';
 import Landing from './screens/Landing';
 import TemplateScreen from './screens/TemplateScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -8,6 +11,7 @@ import Questionnaire from './screens/Questionnaire';
 import Results from './screens/Results';
 import Summary from './screens/Summary';
 import SharedSummary from './screens/SharedSummary';
+import SignIn from './screens/SignIn';
 
 // ?share=<token> opens a partner's read-only view instead of the app.
 const shareToken = new URLSearchParams(window.location.search).get('share');
@@ -15,6 +19,8 @@ const shareToken = new URLSearchParams(window.location.search).get('share');
 export default function App() {
   const app = useAppState();
   const { state, go, reset } = app;
+  const { user, loading: authLoading, signOut } = useAuth();
+  const [showSignIn, setShowSignIn] = useState(false);
 
   const confirmReset = () => {
     if (window.confirm('Start over? This clears all your answers on this computer.')) reset();
@@ -37,16 +43,25 @@ export default function App() {
       <header className="no-print sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Logo onClick={() => go('landing')} />
-          {state.screen !== 'landing' && (
-            <div className="flex items-center gap-1">
-              {state.isDemo && (
-                <span className="mr-2 hidden rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 sm:inline">Demo company</span>
-              )}
+          <div className="flex items-center gap-1">
+            {state.isDemo && state.screen !== 'landing' && (
+              <span className="mr-2 hidden rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 sm:inline">Demo company</span>
+            )}
+            {state.screen !== 'landing' && (
               <Button variant="ghost" onClick={confirmReset} className="px-3 py-1.5 text-sm">
                 Start over
               </Button>
-            </div>
-          )}
+            )}
+            {!authLoading && (user ? (
+              <Button variant="ghost" onClick={() => signOut()} className="px-3 py-1.5 text-sm">
+                Sign out
+              </Button>
+            ) : (
+              <Button variant="secondary" onClick={() => setShowSignIn(true)} className="px-3 py-1.5 text-sm">
+                Sign in
+              </Button>
+            ))}
+          </div>
         </div>
       </header>
 
@@ -57,7 +72,7 @@ export default function App() {
           {state.screen === 'profile' && <ProfileScreen app={app} />}
           {state.screen === 'domain' && <DomainCheck app={app} />}
           {state.screen === 'questions' && <Questionnaire app={app} />}
-          {state.screen === 'results' && <Results app={app} onReset={confirmReset} />}
+          {state.screen === 'results' && <Results app={app} onReset={confirmReset} onSignIn={() => setShowSignIn(true)} signedIn={!!user} />}
           {state.screen === 'summary' && <Summary app={app} />}
         </TemplateContext.Provider>
       </main>
@@ -65,6 +80,19 @@ export default function App() {
       <footer className="no-print mx-auto max-w-6xl px-6 py-10 text-center text-sm text-slate-500">
         Scores are calculated in your browser. To word your results for you, your answers (never your company name or domain) are sent to Google Gemini. A share link is only created when you ask for one.
       </footer>
+
+      {showSignIn && !user && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center bg-slate-900/40 p-4"
+          onClick={() => setShowSignIn(false)}
+        >
+          <div onClick={(e) => e.stopPropagation()} className="fade-in w-full max-w-md">
+            <SignIn onClose={() => setShowSignIn(false)} />
+          </div>
+        </div>
+      )}
+
+      <ReportChat app={app} />
     </div>
   );
 }

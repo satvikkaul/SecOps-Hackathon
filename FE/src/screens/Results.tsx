@@ -188,7 +188,17 @@ function RiskGauge({ score, band, showScore = true }: { score: number; band: Ban
   );
 }
 
-export default function Results({ app, onReset }: { app: AppApi; onReset: () => void }) {
+export default function Results({
+  app,
+  onReset,
+  onSignIn,
+  signedIn,
+}: {
+  app: AppApi;
+  onReset: () => void;
+  onSignIn: () => void;
+  signedIn: boolean;
+}) {
   const { state, go } = app;
   const { profile, answers } = state;
   const results = useResults(profile, answers, state.rankingMode);
@@ -382,6 +392,18 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
                   </div>
                 </div>
               </Card>
+
+              {!signedIn && !state.isDemo && (
+                <Card className="no-print mt-4 flex flex-wrap items-center justify-between gap-4 p-4">
+                  <div>
+                    <div className="font-bold text-slate-900">Save your score</div>
+                    <div className="text-sm text-slate-600">Sign in to keep this report and come back to it later — no password needed.</div>
+                  </div>
+                  <Button onClick={onSignIn} className="shrink-0">
+                    Get started
+                  </Button>
+                </Card>
+              )}
 
               {personal && (
                 <Card className="fade-in border-violet-200 p-5">

@@ -8,4 +8,11 @@ if (!url || !publishableKey) {
 }
 
 /** Browser-safe client. Uses the publishable key only — never import the secret key here. */
-export const supabase = createClient(url, publishableKey);
+export const supabase = createClient(url, publishableKey, {
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    // Magic-link sign-in appends the session token to the redirect URL; this picks it up on load.
+    detectSessionInUrl: true,
+  },
+});

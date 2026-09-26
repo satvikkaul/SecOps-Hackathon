@@ -18,6 +18,7 @@ from psycopg_pool import ConnectionPool
 from pydantic import BaseModel, Field, StringConstraints
 
 from app import personalize as ai
+from app.chat import handle_chat
 from app.dns_check import all_failed, check_domain, is_valid_domain, normalize_domain
 
 HERE = Path(__file__).parent
@@ -74,7 +75,10 @@ async def lifespan(_: FastAPI):
 app = FastAPI(title="Chain of Custody API", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[FRONTEND_URL, "http://localhost:5173"],
+    allow_origins=[FRONTEND_URL],
+    # Vite picks the next free port when 5173 is taken, so allow any localhost port in dev rather
+    # than just 5173 — this regex never matches a non-localhost origin, so prod is unaffected.
+    allow_origin_regex=r"http://localhost:\d+",
     allow_methods=["GET", "POST"],
     allow_headers=["content-type"],
 )
@@ -267,3 +271,16 @@ def post_personalize(body: PersonalizeIn, request: Request):
             (key, ai.MODEL, Jsonb(result)),
         )
     return {**result, "cached": False}
+
+
+class ChatIn(BaseModel):
+    sessionId: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=100)]
+    message: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
+    reportContext: dict[str, Any] = Field(default_factory=dict)
+
+
+@app.post("/api/chat")
+def chat(body: ChatIn):
+    """Follow-up questions about the caller's own report. No DB: history lives in app.chat's in-memory
+    session map for the life of this process, keyed by the client-generated sessionId."""
+    return {"reply": handle_chat(body.sessionId, body.message, body.reportContext)}
