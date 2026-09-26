@@ -32,7 +32,7 @@ Tests: `BE/test_api.py` 2 passing (local Postgres 17). FE 112 passing (includes 
 | 2 | Two demo profiles with visibly different rankings | One profile only |
 | 3 | Shareable read-only link | **Done and live**, verified end to end |
 | 4 | Partner diagram | Exists in FE (`RiskFlow`) |
-| 5 | Gemini-personalized results | **Built** (`POST /api/personalize`): profile card, per-risk "why it matters to you", fixes and steps reworded per level. Engine still ranks. Live after push |
+| 5 | Gemini-personalized results | **Built** (`POST /api/personalize`): profile card, per-risk "why it matters to you", fixes and steps reworded per level. Engine still ranks. **Live**, and the demo is cached for all 3 levels (about 5 s on the first call, instant after) |
 | 6 | Expertise level (Simple default / Standard / Expert) | **Done**: asked on "Before you start", switchable on Results. Changes wording and detail only, never scores |
 | 7 | Consequence chains per risk (carrier/broker/cold storage versions) | **Done**: shown on the Overview, risk cards, risk detail, and each fix |
 | 8 | Results in tabs (Overview · Fix first · Your risks · Supply chain · How we scored) | **Done** |
