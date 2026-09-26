@@ -2,6 +2,15 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — pushed FE + BE integration
+
+**Done**
+- Pushed `5591a39..dbffc0c` to `main`. Nothing new from the teammate on the remote.
+- The BE redeployed: `/api/health` ok, and the demo reseeded with `sector`.
+
+**Open**
+- The live FE bundle still served the old code at the last check (no share UI, no BE URL). Either the deploy is still running or it didn't trigger. Verify it in Railway.
+
 ## 2026-09-26 (Sat) — FE wired to BE
 
 **Done** (at the user's request, in `FE/`)

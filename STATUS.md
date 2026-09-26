@@ -6,8 +6,8 @@ _Last updated: 2026-09-26 (Sat). Overwrite this file at the end of every session
 
 ## Live
 
-- FE: https://secops-hackathon-production.up.railway.app (static Vite build, auto-deploys from `main`). `?demo` works.
-- BE: **live** at https://imaginative-tenderness-production-be96.up.railway.app (port 8080). All endpoints were verified on the live URL on 2026-09-26: health `db:true`, demo share, live DNS, CORS (FE allowed, other origins rejected), create/share, 422 on bad input, 404 on an unknown token.
+- FE: https://secops-hackathon-production.up.railway.app (static Vite build, auto-deploys from `main`). `?demo` works. `VITE_API_URL` is set on the FE service. **Pending:** as of the last check, the live bundle did not yet contain the share code from `dbffc0c`. Confirm the Railway FE deploy for that commit finished.
+- BE: **live** at https://imaginative-tenderness-production-be96.up.railway.app (port 8080). Redeployed from `dbffc0c` (demo reseeded with `sector`). All endpoints were verified on the live URL on 2026-09-26: health `db:true`, demo share, live DNS, CORS (FE allowed, other origins rejected), create/share, 422 on bad input, 404 on an unknown token.
 - DB: **Supabase live** (session pooler, us-east-1). Schema applied, RLS confirmed on both tables, and `demo-peel-valley` seeded. The Railway Postgres is unused and can be deleted.
 
 ## BE (`BE/`)
@@ -18,10 +18,10 @@ _Last updated: 2026-09-26 (Sat). Overwrite this file at the end of every session
 | `GET /api/dns/{domain}` | Done: dnspython lookup, 24 h Postgres cache, stale fallback, pinned demo row |
 | `POST /api/assessments` | Done: Pydantic validation, 64 KB cap, server-side DNS attached, 128-bit share token |
 | `GET /api/share/{token}` | Done: read-only, raw answers never returned |
-| Demo seed (`demo-peel-valley`) | Done: generated from the FE engine, top 5 = A1, A7, A4, A13, A8, posture High 3.20 |
+| Demo seed (`demo-peel-valley`) | Done: generated from the FE engine (`buildSnapshot`, shared with the Share button), top 5 = A1, A7, A4, A13, A8, posture High 3.20 |
 | Gemini action plan | Designed (PLAN.md → Phase 2), not built |
 
-Tests: `BE/test_api.py`, 2 passing against local Postgres 17. RLS is confirmed on for both tables.
+Tests: `BE/test_api.py` 2 passing (local Postgres 17). FE 112 passing (includes `snapshot.test.ts`). RLS is confirmed on for both tables in Supabase.
 
 ## Priorities
 
@@ -30,7 +30,7 @@ Tests: `BE/test_api.py`, 2 passing against local Postgres 17. RLS is confirmed o
 | 1 | Questionnaire → score → ranked plan on the live URL | Done (FE, client-side) |
 | 1a | "One person can change a destination alone" question + action | Missing (FE teammate) |
 | 2 | Two demo profiles with visibly different rankings | One profile only |
-| 3 | Shareable read-only link | BE live. FE wired (Share button, `?share=` view, DNS via BE) and tested locally against the live BE. **Live after push** |
+| 3 | Shareable read-only link | BE live. FE code pushed (`dbffc0c`). Waiting on the live FE deploy, then the incognito test |
 | 4 | Partner diagram | Exists in FE (`RiskFlow`) |
 | 5 | Gemini-worded plan | Designed |
 

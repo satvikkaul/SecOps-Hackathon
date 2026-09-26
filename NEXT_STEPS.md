@@ -4,7 +4,7 @@ _Ordered. Rewrite at the end of every session: remove done items and re-rank the
 
 ## BE (us)
 
-1. After the push, test on the live FE in incognito: `?demo` → Share with a partner → open the link in another browser.
+1. **Confirm the FE deploy of `dbffc0c` went live.** The live bundle should contain "Share with a partner". If it doesn't, check the Railway FE deploy logs and redeploy. Then test in incognito: `?demo` → Share with a partner → open the link in another browser.
 2. **Seed the second demo company** as soon as its profile exists: add it to `FE/src/data`, write a `gen_demo.ts` variant, and add an entry to `DEMOS` in `app/main.py`.
 3. **Gemini phase 2** (PLAN.md): `POST /api/assessments/{id}/plan`, the `action_plans` table, id/order validation, fallback to engine text. Only start this once the share link works end to end.
 4. Delete the unused Railway Postgres service.
