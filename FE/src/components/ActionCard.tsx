@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type { RankedAction } from '../engine/actions';
-import { scenarioById } from '../engine/data';
+import { scenarioById, scenarios } from '../engine/data';
+import type { Expertise } from '../engine/types';
+import { ChainLine } from './Chain';
 import FrameworkTags from './FrameworkTags';
 import { BandBadge, Pill, SCENARIO_COLORS } from './ui';
 
@@ -9,12 +11,12 @@ export function pct(x: number) {
   return v >= 10 ? `${Math.round(v)}%` : `${v.toFixed(1).replace(/\.0$/, '')}%`;
 }
 
-function CostTime({ r }: { r: RankedAction }) {
+function CostTime({ r, showEffort = true }: { r: RankedAction; showEffort?: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
       <Pill className="bg-emerald-50 text-emerald-800">💲 {r.action.cost}</Pill>
       <Pill>⏱ {r.action.time}</Pill>
-      <Pill>Effort {r.action.effort}/5</Pill>
+      {showEffort && <Pill>Effort {r.action.effort}/5</Pill>}
     </div>
   );
 }
@@ -75,7 +77,7 @@ export function WhatIf({ r }: { r: RankedAction }) {
         </tbody>
       </table>
       <p className="mt-3 text-sm text-slate-700">
-        Total risk across all seven scenarios drops from <b className="tabular-nums">{r.riskBefore.toFixed(2)}</b> to{' '}
+        Total risk across all {scenarios.length} scenarios drops from <b className="tabular-nums">{r.riskBefore.toFixed(2)}</b> to{' '}
         <b className="tabular-nums">{r.riskAfter.toFixed(2)}</b> ({pct(r.pctReduction)} lower).
       </p>
     </div>
@@ -109,7 +111,19 @@ export function Steps({ steps }: { steps: string[] }) {
   );
 }
 
-export default function ActionCard({ r, rank }: { r: RankedAction; rank: number }) {
+export default function ActionCard({
+  r,
+  rank,
+  expertise = 'medium',
+  stops,
+}: {
+  r: RankedAction;
+  rank: number;
+  expertise?: Expertise;
+  /** The risk this fix lowers most, and how that risk plays out for this business */
+  stops?: { name: string; chain: string[] };
+}) {
+  const basic = expertise === 'basic';
   const [showSteps, setShowSteps] = useState(false);
   const [showEffect, setShowEffect] = useState(false);
   return (
@@ -120,27 +134,37 @@ export default function ActionCard({ r, rank }: { r: RankedAction; rank: number 
           <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
             <h3 className="text-lg font-bold leading-snug text-slate-900">{r.action.title}</h3>
             <div className="shrink-0 rounded-lg bg-brand-50 px-3 py-1 text-right">
-              <div className="text-xs font-medium text-brand-700">Cuts total risk by</div>
+              <div className="text-xs font-medium text-brand-700">{basic ? 'Lowers your risk by' : 'Cuts total risk by'}</div>
               <div className="text-xl font-extrabold tabular-nums text-brand-800">{pct(r.pctReduction)}</div>
             </div>
           </div>
           {r.essential && <EssentialNote r={r} />}
           <p className="mt-1 text-slate-700">{r.action.whatToDo}</p>
+          {stops && stops.chain.length > 0 && (
+            <div className="mt-3 rounded-xl bg-rose-50/60 px-3 py-2">
+              <div className="text-xs font-semibold uppercase tracking-wide text-rose-800">Helps stop: {stops.name}</div>
+              <ChainLine steps={stops.chain} />
+            </div>
+          )}
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
             <span className="font-semibold text-slate-700">Why: </span>
             {r.action.why}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
-            <CostTime r={r} />
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reduces</span>
-              <ScenarioChips r={r} />
+            <CostTime r={r} showEffort={!basic} />
+            {!basic && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Reduces</span>
+                <ScenarioChips r={r} />
+              </div>
+            )}
+          </div>
+          {!basic && (
+            <div className="mt-2 flex items-center gap-2">
+              <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Standards</span>
+              <FrameworkTags questionIds={r.action.questionIds} />
             </div>
-          </div>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-xs font-semibold uppercase tracking-wide text-slate-500">Standards</span>
-            <FrameworkTags questionIds={r.action.questionIds} />
-          </div>
+          )}
           <div className="no-print mt-4 flex flex-wrap gap-2">
             <button
               type="button"

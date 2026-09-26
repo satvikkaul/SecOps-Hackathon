@@ -1,6 +1,8 @@
 import { useEffect, useRef, type ReactNode } from 'react';
 import { questionById, scenarioById } from '../engine/data';
 import type { RiskStory as Story } from '../engine/explain';
+import type { Expertise } from '../engine/types';
+import { Chain } from './Chain';
 import { BAND_STYLES, BandBadge, SCENARIO_COLORS } from './ui';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -52,8 +54,12 @@ export default function RiskStory({
   onSeeFix,
   onSeeMath,
   onSeeFlow,
+  chain,
+  expertise = 'medium',
 }: {
   story: Story;
+  chain: string[];
+  expertise?: Expertise;
   onClose: () => void;
   onSeeFix: (actionId: string) => void;
   onSeeMath: () => void;
@@ -83,9 +89,11 @@ export default function RiskStory({
         <span className="h-3 w-3 rounded-full" style={{ background: SCENARIO_COLORS[story.id] }} />
         <h3 className="text-lg font-bold text-slate-900">{sc.name}</h3>
         <BandBadge band={story.band} size="sm" />
-        <span className="font-mono text-sm tabular-nums text-slate-600">
-          chance {pct(story.chance)} × impact {I.final.toFixed(1)} = <b className="text-slate-900">{story.risk.toFixed(2)}</b>
-        </span>
+        {expertise !== 'basic' && (
+          <span className="font-mono text-sm tabular-nums text-slate-600">
+            chance {pct(story.chance)} × impact {I.final.toFixed(1)} = <b className="text-slate-900">{story.risk.toFixed(2)}</b>
+          </span>
+        )}
         <button
           type="button"
           onClick={onClose}
@@ -95,6 +103,13 @@ export default function RiskStory({
           Close ✕
         </button>
       </div>
+
+      {chain.length > 0 && (
+        <div className="border-b border-slate-100 px-5 pb-5 pt-4">
+          <h4 className="mb-2 text-sm font-bold uppercase tracking-wide text-slate-600">How it plays out for a business like yours</h4>
+          <Chain steps={chain} />
+        </div>
+      )}
 
       <div className="grid gap-8 p-5 lg:grid-cols-2">
         <Part n={1} title="Why it's likely">

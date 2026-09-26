@@ -1,7 +1,14 @@
 import type { RankedAction, Timeframe } from './actions';
 import { dataset as defaultDataset, supplyChain as defaultSupplyChain, type SupplyChain } from './data';
 import { bandFor, computeImpact, computeLikelihood, effectiveAnswer, isApplicable, type ImpactBreakdown } from './scoring';
-import type { Answers, AnswerValue, Band, Dataset, Profile, ScenarioId } from './types';
+import type { Answers, AnswerValue, Band, Dataset, Profile, ScenarioId, Sector } from './types';
+
+/** How a risk plays out for this kind of business, step by step. Falls back to the generic chain. */
+export function chainFor(scenarioId: ScenarioId, profile: Profile, data: Dataset = defaultDataset): string[] {
+  const chain = data.scenarios.find((s) => s.id === scenarioId)?.chain;
+  if (!chain) return [];
+  return chain[profile.sector as Sector] ?? chain.default;
+}
 
 /** A gap that raises the chance of this risk, with what the chance would be if it were fixed. */
 export interface Driver {

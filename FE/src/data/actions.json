@@ -405,5 +405,22 @@
     "time": "Weeks",
     "effort": 4,
     "questionIds": ["Q25"]
+  },
+  {
+    "id": "A19",
+    "title": "Lock down load changes: call back and get a second OK",
+    "whatToDo": "Any change to a pickup or delivery address is confirmed by calling the broker or shipper at a number you already had, and a second person OKs it before the driver is told.",
+    "why": "Load theft by email works because one busy person can reroute a truck on the strength of a single message. A call to a known number and a second pair of eyes stops it, and it costs nothing.",
+    "steps": [
+      "Write the rule down in one sentence: 'No pickup or delivery change goes to a driver until we've called the broker or shipper back on a number we already had, and a second person has OK'd it.'",
+      "Never use the phone number or link in the email asking for the change. Use the rate confirmation, your TMS, or the company's public website.",
+      "Pick who can give the second OK on each shift (for example, the dispatch lead or the owner) and make sure one of them is always reachable.",
+      "Watch for pressure: last-minute changes, a new consignee, 'urgent' wording, or a slightly different email address. Treat these as reasons to slow down.",
+      "Tell every dispatcher today, post the rule by the dispatch desk, and log each change with who called and who approved."
+    ],
+    "cost": "Free",
+    "time": "Under 1 hour",
+    "effort": 1,
+    "questionIds": ["Q26"]
   }
 ]

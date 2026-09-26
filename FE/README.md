@@ -31,12 +31,12 @@ Shortcuts for presenting:
 ```
 src/
   data/                 All tunable content. Edit these, not the code.
-    scenarios.json      7 threat scenarios and base likelihood per sector
+    scenarios.json      8 threat scenarios, base likelihood per sector, and a plain-language consequence chain per sector
     profile.json        Business profile questions
-    questions.json      25 underlying security questions: weights, help text, CCCS + CIS mappings, showIf
-    prompts.json        The questionnaire people see: 10 cards that fill in those 25 questions
+    questions.json      26 underlying security questions: weights, help text, technical label, CCCS + CIS mappings, showIf
+    prompts.json        The questionnaire people see: 10 cards that fill in those 26 questions
     impactRules.json    How the profile raises or lowers impact
-    actions.json        18 fixes: steps (with Microsoft 365 / Google variants), cost, time, effort
+    actions.json        19 fixes: steps (with Microsoft 365 / Google variants), cost, time, effort
     ranking.json        The two prioritization modes, cost points, and the essential-fix rule
     supplyChain.json    Right-hand column of the risk flow diagram
     cccs.json           CCCS Baseline Controls v1.2: 13 controls and their 42 sub-requirements
@@ -75,7 +75,7 @@ Top 5 → "Do these first". The rest go into the 30 / 60 / 90 day plan by effort
 
 ## The questionnaire
 
-People answer **10 cards** (`prompts.json`), not 25 separate questions. Each card fills in the underlying questions (`questions.json`) that the scoring and the CCCS/CIS mappings use, so none of that changes.
+People answer **10 cards** (`prompts.json`), not 26 separate questions. Each card fills in the underlying questions (`questions.json`) that the scoring and the CCCS/CIS mappings use, so none of that changes.
 
 - **Grouped rows.** Related questions share a card, e.g. "Accounts and passwords" has 4 short rows. Each row has answers written for that question ("The same day / Within a few days / It can take longer or get missed") instead of Yes / Partly / No, and each option maps to yes, partial, or no.
 - **Ladders for nested questions.** Backups are one choice that sets both Q14 (regular backups) and Q15 (offline, tested copy). You cannot have a tested offline copy without backing up, so one answer is clearer and still exact. Unrelated pairs, like the call-back rule and dual payment approval, stay as separate rows so no combination is lost.
@@ -182,7 +182,7 @@ It pre-fills Q11 and the email provider. The user can override both. Network fai
    | Q14 regular backups | Yes | Partly | Files go to a USB drive "when someone remembers" |
    | Q17 secure remote access | Partly | No | |
 
-   Result: BEC is #1 at 3.20 (High), stolen logins are #2 at 2.80, ransomware is #3 at 2.17, posture is High, A1 is the #1 action, then A7, A4, **A13**, A8.
+   Result (since the load-redirect risk and Q26 were added, 2026-09-26): **Load redirected to thieves is #1 at 3.50 (High)**, payment fraud #2 at 3.20 (High), stolen logins #3 at 2.80, posture High. Actions: A1 (two-step login on email), **A19 (call back and a second OK on load changes)**, A7, A8, A4. A13 is #7.
 3. The summary footer says "Self-assessed using Chain of Custody". The spec text said "FieldGuard", which looked like an earlier product name.
 4. Added a short `topic`, `gapLabel`, and scenario `phrase`/`short` fields to the JSON to drive the UI copy.
 5. **CCCS mapping corrected against the source text.** The spec mapped Q7 to awareness training and Q8 to access control. Neither fits: they are payment procedures and are now reported separately. The spec also mapped Q19 (equipment segmentation) to "Securely configure devices"; it is now a partial fit under Perimeter defences (BC.9). Q17 and Q18 gained secondary mappings (BC.5.1 and BC.4.1).

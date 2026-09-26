@@ -1,7 +1,7 @@
 import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { demoPersona, ranking } from './engine/data';
 import type { DnsResult } from './engine/dns';
-import type { Answers, AnswerValue, Profile, RankingMode, TemplateId } from './engine/types';
+import type { Answers, AnswerValue, Expertise, Profile, RankingMode, TemplateId } from './engine/types';
 
 export type Screen = 'landing' | 'template' | 'profile' | 'domain' | 'questions' | 'results' | 'summary';
 
@@ -26,6 +26,8 @@ export interface AppState {
   rankingMode: RankingMode;
   /** Framework the results and summary are reported against, chosen before the check-up */
   template: TemplateId;
+  /** How much technical detail to show. Changes wording and layout only, never the scores. */
+  expertise: Expertise;
 }
 
 const STORAGE_KEY = 'chain-of-custody:v1';
@@ -42,6 +44,7 @@ export const initialState: AppState = {
   isDemo: false,
   rankingMode: ranking.defaultMode,
   template: DEFAULT_TEMPLATE,
+  expertise: 'basic',
 };
 
 // ?demo opens the demo company's results; ?demo=summary opens its Supplier Security Summary.
@@ -73,6 +76,7 @@ export function demoState(): AppState {
     isDemo: true,
     rankingMode: ranking.defaultMode,
     template: DEFAULT_TEMPLATE,
+    expertise: 'basic',
   };
 }
 
@@ -120,7 +124,7 @@ export function useAppState() {
   }, []);
 
   const loadDemo = useCallback(() => {
-    setState((s) => ({ ...demoState(), rankingMode: s.rankingMode, template: s.template }));
+    setState((s) => ({ ...demoState(), rankingMode: s.rankingMode, template: s.template, expertise: s.expertise }));
     window.scrollTo({ top: 0 });
   }, []);
 

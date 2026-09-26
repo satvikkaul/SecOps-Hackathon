@@ -30,9 +30,9 @@ const withPayments: Profile = { ...baseProfile, payments: 'yes' };
 const allYes: Answers = Object.fromEntries(questions.map((q) => [q.id, 'yes']));
 
 describe('data integrity', () => {
-  it('has 7 scenarios and 25 questions', () => {
-    expect(scenarios).toHaveLength(7);
-    expect(questions).toHaveLength(25);
+  it('has 8 scenarios and 26 questions', () => {
+    expect(scenarios).toHaveLength(8);
+    expect(questions).toHaveLength(26);
   });
   it('all weights are between 0 and 1 and reference known scenarios', () => {
     const ids = new Set<string>(scenarios.map((s) => s.id));

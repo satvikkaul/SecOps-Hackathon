@@ -16,6 +16,11 @@
       "description": "Shared portals, vendor connections, and email threads let an attacker who gets into your business move on into a partner's systems."
     },
     {
+      "id": "LOAD",
+      "label": "Customers' loads stolen or delivered to thieves",
+      "description": "A redirected or double-brokered load never reaches the grocer or processor waiting for it. They lose the product and the shelf space, and they remember whose truck it was."
+    },
+    {
       "id": "AUDIT",
       "label": "Failed customer security audit",
       "description": "Grocers, processors, and shippers increasingly send suppliers security questionnaires. Gaps like these can fail them and put contracts at risk."
@@ -29,10 +34,11 @@
   "links": {
     "RANSOM": { "SPOIL": 1.0, "AUDIT": 0.4 },
     "BEC": { "FRAUD": 1.0, "AUDIT": 0.3 },
-    "ATO": { "FRAUD": 0.5, "PIVOT": 0.5, "DATA": 0.4 },
+    "ATO": { "FRAUD": 0.5, "PIVOT": 0.5, "DATA": 0.4, "LOAD": 0.4 },
     "OT": { "SPOIL": 0.8, "PIVOT": 0.3 },
     "THIRD": { "PIVOT": 1.0, "AUDIT": 0.4 },
     "DATALOSS": { "SPOIL": 0.4, "DATA": 0.6, "AUDIT": 0.3 },
-    "SHARED": { "PIVOT": 0.4, "AUDIT": 0.6, "DATA": 0.3 }
+    "SHARED": { "PIVOT": 0.4, "AUDIT": 0.6, "DATA": 0.3 },
+    "CARGO": { "LOAD": 1.0, "AUDIT": 0.4, "FRAUD": 0.3 }
   }
 }

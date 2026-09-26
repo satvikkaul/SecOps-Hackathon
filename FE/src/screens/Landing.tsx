@@ -4,7 +4,7 @@ import type { AppApi } from '../state';
 
 const STEPS = [
   { title: 'Tell us about your business', body: 'Nine quick questions about what you do and what hurts most when things stop.' },
-  { title: 'Answer in plain language', body: 'About 25 yes-or-no style questions. No jargon, and "Not sure" is always an option.' },
+  { title: 'Answer in plain language', body: 'About 26 yes-or-no style questions. No jargon, and "Not sure" is always an option.' },
   { title: 'Get your fix-first list', body: 'Your top risks, the cheapest fixes that matter most, and a summary to share with customers.' },
 ];
 
@@ -48,6 +48,7 @@ export default function Landing({ app }: { app: AppApi }) {
           <div className="text-slate-600">{demoPersona.location}</div>
           <p className="mt-3 leading-relaxed text-slate-700">{demoPersona.blurb}</p>
           <ul className="mt-4 space-y-1.5 text-sm text-slate-600">
+            <li>• Any dispatcher can reroute a load from a single email</li>
             <li>• Dispatchers share one load board login</li>
             <li>• Refrigeration vendor has always-on TeamViewer</li>
             <li>• Backups live on a USB drive in the office</li>

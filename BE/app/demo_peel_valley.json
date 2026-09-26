@@ -37,16 +37,23 @@
     "Q22": "no",
     "Q23": "unsure",
     "Q24": "no",
-    "Q25": "no"
+    "Q25": "no",
+    "Q26": "no"
   },
   "rankingMode": "effort",
   "results": {
     "sector": "Trucking or freight carrier",
     "posture": {
-      "score": 3.2,
+      "score": 3.5,
       "band": "High"
     },
     "scenarios": [
+      {
+        "id": "CARGO",
+        "name": "Load redirected to thieves",
+        "risk": 3.5,
+        "band": "High"
+      },
       {
         "id": "BEC",
         "name": "Fake payment request or invoice fraud",
@@ -98,12 +105,24 @@
         "cost": "Free",
         "time": "Under 1 hour",
         "effort": 1,
-        "priority": 3.434,
-        "pctReduction": 0.233,
+        "priority": 4.834,
+        "pctReduction": 0.265,
         "timeframe": 30,
         "cccs": [
           "BC.5.1"
         ]
+      },
+      {
+        "id": "A19",
+        "title": "Lock down load changes: call back and get a second OK",
+        "whatToDo": "Any change to a pickup or delivery address is confirmed by calling the broker or shipper at a number you already had, and a second person OKs it before the driver is told.",
+        "cost": "Free",
+        "time": "Under 1 hour",
+        "effort": 1,
+        "priority": 2.42,
+        "pctReduction": 0.133,
+        "timeframe": 30,
+        "cccs": []
       },
       {
         "id": "A7",
@@ -113,9 +132,24 @@
         "time": "Under 1 hour",
         "effort": 1,
         "priority": 2.304,
-        "pctReduction": 0.156,
+        "pctReduction": 0.126,
         "timeframe": 30,
         "cccs": []
+      },
+      {
+        "id": "A8",
+        "title": "Run a 30-minute fake email awareness session",
+        "whatToDo": "Walk staff through real examples of fake emails and turn on an 'External sender' warning in email.",
+        "cost": "Free",
+        "time": "Half a day",
+        "effort": 2,
+        "priority": 1.847,
+        "pctReduction": 0.203,
+        "timeframe": 30,
+        "cccs": [
+          "BC.6.1",
+          "BC.9.8"
+        ]
       },
       {
         "id": "A4",
@@ -125,41 +159,11 @@
         "time": "Under 1 hour",
         "effort": 1,
         "priority": 1.64,
-        "pctReduction": 0.111,
+        "pctReduction": 0.09,
         "timeframe": 30,
         "cccs": [
           "BC.12.3",
           "BC.10.2"
-        ]
-      },
-      {
-        "id": "A13",
-        "title": "Turn off always-on vendor remote access to equipment",
-        "whatToDo": "Switch off TeamViewer, AnyDesk, or similar tools on equipment computers, and only turn them on when the vendor actually needs to connect.",
-        "cost": "Free",
-        "time": "Under 1 hour",
-        "effort": 1,
-        "priority": 1.45,
-        "pctReduction": 0.098,
-        "timeframe": 30,
-        "cccs": [
-          "BC.4.1",
-          "BC.10.2"
-        ]
-      },
-      {
-        "id": "A8",
-        "title": "Run a 30-minute fake email awareness session",
-        "whatToDo": "Walk staff through real examples of fake emails and turn on an 'External sender' warning in email.",
-        "cost": "Free",
-        "time": "Half a day",
-        "effort": 2,
-        "priority": 1.287,
-        "pctReduction": 0.175,
-        "timeframe": 30,
-        "cccs": [
-          "BC.6.1",
-          "BC.9.8"
         ]
       }
     ],

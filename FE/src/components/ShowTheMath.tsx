@@ -168,7 +168,7 @@ export default function ShowTheMath({
       <div>
         <h4 className="mb-1 font-semibold text-slate-800">How fixes are ranked</h4>
         <p className="mb-3 text-sm text-slate-600">
-          For each fix, we pretend you have done it (its questions set to Yes), recompute every risk, and measure the drop in total risk (sum of all seven,
+          For each fix, we pretend you have done it (its questions set to Yes), recompute every risk, and measure the drop in total risk (sum of all {assessment.scenarios.length},
           currently <span className="font-mono">{f2(assessment.totalRisk)}</span>). Two ways to turn that into a priority, shown side by side; the list is
           sorted by the one you picked (<b>{ranking.modes[mode].label}</b>, highlighted):
         </p>

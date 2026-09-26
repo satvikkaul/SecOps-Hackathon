@@ -12,6 +12,32 @@
       "coldstorage": 0.6,
       "carrier": 0.6,
       "broker": 0.6
+    },
+    "chain": {
+      "default": [
+        "Someone opens a booby-trapped email, or an old computer never gets updates",
+        "Criminals lock every computer they can reach, backups included",
+        "You can't take orders, invoice, or run equipment",
+        "Days of lost business, plus a ransom demand"
+      ],
+      "carrier": [
+        "A dispatcher opens a fake invoice attachment",
+        "Ransomware locks dispatch, TMS, and billing computers",
+        "Trucks can't be dispatched and reefer loads sit at the dock",
+        "Spoiled cargo, missed delivery windows, and angry grocers"
+      ],
+      "broker": [
+        "Someone opens a fake rate confirmation",
+        "Ransomware locks your TMS and load records",
+        "You can't tender, track, or pay carriers",
+        "Loads miss appointments and shippers move their freight elsewhere"
+      ],
+      "coldstorage": [
+        "Someone opens a booby-trapped email",
+        "Ransomware locks inventory and temperature-monitoring computers",
+        "Product warms up with no alarm, and orders can't ship",
+        "Spoiled stock, and customers asking what else was affected"
+      ]
     }
   },
   {
@@ -27,6 +53,26 @@
       "coldstorage": 0.5,
       "carrier": 0.8,
       "broker": 0.9
+    },
+    "chain": {
+      "default": [
+        "A criminal sends an email that looks like it's from a supplier",
+        "It says their bank details have changed",
+        "Someone updates the details without calling to check",
+        "Your payment goes to the criminal and is usually gone for good"
+      ],
+      "carrier": [
+        "An email that looks like your fuel supplier or factoring company arrives",
+        "It says: 'our bank details changed, please update them'",
+        "Someone updates them without calling a number you already had",
+        "Your next payment, often tens of thousands, goes to criminals"
+      ],
+      "broker": [
+        "A 'carrier' emails new bank details just before payday",
+        "Nobody calls that carrier at a number on file",
+        "You pay the fake account, and the real carrier still wants paying",
+        "You pay twice, and the carrier stops hauling for you"
+      ]
     }
   },
   {
@@ -42,6 +88,26 @@
       "coldstorage": 0.5,
       "carrier": 0.7,
       "broker": 0.8
+    },
+    "chain": {
+      "default": [
+        "A staff password is reused, leaked, or guessed",
+        "Criminals log in to your banking or supplier websites as you",
+        "They change payment details, order goods, or copy data",
+        "The losses show up weeks later"
+      ],
+      "carrier": [
+        "The shared load board password leaks",
+        "Criminals log in as your company",
+        "They book loads in your name or change where your payouts go",
+        "Shippers blame you, and your reputation takes the hit"
+      ],
+      "broker": [
+        "A TMS or load board password leaks",
+        "Criminals post fake loads or copy your carrier list",
+        "They pose as you to carriers and shippers",
+        "Stolen freight gets tied to your company name"
+      ]
     }
   },
   {
@@ -57,6 +123,26 @@
       "coldstorage": 0.7,
       "carrier": 0.4,
       "broker": 0.2
+    },
+    "chain": {
+      "default": [
+        "A vendor's remote access to your equipment is left on all the time",
+        "Someone uses it to get into your equipment controls",
+        "Refrigeration, dryers, or sensors are switched off or changed",
+        "Product is ruined before anyone notices"
+      ],
+      "carrier": [
+        "The refrigeration vendor's remote access is always on",
+        "Someone connects to your reefer or dock controls",
+        "Temperatures change and no alarm goes off",
+        "A trailer of produce spoils before delivery"
+      ],
+      "coldstorage": [
+        "The refrigeration vendor's remote access is always on",
+        "Someone connects to your freezer or room controls",
+        "Setpoints change overnight with no alarm",
+        "A room of product has to be thrown away"
+      ]
     }
   },
   {
@@ -72,6 +158,20 @@
       "coldstorage": 0.5,
       "carrier": 0.5,
       "broker": 0.6
+    },
+    "chain": {
+      "default": [
+        "Your IT provider or a software vendor gets hacked",
+        "The attackers use that company's access to reach you",
+        "They move around quietly for weeks",
+        "Ransomware or data theft that started somewhere else"
+      ],
+      "carrier": [
+        "Your TMS, ELD, or IT provider is breached",
+        "Attackers use its connection into your office",
+        "Dispatch and customer data is exposed",
+        "You're shut down, and you weren't even the target"
+      ]
     }
   },
   {
@@ -87,6 +187,20 @@
       "coldstorage": 0.5,
       "carrier": 0.5,
       "broker": 0.5
+    },
+    "chain": {
+      "default": [
+        "A computer dies, is stolen, or gets locked by ransomware",
+        "There's no backup that actually works",
+        "Invoices, records, and customer lists are gone",
+        "Weeks of rebuilding, and some of it never comes back"
+      ],
+      "carrier": [
+        "The office computer with dispatch records and rate sheets dies",
+        "The only backup is an old USB drive",
+        "BOLs, proof of delivery, and invoices are gone",
+        "You can't bill for loads you already delivered"
+      ]
     }
   },
   {
@@ -102,6 +216,55 @@
       "coldstorage": 0.5,
       "carrier": 0.6,
       "broker": 0.5
+    },
+    "chain": {
+      "default": [
+        "Several people share one login, or an ex-employee's account still works",
+        "Someone misuses it",
+        "The records can't show who did what",
+        "You can't prove what happened, or lock out just that person"
+      ],
+      "carrier": [
+        "Dispatchers share one login, and a driver who left still knows it",
+        "Someone books or changes loads with it",
+        "The logs just say 'dispatch'",
+        "You can't tell who did it, or lock out just them"
+      ]
+    }
+  },
+  {
+    "id": "CARGO",
+    "name": "Load redirected to thieves",
+    "short": "Load redirect",
+    "phrase": "a load being redirected to thieves",
+    "description": "Someone posing as your broker or customer asks for a new pickup or delivery address, one person changes it, and the load goes to thieves.",
+    "category": "Cargo theft and fraud",
+    "base": {
+      "farm": 0.2,
+      "processor": 0.3,
+      "coldstorage": 0.4,
+      "carrier": 0.7,
+      "broker": 0.7
+    },
+    "chain": {
+      "default": [
+        "Criminals get into a staff email account, or fake a customer's email",
+        "They see which shipments are worth the most",
+        "They ask for a 'new delivery address', and one person changes it",
+        "The load goes to thieves"
+      ],
+      "carrier": [
+        "A dispatcher's email password is phished",
+        "Criminals read your shipment history and pick a high-value reefer load",
+        "Posing as the broker, they email a 'new delivery address'",
+        "One dispatcher changes it alone, and the load is gone"
+      ],
+      "broker": [
+        "Criminals phish your email or fake a shipper's",
+        "They pick a high-value load from your email threads",
+        "They send the carrier a 'revised' delivery address",
+        "The carrier delivers to thieves, and you get the blame"
+      ]
     }
   }
 ]

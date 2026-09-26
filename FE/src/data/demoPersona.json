@@ -39,14 +39,16 @@
     "Q22": "no",
     "Q23": "unsure",
     "Q24": "no",
-    "Q25": "no"
+    "Q25": "no",
+    "Q26": "no"
   },
   "notes": {
     "Q3": "Dispatchers share one load board login.",
     "Q13": "Defender is on at the office, but two dispatch laptops have it switched off.",
     "Q14": "Someone copies files to a USB drive when they remember.",
     "Q15": "The only backup is that USB drive, kept in the office.",
-    "Q18": "Refrigeration vendor has always-on TeamViewer."
+    "Q18": "Refrigeration vendor has always-on TeamViewer.",
+    "Q26": "Any dispatcher can change a delivery address from an email, with no call-back."
   },
   "dnsResult": {
     "domain": "peelvalleyfresh.ca",

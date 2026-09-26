@@ -11,9 +11,8 @@ _Ordered. Rewrite at the end of every session: remove done items and re-rank the
 
 ## FE (teammate)
 
-1. Destination-change question + action (the core of the attack path).
-2. A second demo persona.
-3. Start new work from the latest `main` (`git pull origin main`), not from the old `nima`/`Hala's` branches. Don't commit `node_modules`. Pull before editing: `api.ts`, `engine/snapshot.ts`, `ShareButton`, `SharedSummary`, and small edits to `App.tsx`, `Results.tsx`, and `DomainCheck.tsx` landed on 2026-09-26.
+1. A second demo persona (on hold at the user's request).
+2. Start new work from the latest `main` (`git pull origin main`), not from the old `nima`/`Hala's` branches. Don't commit `node_modules`. Pull before editing: `api.ts`, `engine/snapshot.ts`, `ShareButton`, `SharedSummary`, and small edits to `App.tsx`, `Results.tsx`, and `DomainCheck.tsx` landed on 2026-09-26.
 
 ## Before Saturday 6 PM
 

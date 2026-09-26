@@ -17,8 +17,8 @@ const profile: Profile = {
 };
 
 describe('actions data', () => {
-  it('has 18 actions, each fixing known questions with 3 to 5 steps', () => {
-    expect(actions).toHaveLength(18);
+  it('has 19 actions, each fixing known questions with 3 to 5 steps', () => {
+    expect(actions).toHaveLength(19);
     for (const a of actions) {
       expect(a.questionIds.length).toBeGreaterThan(0);
       for (const id of a.questionIds) expect(questionById[id]).toBeDefined();

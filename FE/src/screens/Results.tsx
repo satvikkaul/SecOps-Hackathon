@@ -1,4 +1,6 @@
 import { useState, type ReactNode } from 'react';
+import { Chain } from '../components/Chain';
+import { ExpertiseSwitch } from '../components/Expertise';
 import ActionCard, { CompactAction, pct } from '../components/ActionCard';
 import RiskFlow from '../components/RiskFlow';
 import RiskStory from '../components/RiskStory';
@@ -9,9 +11,9 @@ import StandardsPanel from '../components/StandardsPanel';
 import ShareButton from '../components/ShareButton';
 import { BAND_STYLES, BandBadge, Button, Card, SCENARIO_COLORS, SectionTitle } from '../components/ui';
 import { profileQuestions, scenarioById, templateById } from '../engine/data';
-import { explainRisk } from '../engine/explain';
+import { chainFor, explainRisk } from '../engine/explain';
 import type { ScenarioResult } from '../engine/scoring';
-import type { Band, ScenarioId } from '../engine/types';
+import type { Band, Expertise, Profile, ScenarioId } from '../engine/types';
 import type { AppApi } from '../state';
 import { timePhrase, useResults } from '../useResults';
 
@@ -22,8 +24,24 @@ const POSTURE_TEXT: Record<string, string> = {
   Low: 'You have strong basics in place. Keep them up and review once a year.',
 };
 
-function RiskCard({ s, rank, open, onToggle }: { s: ScenarioResult; rank: number; open: boolean; onToggle: () => void }) {
+function RiskCard({
+  s,
+  rank,
+  open,
+  onToggle,
+  expertise,
+  profile,
+}: {
+  s: ScenarioResult;
+  rank: number;
+  open: boolean;
+  onToggle: () => void;
+  expertise: Expertise;
+  profile: Profile;
+}) {
   const b = BAND_STYLES[s.band];
+  const basic = expertise === 'basic';
+  const chain = chainFor(s.id, profile);
   return (
     <div
       role="button"
@@ -48,34 +66,47 @@ function RiskCard({ s, rank, open, onToggle }: { s: ScenarioResult; rank: number
         <BandBadge band={s.band} />
       </div>
       <h3 className="mt-2 text-lg font-bold leading-snug text-slate-900">{s.name}</h3>
-      <p className="mt-1 text-sm leading-relaxed text-slate-700">{s.description}</p>
-      <div className="mt-3 flex gap-4 text-sm text-slate-600">
-        <span>
-          Chance <b className="tabular-nums text-slate-900">{Math.round(s.likelihood.final * 100)}%</b>
-        </span>
-        <span>
-          Impact <b className="tabular-nums text-slate-900">{s.impact.final.toFixed(1)}/5</b>
-        </span>
-        <span>
-          Risk <b className="tabular-nums text-slate-900">{s.risk.toFixed(2)}</b>
-        </span>
-      </div>
-      {s.contributors.length > 0 && (
-        <div className="mt-3 border-t border-slate-200/70 pt-3">
-          <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Biggest reasons</div>
-          <ul className="space-y-1">
-            {s.contributors.map((c) => (
-              <li key={c.questionId} className="flex items-start gap-2 text-sm text-slate-800">
-                <span className={`mt-0.5 font-bold ${c.answer === 'unsure' ? 'text-slate-500' : b.text}`}>{c.answer === 'unsure' ? '?' : '✕'}</span>
-                <span>
-                  {c.label}
-                  {c.answer === 'partial' && <span className="text-slate-500"> (partly)</span>}
-                  {c.answer === 'unsure' && <span className="text-slate-500"> (not sure)</span>}
-                </span>
-              </li>
-            ))}
-          </ul>
+      {!basic && <p className="mt-1 text-sm leading-relaxed text-slate-700">{s.description}</p>}
+      {basic ? (
+        <ol className="mt-3 space-y-1.5">
+          {chain.map((step, i) => (
+            <li key={i} className={`flex gap-2 text-sm leading-snug ${i === chain.length - 1 ? 'font-semibold text-rose-800' : 'text-slate-700'}`}>
+              <span className="w-4 shrink-0 text-xs font-bold text-slate-400">{i + 1}</span>
+              {step}
+            </li>
+          ))}
+        </ol>
+      ) : (
+        <>
+        <div className="mt-3 flex gap-4 text-sm text-slate-600">
+          <span>
+            Chance <b className="tabular-nums text-slate-900">{Math.round(s.likelihood.final * 100)}%</b>
+          </span>
+          <span>
+            Impact <b className="tabular-nums text-slate-900">{s.impact.final.toFixed(1)}/5</b>
+          </span>
+          <span>
+            Risk <b className="tabular-nums text-slate-900">{s.risk.toFixed(2)}</b>
+          </span>
         </div>
+        {s.contributors.length > 0 && (
+          <div className="mt-3 border-t border-slate-200/70 pt-3">
+            <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Biggest reasons</div>
+            <ul className="space-y-1">
+              {s.contributors.map((c) => (
+                <li key={c.questionId} className="flex items-start gap-2 text-sm text-slate-800">
+                  <span className={`mt-0.5 font-bold ${c.answer === 'unsure' ? 'text-slate-500' : b.text}`}>{c.answer === 'unsure' ? '?' : '✕'}</span>
+                  <span>
+                    {c.label}
+                    {c.answer === 'partial' && <span className="text-slate-500"> (partly)</span>}
+                    {c.answer === 'unsure' && <span className="text-slate-500"> (not sure)</span>}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+        </>
       )}
       <div className="no-print mt-auto pt-3 text-sm font-semibold text-slate-700 group-hover:text-slate-900">
         {open ? 'Hide the full story ▴' : 'See the full story ▾'}
@@ -83,6 +114,15 @@ function RiskCard({ s, rank, open, onToggle }: { s: ScenarioResult; rank: number
     </div>
   );
 }
+
+type Tab = 'overview' | 'fixes' | 'risks' | 'chain' | 'proof';
+const TABS: { id: Tab; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
+  { id: 'fixes', label: 'Fix first' },
+  { id: 'risks', label: 'Your risks' },
+  { id: 'chain', label: 'Supply chain' },
+  { id: 'proof', label: 'How we scored' },
+];
 
 function Block({ children, className = '' }: { children: ReactNode; className?: string }) {
   return <section className={className}>{children}</section>;
@@ -109,7 +149,7 @@ function StatChip({ value, label }: { value: number; label: string }) {
 }
 
 /** Half-circle meter for the overall score out of 5. */
-function RiskGauge({ score, band }: { score: number; band: Band }) {
+function RiskGauge({ score, band, showScore = true }: { score: number; band: Band; showScore?: boolean }) {
   const frac = Math.min(1, Math.max(0, score / 5));
   const r = 80;
   const arc = Math.PI * r;
@@ -128,9 +168,11 @@ function RiskGauge({ score, band }: { score: number; band: Band }) {
         <text x="100" y="84" textAnchor="middle" className="fill-slate-900 text-[30px] font-extrabold">
           {band}
         </text>
-        <text x="100" y="106" textAnchor="middle" className="fill-slate-500 text-[13px] font-semibold">
-          {score.toFixed(2)} of 5
-        </text>
+        {showScore && (
+          <text x="100" y="106" textAnchor="middle" className="fill-slate-500 text-[13px] font-semibold">
+            {score.toFixed(2)} of 5
+          </text>
+        )}
       </svg>
       <div className="-mt-1 text-xs font-semibold uppercase tracking-widest text-slate-500">Overall risk</div>
     </div>
@@ -146,6 +188,7 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
   const [openRisk, setOpenRisk] = useState<ScenarioId | null>(null);
   const [mathFocus, setMathFocus] = useState<ScenarioId | null>(null);
   const [flowFocus, setFlowFocus] = useState<string | null>(null);
+  const [tab, setTab] = useState<Tab>('overview');
 
   if (!profile.sector) {
     return (
@@ -173,6 +216,15 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
   const topRisks = assessment.scenarios.slice(0, 3);
   const otherRisks = assessment.scenarios.slice(3);
 
+  const expertise = state.expertise;
+  const basic = expertise === 'basic';
+  const topChain = chainFor(top.id, profile);
+  /** The risk a fix lowers most, for the "helps stop" line on its card. */
+  const stopsFor = (r: (typeof ranked)[number]) => {
+    const id = r.scenarioDeltas[0]?.id;
+    return id ? { name: scenarioById[id].name, chain: chainFor(id, profile) } : undefined;
+  };
+
   const toggleRisk = (id: ScenarioId) => setOpenRisk((o) => (o === id ? null : id));
   const story = openRisk ? explainRisk(openRisk, profile, answers, ranked) : null;
 
@@ -187,242 +239,339 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
     window.setTimeout(() => el.classList.remove('flash-target'), 1900);
   };
 
+  /** Switch tab, then scroll to an element in it (after it renders), or to the top of the tab. */
+  const goTo = (next: Tab, elementId?: string) => {
+    setTab(next);
+    window.setTimeout(() => {
+      if (elementId) return jumpTo(elementId);
+      const bar = document.getElementById('results-tabs');
+      if (bar && bar.getBoundingClientRect().top < 0) window.scrollTo({ top: window.scrollY + bar.getBoundingClientRect().top - 64, behavior: 'smooth' });
+    }, 60);
+  };
+
   const storyPanel = story && (
     <RiskStory
       story={story}
+      chain={chainFor(story.id, profile)}
+      expertise={expertise}
       onClose={() => setOpenRisk(null)}
-      onSeeFix={(id) => jumpTo(`fix-${id}`)}
+      onSeeFix={(id) => goTo('fixes', `fix-${id}`)}
       onSeeMath={() => {
         setMathOpen(true);
         setMathFocus(story.id);
-        // Wait for the math panel to render before scrolling to it
-        window.setTimeout(() => jumpTo(`math-${story.id}`), 60);
+        goTo('proof', `math-${story.id}`);
       }}
       onSeeFlow={() => {
         setFlowFocus(story.id);
-        jumpTo('risk-flow');
+        goTo('chain', 'risk-flow');
       }}
     />
   );
 
   const openRiskFromGlance = (id: ScenarioId) => {
     setOpenRisk(id);
-    // Wait for the story panel to render before scrolling to it
-    window.setTimeout(() => jumpTo(`risk-story-${id}`), 60);
+    goTo('risks', `risk-story-${id}`);
   };
 
-  const actions = (
-    <div className="flex flex-wrap gap-2">
-      <Button onClick={() => go('summary')}>Supplier Security Summary</Button>
-      <ShareButton state={state} />
-      <RiskRegisterButton assessment={assessment} ranked={ranked} profile={profile} answers={answers} company={state.company} />
-      <Button variant="secondary" onClick={() => go('profile')}>
-        Edit answers
-      </Button>
-      <Button variant="ghost" onClick={onReset}>
-        Start over
-      </Button>
-    </div>
+  const accordion = (open: boolean, onClick: () => void, title: ReactNode, sub: ReactNode) => (
+    <button
+      type="button"
+      onClick={onClick}
+      className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-4 text-left shadow-sm hover:bg-slate-50"
+      aria-expanded={open}
+    >
+      <div>
+        <div className="text-xl font-bold text-slate-900">{title}</div>
+        <div className="text-slate-600">{sub}</div>
+      </div>
+      <span className={`text-2xl text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
+    </button>
   );
 
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6">
-      {/* Overall posture */}
-      <Card className={`overflow-hidden ${bs.ring}`}>
-        <div className={`grid gap-6 p-6 md:grid-cols-[auto_1fr] md:items-center md:p-8 ${bs.soft}`}>
-          <RiskGauge score={assessment.posture.score} band={band} />
-          <div>
-            <div className="text-sm font-semibold text-slate-500">
-              {sector}
-              {state.domain && <> · {state.domain}</>}
-            </div>
-            <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">
-              {state.company ? `Here's how ${state.company} is doing` : "Here's how your business is doing"}
-            </h1>
-            <p className="mt-3 text-xl leading-relaxed text-slate-800">{summary}</p>
-            <p className="mt-2 text-slate-600">{POSTURE_TEXT[band]}</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <StatChip value={assessment.scenarios.filter((s) => s.band === 'High' || s.band === 'Elevated').length} label="risks need attention" />
-              <StatChip value={ranked.length} label={ranked.length === 1 ? 'fix to do' : 'fixes to do'} />
-              {unsure.length > 0 && <StatChip value={unsure.length} label={unsure.length === 1 ? 'answer to double-check' : 'answers to double-check'} />}
-            </div>
-            <div className="no-print mt-5 xl:hidden">{actions}</div>
+    <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6">
+      {/* Who this is for, and the detail level */}
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="min-w-0">
+          <div className="text-sm font-semibold text-slate-500">
+            {sector}
+            {state.domain && <> · {state.domain}</>}
           </div>
+          <h1 className="truncate text-2xl font-extrabold tracking-tight text-slate-900">{state.company || 'Your business'}</h1>
         </div>
-      </Card>
+        <div className="no-print flex items-center gap-2">
+          <span className="hidden text-sm text-slate-500 sm:inline">Detail</span>
+          <ExpertiseSwitch value={expertise} onChange={(e) => app.update({ expertise: e })} />
+        </div>
+      </div>
 
-      <div className="mt-10 grid gap-10 xl:grid-cols-[minmax(0,1fr)_20rem]">
-        {/* Main column */}
-        <div className="min-w-0 space-y-12">
-          {/* Top risks */}
-          <Block>
-            <SectionTitle icon="🎯" sub="Ranked by how likely each one is for a business like yours, times how much it would hurt. Click any risk to see why, and what fixes it.">
-              Your top risks
-            </SectionTitle>
-            <div className="grid gap-4 md:grid-cols-3">
-              {topRisks.map((s, i) => (
-                <RiskCard key={s.id} s={s} rank={i + 1} open={openRisk === s.id} onToggle={() => toggleRisk(s.id)} />
-              ))}
-            </div>
-            {story && topRisks.some((s) => s.id === openRisk) && <div className="mt-4">{storyPanel}</div>}
-            <div className="mt-4 grid gap-2 md:grid-cols-2">
-              {otherRisks.map((s, i) => {
-                const open = openRisk === s.id;
-                return (
-                  <button
-                    key={s.id}
-                    type="button"
-                    onClick={() => toggleRisk(s.id)}
-                    aria-expanded={open}
-                    aria-controls={`risk-story-${s.id}`}
-                    className={`flex items-center gap-3 rounded-xl border bg-white px-4 py-2.5 text-left transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 ${
-                      open ? 'border-slate-800 ring-2 ring-slate-800' : 'border-slate-200 hover:border-slate-400 hover:shadow-sm'
-                    }`}
-                  >
-                    <span className="w-6 text-sm font-semibold text-slate-400">#{i + 4}</span>
-                    <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: SCENARIO_COLORS[s.id] }} />
-                    <span className="flex-1 font-medium text-slate-800">{s.name}</span>
-                    <span className="text-sm tabular-nums text-slate-500">{s.risk.toFixed(2)}</span>
-                    <BandBadge band={s.band} size="sm" />
-                    <span className="no-print text-slate-400" aria-hidden>
-                      {open ? '▴' : '▾'}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {story && otherRisks.some((s) => s.id === openRisk) && <div className="mt-4">{storyPanel}</div>}
-          </Block>
+      {/* Tabs: one screen at a time instead of one long page */}
+      <nav
+        id="results-tabs"
+        role="tablist"
+        aria-label="Results sections"
+        className="no-print sticky top-16 z-10 -mx-4 mt-4 flex gap-1 overflow-x-auto border-b border-slate-200 bg-slate-50/95 px-4 backdrop-blur sm:-mx-6 sm:px-6"
+      >
+        {TABS.map((tb) => (
+          <button
+            key={tb.id}
+            type="button"
+            role="tab"
+            id={`tab-${tb.id}`}
+            aria-selected={tab === tb.id}
+            aria-controls="results-panel"
+            onClick={() => goTo(tb.id)}
+            className={`-mb-px shrink-0 border-b-2 px-3 py-3 text-sm font-semibold transition focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-300 ${
+              tab === tb.id ? 'border-brand-600 text-brand-800' : 'border-transparent text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            {tb.label}
+          </button>
+        ))}
+      </nav>
 
-          {/* Do these first */}
-          <Block>
-            <SectionTitle
-              icon="🛠️"
-              sub={
-                state.rankingMode === 'cost'
-                  ? 'Ranked by how much risk each fix removes for the effort and money it takes. Tap “See the effect” to preview the change.'
-                  : 'Ranked by how much risk each fix removes for the effort it takes. Tap “See the effect” to preview the change.'
-              }
-            >
-              Do these first
-            </SectionTitle>
-            <div className="mb-4">
-              <RankingToggle mode={state.rankingMode} onChange={(m) => app.update({ rankingMode: m })} />
-            </div>
-            {plan.top.length === 0 ? (
-              <Card className="p-6 text-slate-700">Every fix on our list is already in place. Nice work.</Card>
-            ) : (
-              <div className="space-y-4">
-                {plan.top.map((r, i) => (
-                  <ActionCard key={r.action.id} r={r} rank={i + 1} />
-                ))}
+      <div className="mt-6 grid gap-10 xl:grid-cols-[minmax(0,1fr)_20rem]">
+        <div id="results-panel" role="tabpanel" aria-labelledby={`tab-${tab}`} className="fade-in min-w-0 space-y-10" key={tab}>
+          {tab === 'overview' && (
+            <>
+              <Card className={`overflow-hidden ${bs.ring}`}>
+                <div className={`grid gap-6 p-6 md:grid-cols-[auto_1fr] md:items-center md:p-8 ${bs.soft}`}>
+                  <RiskGauge score={assessment.posture.score} band={band} showScore={!basic} />
+                  <div>
+                    <p className="text-xl leading-relaxed text-slate-800 md:text-2xl">{summary}</p>
+                    <p className="mt-2 text-slate-600">{POSTURE_TEXT[band]}</p>
+                    {!basic && (
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <StatChip value={assessment.scenarios.filter((s) => s.band === 'High' || s.band === 'Elevated').length} label="risks need attention" />
+                        <StatChip value={ranked.length} label={ranked.length === 1 ? 'fix to do' : 'fixes to do'} />
+                        {unsure.length > 0 && <StatChip value={unsure.length} label={unsure.length === 1 ? 'answer to double-check' : 'answers to double-check'} />}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </Card>
+
+              <Block>
+                <SectionTitle icon="⚠️" sub="Here's how your biggest risk would actually play out, step by step.">
+                  {top.name}
+                </SectionTitle>
+                <Chain steps={topChain} />
+              </Block>
+
+              <Block>
+                <SectionTitle icon="🛠️" sub={first ? 'The three fixes that remove the most risk for the least work. Most take under a day.' : undefined}>
+                  Start here
+                </SectionTitle>
+                {plan.top.length === 0 ? (
+                  <Card className="p-6 text-slate-700">Every fix on our list is already in place. Nice work.</Card>
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-3">
+                    {plan.top.slice(0, 3).map((r, i) => {
+                      const stops = stopsFor(r);
+                      return (
+                        <button
+                          key={r.action.id}
+                          type="button"
+                          onClick={() => goTo('fixes', `fix-${r.action.id}`)}
+                          className="flex flex-col rounded-2xl border border-slate-200 bg-white p-4 text-left shadow-sm transition hover:-translate-y-0.5 hover:shadow-md focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200"
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">{i + 1}</span>
+                            <span className="text-sm font-semibold text-brand-800">Lowers your risk by {pct(r.pctReduction)}</span>
+                          </div>
+                          <div className="mt-2 font-bold leading-snug text-slate-900">{r.action.title}</div>
+                          {stops && <div className="mt-1 text-sm text-slate-600">Helps stop: {stops.name.toLowerCase()}</div>}
+                          <div className="mt-auto flex flex-wrap gap-1.5 pt-3 text-xs font-semibold">
+                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-800">💲 {r.action.cost}</span>
+                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">⏱ {r.action.time}</span>
+                          </div>
+                          <span className="mt-3 text-sm font-semibold text-brand-700">Show me how →</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </Block>
+
+              <div className="no-print flex flex-wrap gap-2">
+                <Button variant="secondary" onClick={() => goTo('risks')}>
+                  See all your risks
+                </Button>
+                <Button variant="secondary" onClick={() => goTo('fixes')}>
+                  See the full plan
+                </Button>
               </div>
-            )}
-          </Block>
+            </>
+          )}
 
-          {/* 30/60/90 plan */}
-          {ranked.length > plan.top.length && (
+          {tab === 'fixes' && (
+            <>
+              <Block>
+                <SectionTitle
+                  icon="🛠️"
+                  sub={
+                    basic
+                      ? 'The fixes that remove the most risk for the least work. Tap “Show step-by-step” for instructions.'
+                      : state.rankingMode === 'cost'
+                        ? 'Ranked by how much risk each fix removes for the effort and money it takes. Tap “See the effect” to preview the change.'
+                        : 'Ranked by how much risk each fix removes for the effort it takes. Tap “See the effect” to preview the change.'
+                  }
+                >
+                  Do these first
+                </SectionTitle>
+                {!basic && (
+                  <div className="mb-4">
+                    <RankingToggle mode={state.rankingMode} onChange={(m) => app.update({ rankingMode: m })} />
+                  </div>
+                )}
+                {plan.top.length === 0 ? (
+                  <Card className="p-6 text-slate-700">Every fix on our list is already in place. Nice work.</Card>
+                ) : (
+                  <div className="space-y-4">
+                    {plan.top.map((r, i) => (
+                      <ActionCard key={r.action.id} r={r} rank={i + 1} expertise={expertise} stops={stopsFor(r)} />
+                    ))}
+                  </div>
+                )}
+              </Block>
+
+              {ranked.length > plan.top.length && (
+                <Block>
+                  <SectionTitle
+                    icon="🗓️"
+                    sub={
+                      state.rankingMode === 'cost'
+                        ? 'Everything else, grouped by how much work it takes (essential recovery fixes no later than 60 days). Best value first.'
+                        : 'Everything else, grouped by how much work it takes. Quick wins first.'
+                    }
+                  >
+                    Your 30 / 60 / 90 day plan
+                  </SectionTitle>
+                  <div className="grid gap-4 md:grid-cols-3">
+                    {(
+                      [
+                        ['Next 30 days', 'Quick wins', plan.days30],
+                        ['Next 60 days', 'A few days of work', plan.days60],
+                        ['Next 90 days', 'Bigger projects', plan.days90],
+                      ] as const
+                    ).map(([title, sub, items]) => (
+                      <div key={title} className="rounded-2xl bg-slate-100/80 p-4">
+                        <div className="mb-3">
+                          <div className="font-bold text-slate-900">{title}</div>
+                          <div className="text-sm text-slate-600">{sub}</div>
+                        </div>
+                        <div className="space-y-2">
+                          {items.length === 0 ? <p className="text-sm text-slate-500">Nothing here.</p> : items.map((r) => <CompactAction key={r.action.id} r={r} />)}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </Block>
+              )}
+            </>
+          )}
+
+          {tab === 'risks' && (
             <Block>
               <SectionTitle
-                icon="🗓️"
+                icon="🎯"
                 sub={
-                  state.rankingMode === 'cost'
-                    ? 'Everything else, grouped by how much work it takes (essential recovery fixes no later than 60 days). Best value first.'
-                    : 'Everything else, grouped by how much work it takes. Quick wins first.'
+                  basic
+                    ? 'What could go wrong for a business like yours, most serious first. Click any risk to see what fixes it.'
+                    : 'Ranked by how likely each one is for a business like yours, times how much it would hurt. Click any risk to see why, and what fixes it.'
                 }
               >
-                Your 30 / 60 / 90 day plan
+                Your top risks
               </SectionTitle>
               <div className="grid gap-4 md:grid-cols-3">
-                {(
-                  [
-                    ['Next 30 days', 'Quick wins', plan.days30],
-                    ['Next 60 days', 'A few days of work', plan.days60],
-                    ['Next 90 days', 'Bigger projects', plan.days90],
-                  ] as const
-                ).map(([title, sub, items]) => (
-                  <div key={title} className="rounded-2xl bg-slate-100/80 p-4">
-                    <div className="mb-3">
-                      <div className="font-bold text-slate-900">{title}</div>
-                      <div className="text-sm text-slate-600">{sub}</div>
-                    </div>
-                    <div className="space-y-2">
-                      {items.length === 0 ? (
-                        <p className="text-sm text-slate-500">Nothing here.</p>
-                      ) : (
-                        items.map((r) => <CompactAction key={r.action.id} r={r} />)
-                      )}
-                    </div>
-                  </div>
+                {topRisks.map((s, i) => (
+                  <RiskCard key={s.id} s={s} rank={i + 1} open={openRisk === s.id} onToggle={() => toggleRisk(s.id)} expertise={expertise} profile={profile} />
                 ))}
               </div>
+              {story && topRisks.some((s) => s.id === openRisk) && <div className="mt-4">{storyPanel}</div>}
+              <div className="mt-4 grid gap-2 md:grid-cols-2">
+                {otherRisks.map((s, i) => {
+                  const open = openRisk === s.id;
+                  return (
+                    <button
+                      key={s.id}
+                      type="button"
+                      onClick={() => toggleRisk(s.id)}
+                      aria-expanded={open}
+                      aria-controls={`risk-story-${s.id}`}
+                      className={`flex items-center gap-3 rounded-xl border bg-white px-4 py-2.5 text-left transition focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200 ${
+                        open ? 'border-slate-800 ring-2 ring-slate-800' : 'border-slate-200 hover:border-slate-400 hover:shadow-sm'
+                      }`}
+                    >
+                      <span className="w-6 text-sm font-semibold text-slate-400">#{i + 4}</span>
+                      <span className="h-2.5 w-2.5 shrink-0 rounded-full" style={{ background: SCENARIO_COLORS[s.id] }} />
+                      <span className="flex-1 font-medium text-slate-800">{s.name}</span>
+                      {!basic && <span className="text-sm tabular-nums text-slate-500">{s.risk.toFixed(2)}</span>}
+                      <BandBadge band={s.band} size="sm" />
+                      <span className="no-print text-slate-400" aria-hidden>
+                        {open ? '▴' : '▾'}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+              {story && otherRisks.some((s) => s.id === openRisk) && <div className="mt-4">{storyPanel}</div>}
             </Block>
           )}
 
-          {/* Risk flow */}
-          <Block>
-            <SectionTitle icon="🔗" sub="How your biggest gaps could spill over onto the customers and partners who depend on you.">
-              How your gaps reach your supply chain
-            </SectionTitle>
-            <Card id="risk-flow" className="scroll-mt-24 p-4 md:p-6">
-              <RiskFlow graph={flow} focusId={flowFocus} />
-            </Card>
-          </Block>
+          {tab === 'chain' && (
+            <Block>
+              <SectionTitle icon="🔗" sub="How your biggest gaps could spill over onto the customers and partners who depend on you. Hover over any box to trace its path.">
+                How your gaps reach your supply chain
+              </SectionTitle>
+              <Card id="risk-flow" className="scroll-mt-24 p-4 md:p-6">
+                <RiskFlow graph={flow} focusId={flowFocus} />
+              </Card>
+            </Block>
+          )}
 
-          {/* Show the math and standards mapping */}
-          <Block className="space-y-4">
-            <div>
-              <button
-                type="button"
-                onClick={() => setMathOpen((o) => !o)}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-4 text-left shadow-sm hover:bg-slate-50"
-                aria-expanded={mathOpen}
-              >
-                <div>
-                  <div className="text-xl font-bold text-slate-900">Show the math</div>
-                  <div className="text-slate-600">Every number on this page, traced back to your answers.</div>
-                </div>
-                <span className={`text-2xl text-slate-400 transition-transform ${mathOpen ? 'rotate-90' : ''}`}>›</span>
-              </button>
-              {mathOpen && (
-                <div className="fade-in mt-4">
-                  <ShowTheMath assessment={assessment} ranked={ranked} profile={profile} mode={state.rankingMode} focusId={mathFocus} />
-                </div>
+          {tab === 'proof' && (
+            <Block className="space-y-4">
+              {basic && (
+                <p className="rounded-xl bg-sky-50 px-4 py-3 text-sky-900">
+                  This part is for your IT person, or a customer's security team. It shows exactly how every score was worked out, and which official standards each
+                  answer counts toward.
+                </p>
               )}
-            </div>
-            <div>
-              <button
-                type="button"
-                onClick={() => setStandardsOpen((o) => !o)}
-                className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-4 text-left shadow-sm hover:bg-slate-50"
-                aria-expanded={standardsOpen}
-              >
-                <div>
-                  {state.template === 'ciosc' ? (
-                    <>
-                      <div className="text-xl font-bold text-slate-900">How this maps to CyberSecure Canada</div>
-                      <div className="text-slate-600">The 18 sections of CAN/CIOSC 104:2021, numbered as in the OCI Cybersecurity Workbook, traced to your answers.</div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="text-xl font-bold text-slate-900">How this maps to CCCS and CIS</div>
-                      <div className="text-slate-600">Canadian Centre for Cyber Security baseline controls and CIS Controls v8.1, traced to your answers.</div>
-                    </>
-                  )}
-                </div>
-                <span className={`text-2xl text-slate-400 transition-transform ${standardsOpen ? 'rotate-90' : ''}`}>›</span>
-              </button>
-              {standardsOpen && (
-                <div className="fade-in mt-4">
-                  <StandardsPanel key={state.template} template={state.template} cccs={cccs} cis={cis} ciosc={ciosc} />
-                </div>
-              )}
-            </div>
-          </Block>
+              <div>
+                {accordion(mathOpen, () => setMathOpen((o) => !o), 'Show the math', 'Every number on these pages, traced back to your answers.')}
+                {mathOpen && (
+                  <div className="fade-in mt-4">
+                    <ShowTheMath assessment={assessment} ranked={ranked} profile={profile} mode={state.rankingMode} focusId={mathFocus} />
+                  </div>
+                )}
+              </div>
+              <div>
+                {state.template === 'ciosc'
+                  ? accordion(
+                      standardsOpen,
+                      () => setStandardsOpen((o) => !o),
+                      'How this maps to CyberSecure Canada',
+                      'The 18 sections of CAN/CIOSC 104:2021, numbered as in the OCI Cybersecurity Workbook, traced to your answers.',
+                    )
+                  : accordion(
+                      standardsOpen,
+                      () => setStandardsOpen((o) => !o),
+                      'How this maps to CCCS and CIS',
+                      'Canadian Centre for Cyber Security baseline controls and CIS Controls v8.1, traced to your answers.',
+                    )}
+                {standardsOpen && (
+                  <div className="fade-in mt-4">
+                    <StandardsPanel key={state.template} template={state.template} cccs={cccs} cis={cis} ciosc={ciosc} />
+                  </div>
+                )}
+              </div>
+            </Block>
+          )}
         </div>
 
         {/* Sidebar */}
-        <aside className="no-print space-y-4 xl:sticky xl:top-24 xl:max-h-[calc(100vh-7rem)] xl:self-start xl:overflow-y-auto xl:pb-2">
+        <aside className="no-print space-y-4 xl:sticky xl:top-32 xl:max-h-[calc(100vh-9rem)] xl:self-start xl:overflow-y-auto xl:pb-2">
           <SideCard title="Risks at a glance" icon="📊">
             <ul className="space-y-1">
               {assessment.scenarios.map((s) => (
@@ -452,9 +601,9 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
               <>
                 <div className="font-semibold leading-snug text-slate-900">{first.action.title}</div>
                 <p className="mt-1 text-sm text-slate-600">
-                  Cuts your total risk by <b className="text-brand-800">{pct(first.pctReduction)}</b> and {timePhrase(first.action.time)}.
+                  {basic ? 'Lowers' : 'Cuts'} your total risk by <b className="text-brand-800">{pct(first.pctReduction)}</b> and {timePhrase(first.action.time)}.
                 </p>
-                <Button onClick={() => jumpTo(`fix-${first.action.id}`)} className="mt-3 w-full py-2 text-sm">
+                <Button onClick={() => goTo('fixes', `fix-${first.action.id}`)} className="mt-3 w-full py-2 text-sm">
                   Show me how
                 </Button>
               </>

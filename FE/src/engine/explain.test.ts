@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { prioritizeActions } from './actions';
-import { demoPersona } from './data';
-import { explainRisk } from './explain';
+import { demoPersona, questions, scenarioById, scenarios } from './data';
+import { chainFor, explainRisk } from './explain';
 import { assess } from './scoring';
 import type { Answers, Profile } from './types';
 
@@ -65,5 +65,24 @@ describe('explainRisk with routes that do not apply', () => {
     expect(other).not.toContain('Q17');
     expect(other).not.toContain('Q19');
     expect(story.drivers.map((d) => d.questionId)).toContain('Q12');
+  });
+});
+
+describe('consequence chains', () => {
+  it('every risk has a generic chain of 3 to 5 steps, and any sector chain is too', () => {
+    for (const s of scenarios) {
+      for (const steps of Object.values(s.chain)) {
+        expect(steps!.length, s.id).toBeGreaterThanOrEqual(3);
+        expect(steps!.length, s.id).toBeLessThanOrEqual(5);
+      }
+    }
+  });
+  it('uses the sector version when there is one, the generic one otherwise', () => {
+    expect(chainFor('CARGO', { sector: 'carrier' })).toBe(scenarioById.CARGO.chain.carrier);
+    expect(chainFor('CARGO', { sector: 'farm' })).toBe(scenarioById.CARGO.chain.default);
+    expect(chainFor('CARGO', {})).toBe(scenarioById.CARGO.chain.default);
+  });
+  it('every question has a technical label for expert users', () => {
+    for (const q of questions) expect(q.tech?.trim(), q.id).toBeTruthy();
   });
 });

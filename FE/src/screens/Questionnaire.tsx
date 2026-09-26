@@ -1,6 +1,7 @@
+import { TechTag } from '../components/Expertise';
 import FrameworkTags from '../components/FrameworkTags';
 import { Button, Card, OptionCard, ProgressBar, WhyWeAsk } from '../components/ui';
-import { sections } from '../engine/data';
+import { questionById, sections } from '../engine/data';
 import {
   ladderAnswers,
   ladderSelection,
@@ -48,10 +49,11 @@ function Row({ row, app, showLabel }: { row: PromptRow; app: AppApi; showLabel: 
     <div>
       {showLabel && (
         <div className="font-medium leading-snug text-slate-900">
-          {rowLabel(row, state.profile)}
+          {rowLabel(row, state.profile, state.expertise)}
           {row.question === 'Q11' && state.autoFilled.Q11 && <AutoTag />}
         </div>
       )}
+      {state.expertise === 'expert' && <TechTag>{questionById[row.question].tech}</TechTag>}
       <div className={`mt-2.5 grid gap-2 sm:grid-cols-2 ${choices.length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
         {choices.map((o) => (
           <OptionCard key={o.value} label={o.label} tone={TONE[o.value]} selected={current === o.value} onClick={() => setAnswer(row.question, o.value)} />
@@ -81,6 +83,13 @@ function LadderCard({ p, app }: { p: LadderPrompt; app: AppApi }) {
   const selected = ladderSelection(p, state.answers);
   return (
     <div className="mt-3">
+      {state.expertise === 'expert' && (
+        <div className="mb-2.5 flex flex-wrap gap-1.5">
+          {p.questions.map((id) => (
+            <TechTag key={id}>{questionById[id].tech}</TechTag>
+          ))}
+        </div>
+      )}
       <div className="grid gap-2">
         {p.options.map((o, i) => (
           <OptionCard key={o.label} label={o.label} selected={selected === i} onClick={() => setAnswers(ladderAnswers(p, i))} />
@@ -146,9 +155,11 @@ export default function Questionnaire({ app }: { app: AppApi }) {
                 </h2>
                 <WhyWeAsk>
                   {p.why}
-                  <span className="mt-2 flex">
-                    <FrameworkTags questionIds={promptQuestionIds(p)} />
-                  </span>
+                  {state.expertise !== 'basic' && (
+                    <span className="mt-2 flex">
+                      <FrameworkTags questionIds={promptQuestionIds(p)} />
+                    </span>
+                  )}
                 </WhyWeAsk>
                 {p.type === 'rows' ? <RowsCard p={p} app={app} /> : <LadderCard p={p} app={app} />}
               </div>

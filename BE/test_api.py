@@ -39,6 +39,6 @@ def test_api():
         assert c.post("/api/assessments", json={**BODY, "company": "x" * 70000}).status_code == 413
 
         demo = c.get("/api/share/demo-peel-valley").json()
-        assert [a["id"] for a in demo["results"]["topActions"]] == ["A1", "A7", "A4", "A13", "A8"]
+        assert [a["id"] for a in demo["results"]["topActions"]] == ["A1", "A19", "A7", "A8", "A4"]
         # Pinned demo DNS never hits the network.
         assert c.get("/api/dns/peelvalleyfresh.ca").json()["cached"] is True

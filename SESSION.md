@@ -2,6 +2,20 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — load-redirect risk, expertise levels, tabbed results
+
+**Done** (FE, pulled on top of Nima's report-template and results-layout work)
+- New risk **CARGO "Load redirected to thieves"** (base: carrier/broker 0.7, farm 0.2). New question **Q26** (can one person change a pickup/delivery address alone?) and fix **A19** (call back on a known number plus a second OK). Impact +1 each for carrier/broker, perishable, and customer concentration. New supply-chain impact LOAD. Q26 is reported with the payment safeguards (no CCCS/CIS control covers it).
+- **Consequence chains**: `scenarios[].chain` = `default` plus `carrier`/`broker`/`coldstorage` versions, 3–5 plain steps each. `chainFor()` in `engine/explain.ts`.
+- **Expertise**: `state.expertise`, default `basic`. Asked on the "Before you start" screen, where Simple users skip the standards choice. Switchable on Results. Simple: plain row wording (`labelBasic`), no framework tags, no numeric scores, chain instead of numbers on risk cards. Expert: a `tech` label under every question. **Scores are identical at every level.**
+- **Results in tabs**, with Nima's sidebar kept. The Overview fits on one screen: gauge, the #1 risk's chain, and 3 "Start here" fixes. Cross-links switch tabs and then scroll.
+- New demo story: CARGO #1 3.50 High, BEC #2 3.20. Actions A1, A19, A7, A8, A4. Tests updated (139 FE). BE seed regenerated, BE test updated (2 passing).
+- Checked in headless Chrome at desktop and phone width: every tab, Simple vs Expert, the questionnaire at both levels, and the onboarding screen.
+
+**Decisions**
+- A1 (two-step login on email) is ranked above A19 because it lowers four risks. That's the pitch told honestly: email takeover is the way in, one-person load changes are where the money goes.
+- The expertise level changes presentation only. That answers "does saying I'm an expert change my score?"
+
 ## 2026-09-26 (Sat) — share link live end to end
 
 **Done**

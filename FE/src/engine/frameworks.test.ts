@@ -152,8 +152,8 @@ describe('status derivation', () => {
     expect(res.find((s) => s.id === '9.5')!.status).toBe('Partially met');
   });
   it('lists payment procedures separately, respecting showIf', () => {
-    expect(otherPractices({ payments: 'yes' }, { Q7: 'yes' }).map((p) => p.question.id)).toEqual(['Q7', 'Q8']);
-    expect(otherPractices({ payments: 'no' }, {}).map((p) => p.question.id)).toEqual(['Q8']);
+    expect(otherPractices({ payments: 'yes' }, { Q7: 'yes' }).map((p) => p.question.id)).toEqual(['Q7', 'Q8', 'Q26']);
+    expect(otherPractices({ payments: 'no' }, {}).map((p) => p.question.id)).toEqual(['Q8', 'Q26']);
   });
   it('every action traces to at least one framework reference or a payment practice', () => {
     for (const a of actions) {

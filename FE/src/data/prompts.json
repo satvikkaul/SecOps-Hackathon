@@ -83,8 +83,8 @@
       "id": "P3",
       "section": "payments",
       "type": "rows",
-      "title": "Paying suppliers",
-      "why": "Most payment fraud starts with an email saying \"we changed banks.\" Calling a number you already trust, not the one in the email, stops it. A second person approving big payments catches rushed or unusual requests.",
+      "title": "Payments and load changes",
+      "why": "Most payment fraud starts with an email saying \"we changed banks.\" Calling a number you already trust, not the one in the email, stops it. A second person approving big payments catches rushed or unusual requests. The same trick works on loads: a fake \"new delivery address\" email that one person acts on alone.",
       "rows": [
         {
           "question": "Q7",
@@ -102,6 +102,19 @@
             { "value": "yes", "label": "Always" },
             { "value": "partial", "label": "Sometimes" },
             { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q26",
+          "label": "If someone emails to change a pickup or delivery address, can one person make the change on their own?",
+          "labelBySector": {
+            "carrier": "If a broker or shipper emails to change a pickup or delivery address, can one dispatcher make the change on their own?",
+            "broker": "If a shipper or carrier emails to change a pickup or delivery address, can one person make the change on their own?"
+          },
+          "options": [
+            { "value": "yes", "label": "No, we call back on a known number and a second person OKs it" },
+            { "value": "partial", "label": "We call back, but one person can still change it" },
+            { "value": "no", "label": "Yes, one person can change it from the email" }
           ]
         }
       ]
@@ -134,6 +147,7 @@
         {
           "question": "Q11",
           "label": "Is your email domain protected against spoofing (DMARC)?",
+          "labelBasic": "Is your company email set up so strangers can't send fake emails that look like they came from you? (The email check can answer this.)",
           "options": [
             { "value": "yes", "label": "Yes, fakes are blocked" },
             { "value": "partial", "label": "Set up, but only monitoring" },
@@ -232,6 +246,7 @@
         {
           "question": "Q19",
           "label": "Is your connected equipment on a separate network from office computers?",
+          "labelBasic": "Are fridges, sensors, and cameras on a separate Wi-Fi or network from your office computers?",
           "options": [
             { "value": "yes", "label": "Yes" },
             { "value": "partial", "label": "Some of it" },

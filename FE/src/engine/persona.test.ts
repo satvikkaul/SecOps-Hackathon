@@ -10,21 +10,23 @@ const a = assess(profile, answers);
 const ranked = prioritizeActions(profile, answers);
 
 describe('demo persona: Peel Valley Fresh Logistics', () => {
-  it('BEC is the number one risk and is High', () => {
-    expect(a.scenarios[0].id).toBe('BEC');
-    expect(a.scenarios[0].band).toBe('High');
+  it('a redirected load is the number one risk, payment fraud number two, both High', () => {
+    expect(a.scenarios.slice(0, 2).map((s) => [s.id, s.band])).toEqual([
+      ['CARGO', 'High'],
+      ['BEC', 'High'],
+    ]);
   });
-  it('RANSOM is in the top 3', () => {
-    expect(a.scenarios.slice(0, 3).map((s) => s.id)).toContain('RANSOM');
+  it('RANSOM is in the top 5', () => {
+    expect(a.scenarios.slice(0, 5).map((s) => s.id)).toContain('RANSOM');
   });
   it('overall posture is High', () => {
     expect(a.posture.band).toBe('High');
   });
-  it('A1 or A7 is the number one action', () => {
-    expect(['A1', 'A7']).toContain(ranked[0].action.id);
+  it('email two-step login is the number one action, then the load-change rule', () => {
+    expect(ranked.slice(0, 2).map((r) => r.action.id)).toEqual(['A1', 'A19']);
   });
-  it('A13 is in the top 5 actions', () => {
-    expect(ranked.slice(0, 5).map((r) => r.action.id)).toContain('A13');
+  it('always-on vendor remote access (A13) is still on the plan', () => {
+    expect(ranked.slice(0, 8).map((r) => r.action.id)).toContain('A13');
   });
   it('lists Q20 and Q23 as worth checking', () => {
     expect(unsureQuestions(profile, answers).map((q) => q.id)).toEqual(['Q20', 'Q23']);
@@ -46,6 +48,7 @@ describe('demo persona: Peel Valley Fresh Logistics', () => {
     expect(otherPractices(profile, answers).map((p) => [p.question.id, p.status])).toEqual([
       ['Q7', 'Not yet met'],
       ['Q8', 'Not yet met'],
+      ['Q26', 'Not yet met'],
     ]);
   });
   it('builds a three-column flow graph with valid links', () => {

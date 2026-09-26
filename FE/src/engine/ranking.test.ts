@@ -77,10 +77,10 @@ describe('timeframes', () => {
 
 describe('demo persona under both modes', () => {
   for (const mode of ['effort', 'cost'] as const) {
-    it(`${mode}: A1 or A7 first, A13 in the top 5, sorted by priority`, () => {
+    it(`${mode}: email two-step login first, the load-change rule in the top 3, sorted by priority`, () => {
       const ranked = prioritizeActions(profile, answers, undefined, mode);
-      expect(['A1', 'A7']).toContain(ranked[0].action.id);
-      expect(ranked.slice(0, 5).map((r) => r.action.id)).toContain('A13');
+      expect(ranked[0].action.id).toBe('A1');
+      expect(ranked.slice(0, 3).map((r) => r.action.id)).toContain('A19');
       for (let i = 1; i < ranked.length; i++) expect(ranked[i - 1].priority).toBeGreaterThanOrEqual(ranked[i].priority);
       expect(ranked.every((r) => r.mode === mode)).toBe(true);
     });

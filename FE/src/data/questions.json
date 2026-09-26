@@ -7,8 +7,8 @@
     },
     {
       "id": "payments",
-      "title": "Payments and email",
-      "intro": "How you protect payments and spot fake emails."
+      "title": "Payments, loads, and email",
+      "intro": "How you protect payments and shipments, and spot fake emails."
     },
     {
       "id": "computers",
@@ -37,7 +37,8 @@
       "weights": {
         "RANSOM": 0.2,
         "BEC": 0.5,
-        "ATO": 0.5
+        "ATO": 0.5,
+        "CARGO": 0.4
       },
       "cccs": [
         {
@@ -53,7 +54,8 @@
           "safeguard": "6.3",
           "strength": "direct"
         }
-      ]
+      ],
+      "tech": "MFA on email (Entra ID / Google 2-Step Verification)"
     },
     {
       "id": "Q2",
@@ -64,7 +66,8 @@
       "gapLabel": "No phone code on business portals",
       "weights": {
         "ATO": 0.5,
-        "BEC": 0.2
+        "BEC": 0.2,
+        "CARGO": 0.3
       },
       "cccs": [
         {
@@ -81,7 +84,8 @@
           "strength": "direct"
         }
       ],
-      "mappingNote": "BC.5.1 names financial accounts explicitly. Cloud portals and online banking are externally-exposed applications under CIS 6.3."
+      "mappingNote": "BC.5.1 names financial accounts explicitly. Cloud portals and online banking are externally-exposed applications under CIS 6.3.",
+      "tech": "MFA on SaaS: banking, accounting, load boards, TMS"
     },
     {
       "id": "Q3",
@@ -92,7 +96,8 @@
       "gapLabel": "Shared logins in use",
       "weights": {
         "SHARED": 0.6,
-        "ATO": 0.2
+        "ATO": 0.2,
+        "CARGO": 0.15
       },
       "cccs": [
         {
@@ -110,7 +115,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "Neither framework has a standalone 'no shared accounts' rule. Individual logins are what make least privilege (BC.12.1), removing one person's access (BC.12.3), and a per-person account inventory (CIS 5.1) possible."
+      "mappingNote": "Neither framework has a standalone 'no shared accounts' rule. Individual logins are what make least privilege (BC.12.1), removing one person's access (BC.12.3), and a per-person account inventory (CIS 5.1) possible.",
+      "tech": "Unique user accounts, no shared credentials"
     },
     {
       "id": "Q4",
@@ -137,7 +143,8 @@
           "safeguard": "6.2",
           "strength": "direct"
         }
-      ]
+      ],
+      "tech": "Same-day deprovisioning for leavers"
     },
     {
       "id": "Q5",
@@ -148,7 +155,8 @@
       "gapLabel": "Passwords reused or written down",
       "weights": {
         "ATO": 0.3,
-        "SHARED": 0.2
+        "SHARED": 0.2,
+        "CARGO": 0.1
       },
       "cccs": [
         {
@@ -165,7 +173,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "A password manager is the practical way to meet CIS 5.2 (unique passwords). 5.2 also sets length minimums this question does not ask about."
+      "mappingNote": "A password manager is the practical way to meet CIS 5.2 (unique passwords). 5.2 also sets length minimums this question does not ask about.",
+      "tech": "Password manager, no credential reuse"
     },
     {
       "id": "Q6",
@@ -192,7 +201,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "CIS 5.4 requires dedicated admin accounts, which the recommended fix sets up, but the question only asks how many people hold admin rights."
+      "mappingNote": "CIS 5.4 requires dedicated admin accounts, which the recommended fix sets up, but the question only asks how many people hold admin rights.",
+      "tech": "Least privilege: no local admin on daily accounts"
     },
     {
       "id": "Q7",
@@ -212,7 +222,8 @@
       },
       "cccs": [],
       "cis": [],
-      "mappingNote": "A call-back rule is a payment procedure, not a baseline IT control. CCCS BC.6.1 and CIS 14.2 cover training staff to recognize business email compromise, but neither requires verifying bank changes. Shown separately on the Supplier Security Summary."
+      "mappingNote": "A call-back rule is a payment procedure, not a baseline IT control. CCCS BC.6.1 and CIS 14.2 cover training staff to recognize business email compromise, but neither requires verifying bank changes. Shown separately on the Supplier Security Summary.",
+      "tech": "Out-of-band verification of payee bank changes"
     },
     {
       "id": "Q8",
@@ -226,7 +237,8 @@
       },
       "cccs": [],
       "cis": [],
-      "mappingNote": "Dual approval of payments is a financial control. CCCS BC.12 and CIS Control 6 cover access to IT systems, not payment approval. Shown separately on the Supplier Security Summary."
+      "mappingNote": "Dual approval of payments is a financial control. CCCS BC.12 and CIS Control 6 cover access to IT systems, not payment approval. Shown separately on the Supplier Security Summary.",
+      "tech": "Dual authorization above a payment threshold"
     },
     {
       "id": "Q9",
@@ -238,7 +250,8 @@
       "weights": {
         "BEC": 0.3,
         "RANSOM": 0.2,
-        "ATO": 0.2
+        "ATO": 0.2,
+        "CARGO": 0.2
       },
       "cccs": [
         {
@@ -258,7 +271,8 @@
           "safeguard": "14.2",
           "strength": "direct"
         }
-      ]
+      ],
+      "tech": "Phishing awareness training, at least yearly"
     },
     {
       "id": "Q10",
@@ -269,7 +283,8 @@
       "gapLabel": "No external email warning",
       "weights": {
         "BEC": 0.2,
-        "RANSOM": 0.1
+        "RANSOM": 0.1,
+        "CARGO": 0.15
       },
       "cccs": [
         {
@@ -281,7 +296,8 @@
         }
       ],
       "cis": [],
-      "mappingNote": "External-sender tagging is an email gateway rule, closest to BC.9.8 (email filtering). No CIS v8.1 safeguard covers it: Control 9 addresses browsers, DNS filtering, DMARC, file types, and email anti-malware."
+      "mappingNote": "External-sender tagging is an email gateway rule, closest to BC.9.8 (email filtering). No CIS v8.1 safeguard covers it: Control 9 addresses browsers, DNS filtering, DMARC, file types, and email anti-malware.",
+      "tech": "External-sender banner on inbound mail"
     },
     {
       "id": "Q11",
@@ -308,7 +324,8 @@
           "safeguard": "9.5",
           "strength": "direct"
         }
-      ]
+      ],
+      "tech": "DMARC at p=quarantine or p=reject"
     },
     {
       "id": "Q12",
@@ -340,7 +357,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "Fully covers operating system updates (7.3); application updates (7.4) only partly."
+      "mappingNote": "Fully covers operating system updates (7.3); application updates (7.4) only partly.",
+      "tech": "Automatic OS and application patching"
     },
     {
       "id": "Q13",
@@ -371,7 +389,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "CIS 10.2 (automatic signature updates) is on by default in Microsoft Defender, but the question does not ask about it directly."
+      "mappingNote": "CIS 10.2 (automatic signature updates) is on by default in Microsoft Defender, but the question does not ask about it directly.",
+      "tech": "Endpoint protection (AV/EDR) on every device"
     },
     {
       "id": "Q14",
@@ -399,7 +418,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "Asks whether backups are regular, not whether they are automated or proven to restore. Q15 covers the rest."
+      "mappingNote": "Asks whether backups are regular, not whether they are automated or proven to restore. Q15 covers the rest.",
+      "tech": "Scheduled backups"
     },
     {
       "id": "Q15",
@@ -438,7 +458,8 @@
           "strength": "direct"
         }
       ],
-      "mappingNote": "BC.7.2 also requires encrypted backups, which is not asked."
+      "mappingNote": "BC.7.2 also requires encrypted backups, which is not asked.",
+      "tech": "Offline or immutable backup, with a tested restore"
     },
     {
       "id": "Q16",
@@ -471,7 +492,8 @@
           "strength": "direct"
         }
       ],
-      "mappingNote": "On modern phones a PIN is what protects the device's encrypted storage (BC.8.4). Remote wipe usually comes from a mobility management tool (BC.8.5). The other five BC.8 requirements are not asked."
+      "mappingNote": "On modern phones a PIN is what protects the device's encrypted storage (BC.8.4). Remote wipe usually comes from a mobility management tool (BC.8.5). The other five BC.8 requirements are not asked.",
+      "tech": "MDM: device passcode and remote wipe"
     },
     {
       "id": "Q17",
@@ -510,7 +532,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "The phone-code part also supports BC.5.1. CIS 12.7 (VPN plus central authentication) is an IG2 safeguard and only partly covered."
+      "mappingNote": "The phone-code part also supports BC.5.1. CIS 12.7 (VPN plus central authentication) is an IG2 safeguard and only partly covered.",
+      "tech": "VPN or ZTNA with MFA, no internet-exposed RDP"
     },
     {
       "id": "Q18",
@@ -552,7 +575,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "Neither framework names vendor remote-access tools. One left running when unused is an unnecessary feature or service (BC.4.1, CIS 4.8) and part of how an outside provider accesses your systems (BC.10.2)."
+      "mappingNote": "Neither framework names vendor remote-access tools. One left running when unused is an unnecessary feature or service (BC.4.1, CIS 4.8) and part of how an outside provider accesses your systems (BC.10.2).",
+      "tech": "Just-in-time vendor remote access (TeamViewer, AnyDesk)"
     },
     {
       "id": "Q19",
@@ -585,7 +609,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "CCCS has no general network segmentation requirement. It applies the same isolation idea to internet-facing servers (BC.9.1) and point-of-sale systems (BC.9.6), so this counts toward BC.9 without claiming either. CIS 12.2 requires segmentation (IG2)."
+      "mappingNote": "CCCS has no general network segmentation requirement. It applies the same isolation idea to internet-facing servers (BC.9.1) and point-of-sale systems (BC.9.6), so this counts toward BC.9 without claiming either. CIS 12.2 requires segmentation (IG2).",
+      "tech": "OT/IoT network segmentation"
     },
     {
       "id": "Q20",
@@ -612,7 +637,8 @@
           "safeguard": "4.7",
           "strength": "direct"
         }
-      ]
+      ],
+      "tech": "Default credentials changed on network and IoT devices"
     },
     {
       "id": "Q21",
@@ -640,7 +666,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "Guest and driver Wi-Fi is a public network under BC.9.5. CIS v8.1 has no guest Wi-Fi safeguard; it falls under segmentation in 12.2."
+      "mappingNote": "Guest and driver Wi-Fi is a public network under BC.9.5. CIS v8.1 has no guest Wi-Fi safeguard; it falls under segmentation in 12.2.",
+      "tech": "Guest Wi-Fi isolated from the business network"
     },
     {
       "id": "Q22",
@@ -667,7 +694,8 @@
           "strength": "direct"
         }
       ],
-      "mappingNote": "CCCS does not require a vendor inventory, but you cannot evaluate how providers access your systems (BC.10.2) without one."
+      "mappingNote": "CCCS does not require a vendor inventory, but you cannot evaluate how providers access your systems (BC.10.2) without one.",
+      "tech": "Third-party access inventory"
     },
     {
       "id": "Q23",
@@ -694,7 +722,8 @@
           "strength": "direct"
         }
       ],
-      "mappingNote": "CIS 15.4 lists incident and data breach notification as an example contract requirement."
+      "mappingNote": "CIS 15.4 lists incident and data breach notification as an example contract requirement.",
+      "tech": "Breach-notification clause in vendor contracts"
     },
     {
       "id": "Q24",
@@ -737,7 +766,8 @@
           "strength": "partial"
         }
       ],
-      "mappingNote": "A written contact list and first steps meet CIS 17.2 directly. Naming who is in charge (17.1) and a full response process (17.4) are only partly covered."
+      "mappingNote": "A written contact list and first steps meet CIS 17.2 directly. Naming who is in charge (17.1) and a full response process (17.4) are only partly covered.",
+      "tech": "Written incident response plan and contact list"
     },
     {
       "id": "Q25",
@@ -761,7 +791,24 @@
         }
       ],
       "cis": [],
-      "mappingNote": "CIS 17.2 lists your insurer as an incident contact but does not ask whether you have cyber insurance."
+      "mappingNote": "CIS 17.2 lists your insurer as an incident contact but does not ask whether you have cyber insurance.",
+      "tech": "Cyber insurance, including social-engineering fraud cover"
+    },
+    {
+      "id": "Q26",
+      "section": "payments",
+      "topic": "Second check on load changes",
+      "text": "If someone asks to change a pickup or delivery address, does that need a call-back to a number on file and a second person's OK?",
+      "why": "Criminals who get into an email account, or fake a broker's email, send a 'new delivery address' and count on one busy person changing it. A call to a number you already had, plus a second person's OK, keeps the load out of their hands.",
+      "gapLabel": "One person can change where a load goes",
+      "weights": {
+        "CARGO": 0.6,
+        "BEC": 0.1
+      },
+      "cccs": [],
+      "cis": [],
+      "mappingNote": "Confirming shipment changes is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary.",
+      "tech": "Out-of-band verification and dual control on shipment changes"
     }
   ]
 }

@@ -133,7 +133,7 @@ export default function Summary({ app }: { app: AppApi }) {
 
         {otherPractices.length > 0 && (
           <section className="mt-4 print-avoid-break">
-            <h2 className="text-lg font-bold text-slate-900">Payment fraud safeguards</h2>
+            <h2 className="text-lg font-bold text-slate-900">Payment and shipment safeguards</h2>
             <p className="text-xs text-slate-500">
               Business procedures that the {state.template === 'ciosc' ? 'CyberSecure Canada' : 'CCCS and CIS'} baselines do not cover.
             </p>

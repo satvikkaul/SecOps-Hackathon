@@ -1,11 +1,13 @@
 export type Sector = 'farm' | 'processor' | 'coldstorage' | 'carrier' | 'broker';
-export type ScenarioId = 'RANSOM' | 'BEC' | 'ATO' | 'OT' | 'THIRD' | 'DATALOSS' | 'SHARED';
+export type ScenarioId = 'RANSOM' | 'BEC' | 'ATO' | 'OT' | 'THIRD' | 'DATALOSS' | 'SHARED' | 'CARGO';
+/** How much technical detail the user wants. Changes wording and what is shown, never the scores. */
+export type Expertise = 'basic' | 'medium' | 'expert';
 export type AnswerValue = 'yes' | 'partial' | 'no' | 'unsure' | 'na';
 export type Band = 'High' | 'Elevated' | 'Moderate' | 'Low';
 
 /** Profile answers keyed by profile question id (sector, employees, ...). */
 export type Profile = Record<string, string | undefined>;
-/** Security answers keyed by question id (Q1..Q25). */
+/** Security answers keyed by question id (Q1..Q26). */
 export type Answers = Record<string, AnswerValue | undefined>;
 
 export interface Scenario {
@@ -18,6 +20,8 @@ export interface Scenario {
   /** Security domain shown in the risk register's Category column */
   category: string;
   base: Record<Sector, number>;
+  /** How this risk plays out, step by step, in plain words. `default` plus optional sector-specific versions. */
+  chain: { default: string[] } & Partial<Record<Sector, string[]>>;
 }
 
 export interface ShowIf {
@@ -33,6 +37,8 @@ export interface Question {
   text: string;
   why: string;
   gapLabel: string;
+  /** Technical name of the control, shown to expert users */
+  tech: string;
   weights: Partial<Record<ScenarioId, number>>;
   impactReduction?: Partial<Record<ScenarioId, number>>;
   /** CCCS baseline controls this question provides evidence for. Empty = no CCCS control applies. */

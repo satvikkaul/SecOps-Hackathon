@@ -23,7 +23,7 @@ const ladders = prompts.filter((p): p is LadderPrompt => p.type === 'ladder');
 const allRows = rowsPrompts.flatMap((p) => p.rows);
 
 describe('coverage: every underlying question is asked exactly once', () => {
-  it('covers all 25 questions with no gaps or duplicates', () => {
+  it('covers all 26 questions with no gaps or duplicates', () => {
     const asked = prompts.flatMap(promptQuestionIds);
     expect(new Set(asked).size).toBe(asked.length);
     expect([...asked].sort()).toEqual(questions.map((q) => q.id).sort());

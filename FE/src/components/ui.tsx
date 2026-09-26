@@ -16,6 +16,7 @@ export const SCENARIO_COLORS: Record<ScenarioId, string> = {
   THIRD: '#0d9488',
   DATALOSS: '#4f46e5',
   SHARED: '#a16207',
+  CARGO: '#be185d',
 };
 
 export function BandBadge({ band, size = 'md' }: { band: Band; size?: 'sm' | 'md' | 'lg' }) {

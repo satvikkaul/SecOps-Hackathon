@@ -1,11 +1,11 @@
 import promptsJson from '../data/prompts.json';
 import { dataset as defaultDataset } from './data';
 import { isVisible } from './scoring';
-import type { Answers, AnswerValue, Dataset, Profile } from './types';
+import type { Answers, AnswerValue, Dataset, Expertise, Profile } from './types';
 
 /**
  * The questionnaire the user sees is a set of prompts (cards). Each prompt fills in one or more of the
- * underlying questions Q1–Q25, which are what the scoring engine and the standards mappings use.
+ * underlying questions Q1–Q26, which are what the scoring engine and the standards mappings use.
  *
  * - "rows":   one card with a row per underlying question, each with its own answer labels.
  * - "ladder": one choice that sets several nested questions at once (e.g. backups → Q14 and Q15).
@@ -21,6 +21,8 @@ export interface PromptRow {
   question: string;
   label: string;
   labelBySector?: Record<string, string>;
+  /** Plainer wording for users who picked the simplest view */
+  labelBasic?: string;
   options: RowOption[];
   /** Label for a "does not apply" answer, when the question can genuinely not apply */
   na?: string;
@@ -56,7 +58,8 @@ export function promptQuestionIds(p: Prompt): string[] {
   return p.type === 'rows' ? p.rows.map((r) => r.question) : p.questions;
 }
 
-export function rowLabel(row: PromptRow, profile: Profile): string {
+export function rowLabel(row: PromptRow, profile: Profile, expertise: Expertise = 'medium'): string {
+  if (expertise === 'basic' && row.labelBasic) return row.labelBasic;
   return (profile.sector && row.labelBySector?.[profile.sector]) || row.label;
 }
 

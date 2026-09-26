@@ -28,11 +28,14 @@ Tests: `BE/test_api.py` 2 passing (local Postgres 17). FE 112 passing (includes 
 | # | Item | State |
 | --- | --- | --- |
 | 1 | Questionnaire → score → ranked plan on the live URL | Done (FE, client-side) |
-| 1a | "One person can change a destination alone" question + action | Missing (FE teammate) |
+| 1a | "One person can change a destination alone" question + action | **Done**: Q26, A19, and the new risk "Load redirected to thieves" (CARGO). Now the demo's #1 risk |
 | 2 | Two demo profiles with visibly different rankings | One profile only |
 | 3 | Shareable read-only link | **Done and live**, verified end to end |
 | 4 | Partner diagram | Exists in FE (`RiskFlow`) |
 | 5 | Gemini-worded plan | Designed |
+| 6 | Expertise level (Simple default / Standard / Expert) | **Done**: asked on "Before you start", switchable on Results. Changes wording and detail only, never scores |
+| 7 | Consequence chains per risk (carrier/broker/cold storage versions) | **Done**: shown on the Overview, risk cards, risk detail, and each fix |
+| 8 | Results in tabs (Overview · Fix first · Your risks · Supply chain · How we scored) | **Done** |
 
 ## Branches
 
