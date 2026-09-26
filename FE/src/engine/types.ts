@@ -65,6 +65,26 @@ export interface CccsControl {
   requirements: { id: string; summary: string }[];
 }
 
+/** A CAN/CIOSC 104 section, assessed through the CCCS controls it corresponds to. */
+export interface CioscSection {
+  id: string; // e.g. "5.5"
+  name: string;
+  /** CCCS controls covering the same ground. Empty = none of our questions test this section. */
+  cccs: string[];
+  note?: string;
+}
+
+/** The framework results are reported against. The questionnaire is the same for every template. */
+export type TemplateId = 'cccs-cis' | 'ciosc';
+
+export interface ReportTemplate {
+  id: TemplateId;
+  name: string;
+  tagline: string;
+  bestFor: string;
+  reportsOn: string[];
+}
+
 export interface CisSafeguard {
   id: string;
   title: string;

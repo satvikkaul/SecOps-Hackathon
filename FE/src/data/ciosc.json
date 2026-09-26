@@ -1,0 +1,29 @@
+{
+  "source": "CAN/CIOSC 104:2021, Baseline cyber security controls for small and medium organizations (Digital Governance Standards Institute), as used in the OCI Digital Competence Centre Cybersecurity Workbook",
+  "url": "https://www.oc-innovation.ca/programs/digital-competence-centre/oci-tools-and-resources/",
+  "groups": {
+    "4": "Organizational controls",
+    "5": "Baseline controls",
+    "6": "Controls by operating environment"
+  },
+  "sections": [
+    { "id": "4.1", "name": "Leadership commitment", "cccs": [], "note": "About management setting security policy and objectives. None of our questions test this." },
+    { "id": "4.2", "name": "Accountability for IT security", "cccs": [], "note": "About naming a senior person accountable for IT security. None of our questions test this." },
+    { "id": "4.3", "name": "Cyber security training", "cccs": ["BC.6"] },
+    { "id": "4.4", "name": "Cyber security risk assessment", "cccs": [], "note": "This check-up and its risk register are a starting point, but the questions do not test this section." },
+    { "id": "5.1", "name": "Incident response", "cccs": ["BC.1"] },
+    { "id": "5.2", "name": "Automatic patching", "cccs": ["BC.2"] },
+    { "id": "5.3", "name": "Security software", "cccs": ["BC.3"] },
+    { "id": "5.4", "name": "Secure device configuration", "cccs": ["BC.4"] },
+    { "id": "5.5", "name": "Strong user authentication", "cccs": ["BC.5"] },
+    { "id": "5.6", "name": "Backup and encryption", "cccs": ["BC.7"] },
+    { "id": "5.7", "name": "Perimeter defences", "cccs": ["BC.9"] },
+    { "id": "5.8", "name": "Access control and authorization", "cccs": ["BC.12"] },
+    { "id": "6.1", "name": "Secure mobility", "cccs": ["BC.8"] },
+    { "id": "6.2", "name": "Secure cloud and outsourced IT", "cccs": ["BC.10"] },
+    { "id": "6.3", "name": "Secure websites", "cccs": ["BC.11"] },
+    { "id": "6.4", "name": "Secure portable media", "cccs": ["BC.13"] },
+    { "id": "6.5", "name": "Point of sale and financial systems", "cccs": [], "note": "Applies to businesses that take card payments. None of our questions test this." },
+    { "id": "6.6", "name": "Security log management", "cccs": [], "note": "About collecting and reviewing security logs. None of our questions test this." }
+  ]
+}

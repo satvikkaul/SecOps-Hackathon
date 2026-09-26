@@ -15,7 +15,7 @@ export default function Landing({ app }: { app: AppApi }) {
   const start = () => {
     // Starting a real check-up after viewing the demo should not keep the demo answers.
     if (state.isDemo) app.reset();
-    go(hasProgress && Object.keys(state.answers).length > 0 ? 'questions' : 'profile');
+    go(hasProgress ? (Object.keys(state.answers).length > 0 ? 'questions' : 'profile') : 'template');
   };
 
   return (

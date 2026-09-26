@@ -7,7 +7,7 @@ import RankingToggle from '../components/RankingToggle';
 import RiskRegisterButton from '../components/RiskRegisterButton';
 import StandardsPanel from '../components/StandardsPanel';
 import { BAND_STYLES, BandBadge, Button, Card, SCENARIO_COLORS, SectionTitle } from '../components/ui';
-import { profileQuestions, scenarioById } from '../engine/data';
+import { profileQuestions, scenarioById, templateById } from '../engine/data';
 import { explainRisk } from '../engine/explain';
 import type { ScenarioResult } from '../engine/scoring';
 import type { ScenarioId } from '../engine/types';
@@ -90,7 +90,7 @@ function Block({ children, className = '' }: { children: ReactNode; className?: 
 export default function Results({ app, onReset }: { app: AppApi; onReset: () => void }) {
   const { state, go } = app;
   const { profile, answers } = state;
-  const { assessment, plan, ranked, unsure, flow, cccs, cis } = useResults(profile, answers, state.rankingMode);
+  const { assessment, plan, ranked, unsure, flow, cccs, cis, ciosc } = useResults(profile, answers, state.rankingMode);
   const [mathOpen, setMathOpen] = useState(false);
   const [standardsOpen, setStandardsOpen] = useState(false);
   const [openRisk, setOpenRisk] = useState<ScenarioId | null>(null);
@@ -353,14 +353,29 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
           aria-expanded={standardsOpen}
         >
           <div>
-            <div className="text-xl font-bold text-slate-900">How this maps to CCCS and CIS</div>
-            <div className="text-slate-600">Canadian Centre for Cyber Security baseline controls and CIS Controls v8.1, traced to your answers.</div>
+            {state.template === 'ciosc' ? (
+              <>
+                <div className="text-xl font-bold text-slate-900">How this maps to CyberSecure Canada</div>
+                <div className="text-slate-600">The 18 sections of CAN/CIOSC 104:2021, numbered as in the OCI Cybersecurity Workbook, traced to your answers.</div>
+              </>
+            ) : (
+              <>
+                <div className="text-xl font-bold text-slate-900">How this maps to CCCS and CIS</div>
+                <div className="text-slate-600">Canadian Centre for Cyber Security baseline controls and CIS Controls v8.1, traced to your answers.</div>
+              </>
+            )}
           </div>
           <span className={`text-2xl text-slate-400 transition-transform ${standardsOpen ? 'rotate-90' : ''}`}>›</span>
         </button>
+        <div className="no-print mt-2 px-2 text-sm text-slate-500">
+          Report template: <b className="text-slate-700">{templateById[state.template].name}</b> ·{' '}
+          <button type="button" onClick={() => go('template')} className="font-semibold text-brand-700 underline hover:text-brand-800">
+            Change template
+          </button>
+        </div>
         {standardsOpen && (
           <div className="fade-in mt-4">
-            <StandardsPanel cccs={cccs} cis={cis} />
+            <StandardsPanel key={state.template} template={state.template} cccs={cccs} cis={cis} ciosc={ciosc} />
           </div>
         )}
       </Block>

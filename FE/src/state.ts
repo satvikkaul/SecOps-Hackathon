@@ -1,9 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { demoPersona, ranking } from './engine/data';
 import type { DnsResult } from './engine/dns';
-import type { Answers, AnswerValue, Profile, RankingMode } from './engine/types';
+import type { Answers, AnswerValue, Profile, RankingMode, TemplateId } from './engine/types';
 
-export type Screen = 'landing' | 'profile' | 'domain' | 'questions' | 'results' | 'summary';
+export type Screen = 'landing' | 'template' | 'profile' | 'domain' | 'questions' | 'results' | 'summary';
+
+export const DEFAULT_TEMPLATE: TemplateId = 'cccs-cis';
+
+/** The chosen report template, for components deep in the tree (framework tags on fix cards). */
+export const TemplateContext = createContext<TemplateId>(DEFAULT_TEMPLATE);
+export const useTemplate = () => useContext(TemplateContext);
 
 export interface AppState {
   screen: Screen;
@@ -18,6 +24,8 @@ export interface AppState {
   isDemo: boolean;
   /** How fixes are prioritized: effort only, or effort + cost */
   rankingMode: RankingMode;
+  /** Framework the results and summary are reported against, chosen before the check-up */
+  template: TemplateId;
 }
 
 const STORAGE_KEY = 'chain-of-custody:v1';
@@ -33,6 +41,7 @@ export const initialState: AppState = {
   autoFilled: {},
   isDemo: false,
   rankingMode: ranking.defaultMode,
+  template: DEFAULT_TEMPLATE,
 };
 
 // ?demo opens the demo company's results; ?demo=summary opens its Supplier Security Summary.
@@ -63,6 +72,7 @@ export function demoState(): AppState {
     autoFilled: { Q11: true, emailProvider: true },
     isDemo: true,
     rankingMode: ranking.defaultMode,
+    template: DEFAULT_TEMPLATE,
   };
 }
 
@@ -110,7 +120,7 @@ export function useAppState() {
   }, []);
 
   const loadDemo = useCallback(() => {
-    setState((s) => ({ ...demoState(), rankingMode: s.rankingMode }));
+    setState((s) => ({ ...demoState(), rankingMode: s.rankingMode, template: s.template }));
     window.scrollTo({ top: 0 });
   }, []);
 

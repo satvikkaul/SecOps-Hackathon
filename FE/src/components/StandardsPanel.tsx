@@ -1,7 +1,7 @@
-import { useState } from 'react';
-import type { CccsResult, CisResult, ControlStatus, Evidence } from '../engine/controls';
-import { cccs as cccsCatalog, cis as cisCatalog, questionById, questions } from '../engine/data';
-import type { AnswerValue } from '../engine/types';
+import { Fragment, useState } from 'react';
+import type { CccsResult, CioscResult, CisResult, ControlStatus, Evidence } from '../engine/controls';
+import { cccs as cccsCatalog, ciosc as cioscCatalog, cis as cisCatalog, questionById, questions } from '../engine/data';
+import type { AnswerValue, TemplateId } from '../engine/types';
 
 export const STATUS_STYLE: Record<ControlStatus, string> = {
   Met: 'bg-emerald-100 text-emerald-800',
@@ -139,15 +139,76 @@ function MappingNotes() {
   );
 }
 
-type Tab = 'cccs' | 'cis' | 'notes';
+function CioscTable({ rows }: { rows: CioscResult[] }) {
+  const groups = [...new Set(rows.map((r) => r.group))];
+  return (
+    <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+      <table className="w-full text-sm">
+        <thead className="bg-slate-50 text-left text-xs uppercase tracking-wide text-slate-500">
+          <tr>
+            <th className="px-3 py-2">Section</th>
+            <th className="px-3 py-2">Status</th>
+            <th className="px-3 py-2">Based on your answers</th>
+            <th className="px-3 py-2">Same as CCCS</th>
+          </tr>
+        </thead>
+        <tbody>
+          {groups.map((g) => (
+            <Fragment key={g}>
+              <tr className="border-t border-slate-200 bg-slate-50/60">
+                <td colSpan={4} className="px-3 py-1.5 text-xs font-semibold text-slate-600">
+                  {g}
+                </td>
+              </tr>
+              {rows
+                .filter((r) => r.group === g)
+                .map((s) => (
+                  <tr key={s.id} className="border-t border-slate-100 align-top">
+                    <td className="px-3 py-2">
+                      <span className="font-mono text-xs text-slate-500">{s.id}</span> <span className="font-medium text-slate-900">{s.name}</span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <StatusPill status={s.status} />
+                    </td>
+                    <td className="px-3 py-2 text-slate-600">
+                      {s.note ? <span className="text-slate-500">{s.note}</span> : <EvidenceList evidence={s.evidence} />}
+                    </td>
+                    <td className="px-3 py-2 font-mono text-xs text-slate-600">{s.cccsIds.join(', ') || '—'}</td>
+                  </tr>
+                ))}
+            </Fragment>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
 
-export default function StandardsPanel({ cccs, cis }: { cccs: CccsResult[]; cis: CisResult[] }) {
-  const [tab, setTab] = useState<Tab>('cccs');
-  const tabs: [Tab, string][] = [
-    ['cccs', 'CCCS baseline controls'],
-    ['cis', 'CIS Controls v8.1'],
-    ['notes', 'Mapping notes'],
-  ];
+type Tab = 'cccs' | 'cis' | 'ciosc' | 'notes';
+
+export default function StandardsPanel({
+  template,
+  cccs,
+  cis,
+  ciosc,
+}: {
+  template: TemplateId;
+  cccs: CccsResult[];
+  cis: CisResult[];
+  ciosc: CioscResult[];
+}) {
+  const [tab, setTab] = useState<Tab>(template === 'ciosc' ? 'ciosc' : 'cccs');
+  const tabs: [Tab, string][] =
+    template === 'ciosc'
+      ? [
+          ['ciosc', 'CyberSecure Canada (CAN/CIOSC 104)'],
+          ['notes', 'Mapping notes'],
+        ]
+      : [
+          ['cccs', 'CCCS baseline controls'],
+          ['cis', 'CIS Controls v8.1'],
+          ['notes', 'Mapping notes'],
+        ];
   return (
     <div>
       <div className="mb-3 flex flex-wrap gap-2" role="tablist">
@@ -182,6 +243,15 @@ export default function StandardsPanel({ cccs, cis }: { cccs: CccsResult[]; cis:
           <CisTable rows={cis} />
         </>
       )}
+      {tab === 'ciosc' && (
+        <>
+          <p className="mb-3 text-sm text-slate-600">
+            CAN/CIOSC 104 is the national standard version of the CCCS baseline, so each section is assessed through the CCCS control that covers the same ground.
+            Sections none of our questions test are marked Not assessed. Section numbers match the OCI Cybersecurity Workbook.
+          </p>
+          <CioscTable rows={ciosc} />
+        </>
+      )}
       {tab === 'notes' && (
         <>
           <p className="mb-3 text-sm text-slate-600">Why some questions only partly match a control, or match none.</p>
@@ -190,13 +260,25 @@ export default function StandardsPanel({ cccs, cis }: { cccs: CccsResult[]; cis:
       )}
       <p className="mt-3 text-xs text-slate-500">
         Sources:{' '}
+        {template === 'ciosc' && (
+          <>
+            <a className="underline" href={cioscCatalog.url} target="_blank" rel="noreferrer">
+              {cioscCatalog.source}
+            </a>
+            ;{' '}
+          </>
+        )}
         <a className="underline" href={cccsCatalog.url} target="_blank" rel="noreferrer">
           {cccsCatalog.source}
         </a>
-        ;{' '}
-        <a className="underline" href={cisCatalog.url} target="_blank" rel="noreferrer">
-          {cisCatalog.source}
-        </a>
+        {template !== 'ciosc' && (
+          <>
+            ;{' '}
+            <a className="underline" href={cisCatalog.url} target="_blank" rel="noreferrer">
+              {cisCatalog.source}
+            </a>
+          </>
+        )}
         .
       </p>
     </div>

@@ -1,6 +1,7 @@
 import { Logo, Button } from './components/ui';
-import { useAppState } from './state';
+import { TemplateContext, useAppState } from './state';
 import Landing from './screens/Landing';
+import TemplateScreen from './screens/TemplateScreen';
 import ProfileScreen from './screens/ProfileScreen';
 import DomainCheck from './screens/DomainCheck';
 import Questionnaire from './screens/Questionnaire';
@@ -34,12 +35,15 @@ export default function App() {
       </header>
 
       <main>
-        {state.screen === 'landing' && <Landing app={app} />}
-        {state.screen === 'profile' && <ProfileScreen app={app} />}
-        {state.screen === 'domain' && <DomainCheck app={app} />}
-        {state.screen === 'questions' && <Questionnaire app={app} />}
-        {state.screen === 'results' && <Results app={app} onReset={confirmReset} />}
-        {state.screen === 'summary' && <Summary app={app} />}
+        <TemplateContext.Provider value={state.template}>
+          {state.screen === 'landing' && <Landing app={app} />}
+          {state.screen === 'template' && <TemplateScreen app={app} />}
+          {state.screen === 'profile' && <ProfileScreen app={app} />}
+          {state.screen === 'domain' && <DomainCheck app={app} />}
+          {state.screen === 'questions' && <Questionnaire app={app} />}
+          {state.screen === 'results' && <Results app={app} onReset={confirmReset} />}
+          {state.screen === 'summary' && <Summary app={app} />}
+        </TemplateContext.Provider>
       </main>
 
       <footer className="no-print mx-auto max-w-6xl px-6 py-10 text-center text-sm text-slate-500">

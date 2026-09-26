@@ -60,7 +60,7 @@ export default function ProfileScreen({ app }: { app: AppApi }) {
       </div>
 
       <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={() => go('landing')}>
+        <Button variant="ghost" onClick={() => go('template')}>
           ← Back
         </Button>
         <div className="flex items-center gap-3">
