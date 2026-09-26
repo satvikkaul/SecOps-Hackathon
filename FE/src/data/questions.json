@@ -540,7 +540,7 @@
       "section": "equipment",
       "topic": "Vendor remote access off when idle",
       "text": "Is vendor remote access to your equipment (for example TeamViewer or AnyDesk) turned off when not in use?",
-      "why": "Always-on remote access tools are an open door. If the vendor is hacked, or the password leaks, someone can reach your equipment directly.",
+      "why": "Always-on remote access tools are an open door. If the vendor is compromised, or the password leaks, someone can reach your equipment directly.",
       "gapLabel": "Always-on vendor remote access",
       "weights": {
         "OT": 0.5,
@@ -702,7 +702,7 @@
       "section": "vendors",
       "topic": "Vendor breach notice in contracts",
       "text": "Do your contracts require vendors to tell you if they are breached?",
-      "why": "If a vendor is hacked and does not tell you, attackers can use that access for weeks before you notice.",
+      "why": "If a vendor is compromised and does not tell you, attackers can use that access for weeks before you notice.",
       "gapLabel": "No vendor breach notice in contracts",
       "weights": {
         "THIRD": 0.3
@@ -729,9 +729,9 @@
       "id": "Q24",
       "section": "vendors",
       "topic": "Written incident plan",
-      "text": "Do you have a written list of who to call and what to do if you get hacked?",
+      "text": "Do you have a written list of who to call and what to do if your business is compromised?",
       "why": "This does not stop an attack, but it makes every attack less damaging. In a crisis, a one-page plan saves hours of panic and costly mistakes.",
-      "gapLabel": "No 'we got hacked' plan",
+      "gapLabel": "No plan for if we're compromised",
       "weights": {},
       "impactReduction": {
         "RANSOM": 0.15,

@@ -27,7 +27,7 @@
   },
   {
     "actionId": "A17",
-    "title": "If we get hacked: who to call",
+    "title": "If we're compromised: who to call",
     "lead": "If a computer is locked, money goes missing, or an email account is taken over, stay calm and work down this list:",
     "must": [
       "Unplug the affected computer from the network (pull the cable or turn off Wi-Fi). Do not turn it off.",

@@ -50,7 +50,7 @@
     "scenarios": [
       {
         "id": "CARGO",
-        "name": "Load redirected to thieves",
+        "name": "Load redirected to bad actors",
         "risk": 3.5,
         "band": "High"
       },

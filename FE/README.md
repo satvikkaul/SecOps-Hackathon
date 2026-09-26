@@ -69,7 +69,7 @@ For each scenario:
 | **Effort only** (default, the original spec formula) | risk reduction ÷ effort | Cost is shown but not counted. |
 | **Effort + cost** | risk reduction ÷ (effort + cost weight × cost points) | Free = 0, Free to $ = 0.5, $ = 1, $ to $$ = 1.5, $$ = 2, $$$ = 3; cost weight = 1. |
 
-**Essential fixes** are those that resolve a CIS IG1 safeguard in Data Recovery (Control 11) or Incident Response (Control 17): today, backups (A11) and the "we got hacked" plan (A17). They are worked out from the standards mapping, not hand-picked. In Effort + cost mode they skip the cost term and are scheduled no later than 60 days, so recovery fixes are not pushed down for costing money. Both modes are shown side by side in Show the math. The chosen mode is saved and also orders the Supplier Security Summary commitments.
+**Essential fixes** are those that resolve a CIS IG1 safeguard in Data Recovery (Control 11) or Incident Response (Control 17): today, backups (A11) and the "if we're compromised" plan (A17). They are worked out from the standards mapping, not hand-picked. In Effort + cost mode they skip the cost term and are scheduled no later than 60 days, so recovery fixes are not pushed down for costing money. Both modes are shown side by side in Show the math. The chosen mode is saved and also orders the Supplier Security Summary commitments.
 
 Top 5 → "Do these first". The rest go into the 30 / 60 / 90 day plan by effort (1–2, 3, 4–5), in priority order within each column.
 
@@ -182,7 +182,7 @@ It pre-fills Q11 and the email provider. The user can override both. Network fai
    | Q14 regular backups | Yes | Partly | Files go to a USB drive "when someone remembers" |
    | Q17 secure remote access | Partly | No | |
 
-   Result (since the load-redirect risk and Q26 were added, 2026-09-26): **Load redirected to thieves is #1 at 3.50 (High)**, payment fraud #2 at 3.20 (High), stolen logins #3 at 2.80, posture High. Actions: A1 (two-step login on email), **A19 (call back and a second OK on load changes)**, A7, A8, A4. A13 is #7.
+   Result (since the load-redirect risk and Q26 were added, 2026-09-26): **Load redirected to bad actors is #1 at 3.50 (High)**, payment fraud #2 at 3.20 (High), stolen logins #3 at 2.80, posture High. Actions: A1 (two-step login on email), **A19 (call back and a second OK on load changes)**, A7, A8, A4. A13 is #7.
 3. The summary footer says "Self-assessed using Chain of Custody". The spec text said "FieldGuard", which looked like an earlier product name.
 4. Added a short `topic`, `gapLabel`, and scenario `phrase`/`short` fields to the JSON to drive the UI copy.
 5. **CCCS mapping corrected against the source text.** The spec mapped Q7 to awareness training and Q8 to access control. Neither fits: they are payment procedures and are now reported separately. The spec also mapped Q19 (equipment segmentation) to "Securely configure devices"; it is now a partial fit under Perimeter defences (BC.9). Q17 and Q18 gained secondary mappings (BC.5.1 and BC.4.1).

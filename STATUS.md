@@ -28,7 +28,7 @@ Tests: `BE/test_api.py` 2 passing (local Postgres 17). FE 112 passing (includes 
 | # | Item | State |
 | --- | --- | --- |
 | 1 | Questionnaire → score → ranked plan on the live URL | Done (FE, client-side) |
-| 1a | "One person can change a destination alone" question + action | **Done**: Q26, A19, and the new risk "Load redirected to thieves" (CARGO). Now the demo's #1 risk |
+| 1a | "One person can change a destination alone" question + action | **Done**: Q26, A19, and the new risk "Load redirected to bad actors" (CARGO). Now the demo's #1 risk |
 | 2 | Two demo profiles with visibly different rankings | One profile only |
 | 3 | Shareable read-only link | **Done and live**, verified end to end |
 | 4 | Partner diagram | Exists in FE (`RiskFlow`) |

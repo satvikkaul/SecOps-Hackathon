@@ -17,7 +17,7 @@
     },
     {
       "id": "LOAD",
-      "label": "Customers' loads stolen or delivered to thieves",
+      "label": "Customers' loads stolen or delivered to bad actors",
       "description": "A redirected or double-brokered load never reaches the grocer or processor waiting for it. They lose the product and the shelf space, and they remember whose truck it was."
     },
     {

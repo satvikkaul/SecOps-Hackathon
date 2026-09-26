@@ -278,7 +278,7 @@
       "section": "vendors",
       "type": "rows",
       "title": "Vendors and IT providers",
-      "why": "You can't protect a door you don't know about, so keep a list of who can get into your systems. If a vendor is hacked and doesn't tell you, attackers can use that access for weeks.",
+      "why": "You can't protect a door you don't know about, so keep a list of who can get into your systems. If a vendor is compromised and doesn't tell you, attackers can use that access for weeks.",
       "rows": [
         {
           "question": "Q22",
@@ -291,7 +291,7 @@
         },
         {
           "question": "Q23",
-          "label": "Do your contracts require vendors to tell you if they're hacked?",
+          "label": "Do your contracts require vendors to tell you if they're compromised?",
           "options": [
             { "value": "yes", "label": "Yes, with all key vendors" },
             { "value": "partial", "label": "Some contracts" },
@@ -309,7 +309,7 @@
       "rows": [
         {
           "question": "Q24",
-          "label": "Do you have a written list of who to call and what to do if you get hacked?",
+          "label": "Do you have a written list of who to call and what to do if your business is compromised?",
           "options": [
             { "value": "yes", "label": "Yes, written down" },
             { "value": "partial", "label": "Roughly, but not written down" },

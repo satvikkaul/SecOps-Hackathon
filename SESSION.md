@@ -5,7 +5,7 @@ _Append one entry per session, newest first. Keep each entry short: what changed
 ## 2026-09-26 (Sat) — "Print the rule" signs
 
 **Done**
-- A "🖨 Print the rule" button, **only on fixes that are rules people follow**: A19 (load change rule), A7 (bank details change rule), and A17 ("If we get hacked: who to call", on the compact 30/60/90 card and only once it's expanded). No other UI was added.
+- A "🖨 Print the rule" button, **only on fixes that are rules people follow**: A19 (load change rule), A7 (bank details change rule), and A17 ("If we're compromised: who to call", on the compact 30/60/90 card and only once it's expanded). No other UI was added.
 - It opens a one-page Letter sign in its own window and prints it (`FE/src/printRule.ts`, content in `FE/src/data/rules.json`). Sign contents: the rule, who can give the second OK, warning signs, a change log to fill in, and a posted-on/initials line. The company name is escaped, and a test covers that.
 - The incident sheet has official numbers checked on the government sites: Canadian Centre for Cyber Security 1-833-CYBER-88 (1-833-292-3788), Canadian Anti-Fraud Centre 1-888-495-8501.
 - The "send to IT person" idea was dropped: the target business has no IT budget or person.
@@ -30,7 +30,7 @@ _Append one entry per session, newest first. Keep each entry short: what changed
 ## 2026-09-26 (Sat) — load-redirect risk, expertise levels, tabbed results
 
 **Done** (FE, pulled on top of Nima's report-template and results-layout work)
-- New risk **CARGO "Load redirected to thieves"** (base: carrier/broker 0.7, farm 0.2). New question **Q26** (can one person change a pickup/delivery address alone?) and fix **A19** (call back on a known number plus a second OK). Impact +1 each for carrier/broker, perishable, and customer concentration. New supply-chain impact LOAD. Q26 is reported with the payment safeguards (no CCCS/CIS control covers it).
+- New risk **CARGO "Load redirected to bad actors"** (base: carrier/broker 0.7, farm 0.2). New question **Q26** (can one person change a pickup/delivery address alone?) and fix **A19** (call back on a known number plus a second OK). Impact +1 each for carrier/broker, perishable, and customer concentration. New supply-chain impact LOAD. Q26 is reported with the payment safeguards (no CCCS/CIS control covers it).
 - **Consequence chains**: `scenarios[].chain` = `default` plus `carrier`/`broker`/`coldstorage` versions, 3–5 plain steps each. `chainFor()` in `engine/explain.ts`.
 - **Expertise**: `state.expertise`, default `basic`. Asked on the "Before you start" screen, where Simple users skip the standards choice. Switchable on Results. Simple: plain row wording (`labelBasic`), no framework tags, no numeric scores, chain instead of numbers on risk cards. Expert: a `tech` label under every question. **Scores are identical at every level.**
 - **Results in tabs**, with Nima's sidebar kept. The Overview fits on one screen: gauge, the #1 risk's chain, and 3 "Start here" fixes. Cross-links switch tabs and then scroll.

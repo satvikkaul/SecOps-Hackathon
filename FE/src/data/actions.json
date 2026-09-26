@@ -361,7 +361,7 @@
     "id": "A16",
     "title": "Add breach notification to vendor contracts",
     "whatToDo": "Ask vendors with access to your systems to commit, in writing, to telling you quickly if they are breached.",
-    "why": "If a trusted vendor is hacked, you need to know fast so you can cut off their access before attackers use it against you.",
+    "why": "If a trusted vendor is compromised, you need to know fast so you can cut off their access before attackers use it against you.",
     "steps": [
       "Start with your most important vendors: IT provider, refrigeration or equipment vendor, TMS or dispatch software, and payroll.",
       "Send each a short request to add a clause saying they will notify you within 72 hours of any security incident that could affect you.",
@@ -375,7 +375,7 @@
   },
   {
     "id": "A17",
-    "title": "Write a one-page \"we got hacked\" plan",
+    "title": "Write a one-page \"if we're compromised\" plan",
     "whatToDo": "Write one page that says who to call and what to do first if you are hit by ransomware or payment fraud.",
     "why": "A plan does not stop attacks, but it makes every attack less damaging. In a crisis, the first few hours decide how bad it gets.",
     "steps": [

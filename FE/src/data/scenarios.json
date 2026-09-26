@@ -161,7 +161,7 @@
     },
     "chain": {
       "default": [
-        "Your IT provider or a software vendor gets hacked",
+        "Your IT provider or a software vendor is compromised",
         "The attackers use that company's access to reach you",
         "They move around quietly for weeks",
         "Ransomware or data theft that started somewhere else"
@@ -234,10 +234,10 @@
   },
   {
     "id": "CARGO",
-    "name": "Load redirected to thieves",
+    "name": "Load redirected to bad actors",
     "short": "Load redirect",
-    "phrase": "a load being redirected to thieves",
-    "description": "Someone posing as your broker or customer asks for a new pickup or delivery address, one person changes it, and the load goes to thieves.",
+    "phrase": "a load being redirected to bad actors",
+    "description": "Someone posing as your broker or customer asks for a new pickup or delivery address, one person changes it, and the load goes to bad actors.",
     "category": "Cargo theft and fraud",
     "base": {
       "farm": 0.2,
@@ -251,7 +251,7 @@
         "Criminals get into a staff email account, or fake a customer's email",
         "They see which shipments are worth the most",
         "They ask for a 'new delivery address', and one person changes it",
-        "The load goes to thieves"
+        "The load goes to bad actors"
       ],
       "carrier": [
         "A dispatcher's email password is phished",
@@ -263,7 +263,7 @@
         "Criminals phish your email or fake a shipper's",
         "They pick a high-value load from your email threads",
         "They send the carrier a 'revised' delivery address",
-        "The carrier delivers to thieves, and you get the blame"
+        "The carrier delivers to bad actors, and you get the blame"
       ]
     }
   }
