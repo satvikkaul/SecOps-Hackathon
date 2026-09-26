@@ -1,0 +1,15 @@
+{
+  "start": 2,
+  "min": 1,
+  "max": 5,
+  "rules": [
+    { "profile": "downtime", "in": ["lt4h"], "label": "Losses start in under 4 hours of downtime", "modifiers": { "RANSOM": 2, "OT": 2, "DATALOSS": 2 } },
+    { "profile": "downtime", "in": ["4-24h"], "label": "Losses start within 4 to 24 hours of downtime", "modifiers": { "RANSOM": 1, "OT": 1, "DATALOSS": 1 } },
+    { "profile": "downtime", "in": ["gt3d"], "label": "Business can run for more than 3 days without computers", "modifiers": { "RANSOM": -1, "OT": -1, "DATALOSS": -1 } },
+    { "profile": "perishable", "in": ["yes"], "label": "Handles perishable goods", "modifiers": { "RANSOM": 1, "OT": 1 } },
+    { "profile": "concentration", "in": ["yes"], "label": "Top 3 customers are more than half of revenue", "modifiers": { "RANSOM": 1, "THIRD": 1 } },
+    { "profile": "payments", "in": ["yes"], "label": "Sends or receives bank transfers every week", "modifiers": { "BEC": 2, "ATO": 1 } },
+    { "profile": "sensitiveData", "in": ["yes"], "label": "Stores SINs, banking details, or payment info", "modifiers": { "DATALOSS": 1, "ATO": 1 } },
+    { "profile": "employees", "in": ["51-150", "150+"], "label": "51 or more people to manage logins for", "modifiers": { "SHARED": 1, "ATO": 1 } }
+  ]
+}

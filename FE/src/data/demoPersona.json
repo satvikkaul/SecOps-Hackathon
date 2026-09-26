@@ -1,0 +1,57 @@
+{
+  "company": "Peel Valley Fresh Logistics",
+  "location": "Brampton, Ontario",
+  "blurb": "Refrigerated trucking carrier with 45 employees, 18 reefer trucks, and a cold storage dock, hauling produce for two major grocers.",
+  "domain": "peelvalleyfresh.ca",
+  "profile": {
+    "sector": "carrier",
+    "employees": "11-50",
+    "downtime": "lt4h",
+    "perishable": "yes",
+    "concentration": "yes",
+    "payments": "yes",
+    "sensitiveData": "yes",
+    "hasOT": "yes",
+    "emailProvider": "m365"
+  },
+  "answers": {
+    "Q1": "no",
+    "Q2": "no",
+    "Q3": "no",
+    "Q4": "no",
+    "Q5": "no",
+    "Q6": "no",
+    "Q7": "no",
+    "Q8": "no",
+    "Q9": "no",
+    "Q10": "no",
+    "Q11": "no",
+    "Q12": "no",
+    "Q13": "partial",
+    "Q14": "partial",
+    "Q15": "no",
+    "Q16": "no",
+    "Q17": "no",
+    "Q18": "no",
+    "Q19": "no",
+    "Q20": "unsure",
+    "Q21": "no",
+    "Q22": "no",
+    "Q23": "unsure",
+    "Q24": "no",
+    "Q25": "no"
+  },
+  "notes": {
+    "Q3": "Dispatchers share one load board login.",
+    "Q13": "Defender is on at the office, but two dispatch laptops have it switched off.",
+    "Q14": "Someone copies files to a USB drive when they remember.",
+    "Q15": "The only backup is that USB drive, kept in the office.",
+    "Q18": "Refrigeration vendor has always-on TeamViewer."
+  },
+  "dnsResult": {
+    "domain": "peelvalleyfresh.ca",
+    "mx": { "status": "ok", "records": ["0 peelvalleyfresh-ca.mail.protection.outlook.com."], "provider": "m365" },
+    "spf": { "status": "ok", "record": "v=spf1 include:spf.protection.outlook.com -all" },
+    "dmarc": { "status": "missing", "record": null, "policy": null }
+  }
+}

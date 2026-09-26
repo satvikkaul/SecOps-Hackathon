@@ -1,0 +1,3145 @@
+{
+  "title": "Chain of Custody: CCCS and CIS standards mapping",
+  "generatedFrom": [
+    "src/data/questions.json",
+    "src/data/cccs.json",
+    "src/data/cis.json",
+    "src/data/actions.json"
+  ],
+  "sources": {
+    "cccs": {
+      "name": "Canadian Centre for Cyber Security, Baseline Cyber Security Controls for Small and Medium Organizations, V1.2 (February 2020)",
+      "url": "https://www.cyber.gc.ca/en/guidance/baseline-cyber-security-controls-small-and-medium-organizations"
+    },
+    "cis": {
+      "name": "CIS Critical Security Controls v8.1 (safeguard titles and Implementation Groups from the CIS Controls Assessment Specification)",
+      "url": "https://cas.docs.cisecurity.org/en/latest/"
+    }
+  },
+  "howToRead": {
+    "strength": {
+      "direct": "The question tests the requirement or safeguard itself.",
+      "partial": "The question covers only part of the requirement, or supports it indirectly. See mappingNote."
+    },
+    "primary": "A question's primary CCCS control is its direct mapping (or its first mapping if all are partial). CIS safeguards are cross-referenced to a CCCS control only through questions for which it is primary.",
+    "statusRule": "Per control or safeguard, over visible and answered questions: all Yes = Met; all No or Not sure = Not yet met; any other mix = Partially met; no questions = Not assessed.",
+    "notApplicable": "Questions hidden by shownOnlyIf, or answered \"does not apply\" (na), count as no exposure for likelihood (value 1) and do not count toward any control status or fix list.",
+    "answerValues": "Yes = 1, Partly = 0.5, No = 0, Not sure = 0 (and listed as worth checking), Does not apply = 1 for likelihood only.",
+    "implementationGroup": "CIS Implementation Group: 1 = essential cyber hygiene, 2 and 3 = progressively larger or more mature organizations."
+  },
+  "summary": {
+    "questions": 25,
+    "cccsControls": 13,
+    "cccsControlsAssessed": 11,
+    "cccsRequirements": 42,
+    "cccsRequirementsAssessed": 20,
+    "cisSafeguardsMapped": 27,
+    "cisSafeguardsByImplementationGroup": {
+      "ig1": 19,
+      "ig2": 8,
+      "ig3": 0
+    },
+    "mappings": {
+      "total": 55,
+      "direct": 31,
+      "partial": 24
+    }
+  },
+  "byQuestion": [
+    {
+      "id": "Q1",
+      "section": "Logins and accounts",
+      "topic": "Phone code on email",
+      "question": "Do you need a code from your phone (or an app) to log into company email?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P1",
+        "cardTitle": "Do you need a code from your phone to log in?",
+        "label": "Company email",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, for everyone"
+          },
+          {
+            "value": "partial",
+            "label": "Some people"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.2
+        },
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.5
+        },
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.5
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.5",
+          "controlName": "Strong user authentication",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.5.1",
+              "summary": "Two-factor authentication wherever possible, and required for financial, admin, cloud admin, privileged, and executive accounts"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "6.3",
+          "title": "Require MFA for Externally-Exposed Applications",
+          "implementationGroup": 1,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": null,
+      "fixedByActions": [
+        {
+          "id": "A1",
+          "title": "Turn on two-step login for email"
+        }
+      ]
+    },
+    {
+      "id": "Q2",
+      "section": "Logins and accounts",
+      "topic": "Phone code on business portals",
+      "question": "Do your other online tools (banking, accounting, load boards, fleet or TMS portals) require a phone code to log in?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P1",
+        "cardTitle": "Do you need a code from your phone to log in?",
+        "label": "Banking, accounting, and other business websites",
+        "labelBySector": {
+          "carrier": "Banking, accounting, load boards, and fleet or TMS portals",
+          "broker": "Banking, accounting, load boards, and TMS portals",
+          "farm": "Banking, accounting, and co-op or grain marketing accounts"
+        },
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, all of them"
+          },
+          {
+            "value": "partial",
+            "label": "Some of them"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "na",
+            "label": "We don't use any"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.5
+        },
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.2
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.5",
+          "controlName": "Strong user authentication",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.5.1",
+              "summary": "Two-factor authentication wherever possible, and required for financial, admin, cloud admin, privileged, and executive accounts"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "6.3",
+          "title": "Require MFA for Externally-Exposed Applications",
+          "implementationGroup": 1,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "BC.5.1 names financial accounts explicitly. Cloud portals and online banking are externally-exposed applications under CIS 6.3.",
+      "fixedByActions": [
+        {
+          "id": "A2",
+          "title": "Turn on two-step login for banking, accounting, and portals"
+        }
+      ]
+    },
+    {
+      "id": "Q3",
+      "section": "Logins and accounts",
+      "topic": "Own login for everyone",
+      "question": "Does every person have their own login, with no shared accounts or shared tablets?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P2",
+        "cardTitle": "Accounts and passwords",
+        "label": "Does everyone have their own login, with no shared accounts or shared tablets?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes"
+          },
+          {
+            "value": "partial",
+            "label": "Mostly, a few are shared"
+          },
+          {
+            "value": "no",
+            "label": "No, we share logins"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "SHARED",
+          "riskName": "Misuse of shared or leftover accounts",
+          "effect": "likelihood",
+          "weight": 0.6
+        },
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.2
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.12",
+          "controlName": "Access control and authorization",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.12.1",
+              "summary": "Give accounts only what they need, and restrict admin privileges to an as-required basis"
+            },
+            {
+              "id": "BC.12.3",
+              "summary": "Remove accounts and access when employees no longer need them"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "5.1",
+          "title": "Establish and Maintain an Inventory of Accounts",
+          "implementationGroup": 1,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "Neither framework has a standalone 'no shared accounts' rule. Individual logins are what make least privilege (BC.12.1), removing one person's access (BC.12.3), and a per-person account inventory (CIS 5.1) possible.",
+      "fixedByActions": [
+        {
+          "id": "A3",
+          "title": "Give everyone their own login and stop sharing accounts"
+        }
+      ]
+    },
+    {
+      "id": "Q4",
+      "section": "Logins and accounts",
+      "topic": "Same-day access removal",
+      "question": "When someone leaves, is their access removed the same day?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P2",
+        "cardTitle": "Accounts and passwords",
+        "label": "When someone leaves, how soon is their access removed?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "The same day"
+          },
+          {
+            "value": "partial",
+            "label": "Within a few days"
+          },
+          {
+            "value": "no",
+            "label": "It can take longer or get missed"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "SHARED",
+          "riskName": "Misuse of shared or leftover accounts",
+          "effect": "likelihood",
+          "weight": 0.4
+        },
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.2
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.12",
+          "controlName": "Access control and authorization",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.12.3",
+              "summary": "Remove accounts and access when employees no longer need them"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "6.2",
+          "title": "Establish an Access Revoking Process",
+          "implementationGroup": 1,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": null,
+      "fixedByActions": [
+        {
+          "id": "A4",
+          "title": "Create an offboarding checklist"
+        }
+      ]
+    },
+    {
+      "id": "Q5",
+      "section": "Logins and accounts",
+      "topic": "Password manager",
+      "question": "Do staff use a password manager instead of reusing or writing down passwords?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P2",
+        "cardTitle": "Accounts and passwords",
+        "label": "How do people keep track of passwords?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "A password manager"
+          },
+          {
+            "value": "partial",
+            "label": "Some people use one"
+          },
+          {
+            "value": "no",
+            "label": "Memory, paper, or the same password everywhere"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.3
+        },
+        {
+          "risk": "SHARED",
+          "riskName": "Misuse of shared or leftover accounts",
+          "effect": "likelihood",
+          "weight": 0.2
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.5",
+          "controlName": "Strong user authentication",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.5.3",
+              "summary": "Clear policies on password length, reuse, password managers, and writing passwords down"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "5.2",
+          "title": "Use Unique Passwords",
+          "implementationGroup": 1,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "A password manager is the practical way to meet CIS 5.2 (unique passwords). 5.2 also sets length minimums this question does not ask about.",
+      "fixedByActions": [
+        {
+          "id": "A5",
+          "title": "Set up a company password manager"
+        }
+      ]
+    },
+    {
+      "id": "Q6",
+      "section": "Logins and accounts",
+      "topic": "Limited admin rights",
+      "question": "Are admin rights on computers limited to one or two trusted people?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P2",
+        "cardTitle": "Accounts and passwords",
+        "label": "Who has admin rights to install software on work computers?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Only one or two trusted people"
+          },
+          {
+            "value": "partial",
+            "label": "A few people"
+          },
+          {
+            "value": "no",
+            "label": "Most people, or everyone"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.3
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.12",
+          "controlName": "Access control and authorization",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.12.1",
+              "summary": "Give accounts only what they need, and restrict admin privileges to an as-required basis"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "5.4",
+          "title": "Restrict Administrator Privileges to Dedicated Administrator Accounts",
+          "implementationGroup": 1,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "CIS 5.4 requires dedicated admin accounts, which the recommended fix sets up, but the question only asks how many people hold admin rights.",
+      "fixedByActions": [
+        {
+          "id": "A6",
+          "title": "Remove admin rights from everyday accounts"
+        }
+      ]
+    },
+    {
+      "id": "Q7",
+      "section": "Payments and email",
+      "topic": "Call-back rule for bank changes",
+      "question": "Before changing a supplier's or carrier's bank details, do you call them at a number you already had on file to confirm?",
+      "shownOnlyIf": "payments is yes",
+      "askedIn": {
+        "card": "P3",
+        "cardTitle": "Paying suppliers",
+        "label": "Before changing a supplier's or carrier's bank details, do you call them at a number you already had on file?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Always"
+          },
+          {
+            "value": "partial",
+            "label": "Sometimes"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.6
+        }
+      ],
+      "cccs": [],
+      "cis": [],
+      "mappingNote": "A call-back rule is a payment procedure, not a baseline IT control. CCCS BC.6.1 and CIS 14.2 cover training staff to recognize business email compromise, but neither requires verifying bank changes. Shown separately on the Supplier Security Summary.",
+      "fixedByActions": [
+        {
+          "id": "A7",
+          "title": "Adopt a call-back rule for any bank detail change"
+        }
+      ]
+    },
+    {
+      "id": "Q8",
+      "section": "Payments and email",
+      "topic": "Second approval on large payments",
+      "question": "Do large payments need approval from a second person?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P3",
+        "cardTitle": "Paying suppliers",
+        "label": "Do large payments need a second person to approve them?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Always"
+          },
+          {
+            "value": "partial",
+            "label": "Sometimes"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.3
+        }
+      ],
+      "cccs": [],
+      "cis": [],
+      "mappingNote": "Dual approval of payments is a financial control. CCCS BC.12 and CIS Control 6 cover access to IT systems, not payment approval. Shown separately on the Supplier Security Summary.",
+      "fixedByActions": [
+        {
+          "id": "A7",
+          "title": "Adopt a call-back rule for any bank detail change"
+        }
+      ]
+    },
+    {
+      "id": "Q9",
+      "section": "Payments and email",
+      "topic": "Fake email training",
+      "question": "Has staff had any training on spotting fake emails in the past year?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P4",
+        "cardTitle": "Email",
+        "label": "Has your team had any training on spotting fake emails in the past year?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, everyone"
+          },
+          {
+            "value": "partial",
+            "label": "Some people"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.3
+        },
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.2
+        },
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.2
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.6",
+          "controlName": "Employee awareness training",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.6.1",
+              "summary": "Invest in cyber security awareness and training for employees"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "14.1",
+          "title": "Establish and Maintain a Security Awareness Program",
+          "implementationGroup": 1,
+          "strength": "direct"
+        },
+        {
+          "safeguard": "14.2",
+          "title": "Train Workforce Members to Recognize Social Engineering Attacks",
+          "implementationGroup": 1,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": null,
+      "fixedByActions": [
+        {
+          "id": "A8",
+          "title": "Run a 30-minute fake email awareness session"
+        }
+      ]
+    },
+    {
+      "id": "Q10",
+      "section": "Payments and email",
+      "topic": "External email warning",
+      "question": "Does your email show a warning on messages from outside the company?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P4",
+        "cardTitle": "Email",
+        "label": "Do emails from outside the company show a warning label?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes"
+          },
+          {
+            "value": "partial",
+            "label": "For some people"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.2
+        },
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.9",
+          "controlName": "Perimeter defences",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.9.8",
+              "summary": "Email filtering at points of ingress and egress"
+            }
+          ]
+        }
+      ],
+      "cis": [],
+      "mappingNote": "External-sender tagging is an email gateway rule, closest to BC.9.8 (email filtering). No CIS v8.1 safeguard covers it: Control 9 addresses browsers, DNS filtering, DMARC, file types, and email anti-malware.",
+      "fixedByActions": [
+        {
+          "id": "A8",
+          "title": "Run a 30-minute fake email awareness session"
+        }
+      ]
+    },
+    {
+      "id": "Q11",
+      "section": "Payments and email",
+      "topic": "DMARC spoofing protection",
+      "question": "Is your email domain protected against spoofing (DMARC)?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P4",
+        "cardTitle": "Email",
+        "label": "Is your email domain protected against spoofing (DMARC)?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, fakes are blocked"
+          },
+          {
+            "value": "partial",
+            "label": "Set up, but only monitoring"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.3
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.9",
+          "controlName": "Perimeter defences",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.9.7",
+              "summary": "Implement DMARC on all email services"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "9.5",
+          "title": "Implement DMARC",
+          "implementationGroup": 2,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": null,
+      "fixedByActions": [
+        {
+          "id": "A9",
+          "title": "Turn on DMARC for your email domain"
+        }
+      ]
+    },
+    {
+      "id": "Q12",
+      "section": "Computers and backups",
+      "topic": "Automatic updates",
+      "question": "Do computers install security updates automatically?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P5",
+        "cardTitle": "Computers, phones, and tablets",
+        "label": "Do computers install security updates automatically?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Every computer"
+          },
+          {
+            "value": "partial",
+            "label": "Some computers"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.3
+        },
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.2",
+          "controlName": "Automatic patching",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.2.1",
+              "summary": "Enable automatic patching for all software and hardware"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "7.3",
+          "title": "Perform Automated Operating System Patch Management",
+          "implementationGroup": 1,
+          "strength": "direct"
+        },
+        {
+          "safeguard": "7.4",
+          "title": "Perform Automated Application Patch Management",
+          "implementationGroup": 1,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "Fully covers operating system updates (7.3); application updates (7.4) only partly.",
+      "fixedByActions": [
+        {
+          "id": "A10",
+          "title": "Turn on automatic updates and antivirus everywhere"
+        }
+      ]
+    },
+    {
+      "id": "Q13",
+      "section": "Computers and backups",
+      "topic": "Antivirus on every computer",
+      "question": "Does every computer have antivirus or Microsoft Defender turned on?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P5",
+        "cardTitle": "Computers, phones, and tablets",
+        "label": "Is antivirus (like Microsoft Defender) turned on?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Every computer"
+          },
+          {
+            "value": "partial",
+            "label": "Some computers"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.3
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.3",
+          "controlName": "Security software",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.3.1",
+              "summary": "Enable anti-malware that updates and scans automatically"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "10.1",
+          "title": "Deploy and Maintain Anti-Malware Software",
+          "implementationGroup": 1,
+          "strength": "direct"
+        },
+        {
+          "safeguard": "10.2",
+          "title": "Configure Automatic Anti-Malware Signature Updates",
+          "implementationGroup": 1,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "CIS 10.2 (automatic signature updates) is on by default in Microsoft Defender, but the question does not ask about it directly.",
+      "fixedByActions": [
+        {
+          "id": "A10",
+          "title": "Turn on automatic updates and antivirus everywhere"
+        }
+      ]
+    },
+    {
+      "id": "Q14",
+      "section": "Computers and backups",
+      "topic": "Regular backups",
+      "question": "Do you back up important files and business data regularly?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P6",
+        "cardTitle": "How are your files and business data backed up?",
+        "label": "How are your files and business data backed up?",
+        "combinedWith": [
+          "Q15"
+        ],
+        "answers": [
+          {
+            "label": "We don't really back up",
+            "value": "no"
+          },
+          {
+            "label": "Now and then, when someone remembers",
+            "value": "partial"
+          },
+          {
+            "label": "Regularly, but only one copy, and we've never tried restoring it",
+            "value": "yes"
+          },
+          {
+            "label": "Regularly, plus either an offline copy or a restore we've tested (not both)",
+            "value": "yes"
+          },
+          {
+            "label": "Regularly, with an offline or separate copy we've restored from",
+            "value": "yes"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "DATALOSS",
+          "riskName": "Losing data you cannot get back",
+          "effect": "likelihood",
+          "weight": 0.5
+        },
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.3
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.7",
+          "controlName": "Backup and encryption",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.7.1",
+              "summary": "Back up essential systems, make sure restores work, and consider offline off-site backups"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "11.2",
+          "title": "Perform Automated Backups",
+          "implementationGroup": 1,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "Asks whether backups are regular, not whether they are automated or proven to restore. Q15 covers the rest.",
+      "fixedByActions": [
+        {
+          "id": "A11",
+          "title": "Set up automatic backups with one offline copy and test a restore"
+        }
+      ]
+    },
+    {
+      "id": "Q15",
+      "section": "Computers and backups",
+      "topic": "Offline, tested backup",
+      "question": "Is at least one backup kept offline or separate from your network, and have you tested restoring it?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P6",
+        "cardTitle": "How are your files and business data backed up?",
+        "label": "How are your files and business data backed up?",
+        "combinedWith": [
+          "Q14"
+        ],
+        "answers": [
+          {
+            "label": "We don't really back up",
+            "value": "no"
+          },
+          {
+            "label": "Now and then, when someone remembers",
+            "value": "no"
+          },
+          {
+            "label": "Regularly, but only one copy, and we've never tried restoring it",
+            "value": "no"
+          },
+          {
+            "label": "Regularly, plus either an offline copy or a restore we've tested (not both)",
+            "value": "partial"
+          },
+          {
+            "label": "Regularly, with an offline or separate copy we've restored from",
+            "value": "yes"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "DATALOSS",
+          "riskName": "Losing data you cannot get back",
+          "effect": "likelihood",
+          "weight": 0.4
+        },
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.3
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.7",
+          "controlName": "Backup and encryption",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.7.1",
+              "summary": "Back up essential systems, make sure restores work, and consider offline off-site backups"
+            }
+          ]
+        },
+        {
+          "control": "BC.7",
+          "controlName": "Backup and encryption",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.7.2",
+              "summary": "Encrypt backups, restrict access to them, and keep long-term backups offline"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "11.4",
+          "title": "Establish and Maintain an Isolated Instance of Recovery Data",
+          "implementationGroup": 1,
+          "strength": "direct"
+        },
+        {
+          "safeguard": "11.5",
+          "title": "Test Data Recovery",
+          "implementationGroup": 2,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "BC.7.2 also requires encrypted backups, which is not asked.",
+      "fixedByActions": [
+        {
+          "id": "A11",
+          "title": "Set up automatic backups with one offline copy and test a restore"
+        }
+      ]
+    },
+    {
+      "id": "Q16",
+      "section": "Computers and backups",
+      "topic": "PIN and remote wipe on phones",
+      "question": "Are phones and tablets used for work locked with a PIN, and can you wipe them remotely if lost?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P5",
+        "cardTitle": "Computers, phones, and tablets",
+        "label": "Are work phones and tablets locked with a PIN, and can you wipe them remotely if they're lost?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Both, on every device"
+          },
+          {
+            "value": "partial",
+            "label": "Only one of these, or only some devices"
+          },
+          {
+            "value": "no",
+            "label": "Neither"
+          },
+          {
+            "value": "na",
+            "label": "We don't use phones or tablets for work"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "SHARED",
+          "riskName": "Misuse of shared or leftover accounts",
+          "effect": "likelihood",
+          "weight": 0.2
+        },
+        {
+          "risk": "DATALOSS",
+          "riskName": "Losing data you cannot get back",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.8",
+          "controlName": "Secure mobility",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.8.4",
+              "summary": "Store sensitive information on mobile devices in an encrypted state"
+            },
+            {
+              "id": "BC.8.5",
+              "summary": "Consider an enterprise mobility management solution"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "4.3",
+          "title": "Configure Automatic Session Locking on Enterprise Assets",
+          "implementationGroup": 1,
+          "strength": "partial"
+        },
+        {
+          "safeguard": "4.11",
+          "title": "Enforce Remote Wipe Capability on Portable End-User Devices",
+          "implementationGroup": 2,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "On modern phones a PIN is what protects the device's encrypted storage (BC.8.4). Remote wipe usually comes from a mobility management tool (BC.8.5). The other five BC.8 requirements are not asked.",
+      "fixedByActions": [
+        {
+          "id": "A3",
+          "title": "Give everyone their own login and stop sharing accounts"
+        }
+      ]
+    },
+    {
+      "id": "Q17",
+      "section": "Equipment and remote access",
+      "topic": "Secure remote access",
+      "question": "If people connect to office computers from home, is it through a secure method with a phone code (not open remote desktop)?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P7",
+        "cardTitle": "Connecting from outside the office",
+        "label": "When people connect to office computers from home or on the road, how do they do it?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "A secure connection that needs a phone code"
+          },
+          {
+            "value": "partial",
+            "label": "A secure connection, but no phone code"
+          },
+          {
+            "value": "no",
+            "label": "Remote desktop or a remote tool with just a password"
+          },
+          {
+            "value": "na",
+            "label": "Nobody connects from outside the office"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.4
+        },
+        {
+          "risk": "OT",
+          "riskName": "Tampering with connected equipment",
+          "effect": "likelihood",
+          "weight": 0.2
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.9",
+          "controlName": "Perimeter defences",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.9.3",
+              "summary": "Secure connectivity, with VPN and two-factor for all remote access"
+            }
+          ]
+        },
+        {
+          "control": "BC.5",
+          "controlName": "Strong user authentication",
+          "strength": "partial",
+          "primary": false,
+          "requirements": [
+            {
+              "id": "BC.5.1",
+              "summary": "Two-factor authentication wherever possible, and required for financial, admin, cloud admin, privileged, and executive accounts"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "6.4",
+          "title": "Require MFA for Remote Network Access",
+          "implementationGroup": 1,
+          "strength": "direct"
+        },
+        {
+          "safeguard": "12.7",
+          "title": "Ensure Remote Devices Utilize a VPN and are Connecting to an Enterprise's AAA Infrastructure",
+          "implementationGroup": 2,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "The phone-code part also supports BC.5.1. CIS 12.7 (VPN plus central authentication) is an IG2 safeguard and only partly covered.",
+      "fixedByActions": [
+        {
+          "id": "A12",
+          "title": "Lock down remote access to the office"
+        }
+      ]
+    },
+    {
+      "id": "Q18",
+      "section": "Equipment and remote access",
+      "topic": "Vendor remote access off when idle",
+      "question": "Is vendor remote access to your equipment (for example TeamViewer or AnyDesk) turned off when not in use?",
+      "shownOnlyIf": "hasOT is yes or unsure",
+      "askedIn": {
+        "card": "P8",
+        "cardTitle": "Equipment, routers, and Wi-Fi",
+        "label": "Is vendor remote access to your equipment (TeamViewer, AnyDesk) switched off when it's not being used?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, only on when needed"
+          },
+          {
+            "value": "partial",
+            "label": "For some equipment"
+          },
+          {
+            "value": "no",
+            "label": "No, it's always on"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "OT",
+          "riskName": "Tampering with connected equipment",
+          "effect": "likelihood",
+          "weight": 0.5
+        },
+        {
+          "risk": "THIRD",
+          "riskName": "A vendor or IT provider gets breached",
+          "effect": "likelihood",
+          "weight": 0.3
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.4",
+          "controlName": "Securely configure devices",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.4.1",
+              "summary": "Secure configurations: change default passwords, turn off unnecessary features, enable security features"
+            }
+          ]
+        },
+        {
+          "control": "BC.10",
+          "controlName": "Secure cloud and outsourced IT",
+          "strength": "partial",
+          "primary": false,
+          "requirements": [
+            {
+              "id": "BC.10.2",
+              "summary": "Evaluate how outsourced IT providers handle and access your sensitive information"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "4.8",
+          "title": "Uninstall or Disable Unnecessary Services on Enterprise Assets and Software",
+          "implementationGroup": 2,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "Neither framework names vendor remote-access tools. One left running when unused is an unnecessary feature or service (BC.4.1, CIS 4.8) and part of how an outside provider accesses your systems (BC.10.2).",
+      "fixedByActions": [
+        {
+          "id": "A13",
+          "title": "Turn off always-on vendor remote access to equipment"
+        }
+      ]
+    },
+    {
+      "id": "Q19",
+      "section": "Equipment and remote access",
+      "topic": "Equipment on separate network",
+      "question": "Is your equipment on a separate network from office computers?",
+      "shownOnlyIf": "hasOT is yes or unsure",
+      "askedIn": {
+        "card": "P8",
+        "cardTitle": "Equipment, routers, and Wi-Fi",
+        "label": "Is your connected equipment on a separate network from office computers?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes"
+          },
+          {
+            "value": "partial",
+            "label": "Some of it"
+          },
+          {
+            "value": "no",
+            "label": "No, same network"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "OT",
+          "riskName": "Tampering with connected equipment",
+          "effect": "likelihood",
+          "weight": 0.4
+        },
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.2
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.9",
+          "controlName": "Perimeter defences",
+          "strength": "partial",
+          "primary": true,
+          "requirements": []
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "12.2",
+          "title": "Establish and Maintain a Secure Network Architecture",
+          "implementationGroup": 2,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "CCCS has no general network segmentation requirement. It applies the same isolation idea to internet-facing servers (BC.9.1) and point-of-sale systems (BC.9.6), so this counts toward BC.9 without claiming either. CIS 12.2 requires segmentation (IG2).",
+      "fixedByActions": [
+        {
+          "id": "A14",
+          "title": "Separate equipment and guest Wi-Fi from office network"
+        }
+      ]
+    },
+    {
+      "id": "Q20",
+      "section": "Equipment and remote access",
+      "topic": "Default passwords changed",
+      "question": "Have default passwords been changed on routers, cameras, and equipment?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P8",
+        "cardTitle": "Equipment, routers, and Wi-Fi",
+        "label": "Have the default passwords been changed on routers, cameras, and equipment?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, all of them"
+          },
+          {
+            "value": "partial",
+            "label": "Some of them"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "OT",
+          "riskName": "Tampering with connected equipment",
+          "effect": "likelihood",
+          "weight": 0.4
+        },
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.4",
+          "controlName": "Securely configure devices",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.4.1",
+              "summary": "Secure configurations: change default passwords, turn off unnecessary features, enable security features"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "4.7",
+          "title": "Manage Default Accounts on Enterprise Assets and Software",
+          "implementationGroup": 1,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": null,
+      "fixedByActions": [
+        {
+          "id": "A15",
+          "title": "Change default passwords on routers, cameras, and equipment"
+        }
+      ]
+    },
+    {
+      "id": "Q21",
+      "section": "Equipment and remote access",
+      "topic": "Separate guest Wi-Fi",
+      "question": "Is guest or driver Wi-Fi separate from your business network?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P8",
+        "cardTitle": "Equipment, routers, and Wi-Fi",
+        "label": "Is guest or driver Wi-Fi separate from your business network?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, separate"
+          },
+          {
+            "value": "no",
+            "label": "No, same network"
+          },
+          {
+            "value": "na",
+            "label": "We don't offer guest Wi-Fi"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.1
+        },
+        {
+          "risk": "SHARED",
+          "riskName": "Misuse of shared or leftover accounts",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.9",
+          "controlName": "Perimeter defences",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.9.5",
+              "summary": "Never connect public Wi-Fi networks to the corporate network"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "12.2",
+          "title": "Establish and Maintain a Secure Network Architecture",
+          "implementationGroup": 2,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "Guest and driver Wi-Fi is a public network under BC.9.5. CIS v8.1 has no guest Wi-Fi safeguard; it falls under segmentation in 12.2.",
+      "fixedByActions": [
+        {
+          "id": "A14",
+          "title": "Separate equipment and guest Wi-Fi from office network"
+        }
+      ]
+    },
+    {
+      "id": "Q22",
+      "section": "Vendors and planning",
+      "topic": "List of vendor access",
+      "question": "Do you have a list of every vendor or IT provider that can access your systems?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P9",
+        "cardTitle": "Vendors and IT providers",
+        "label": "Do you keep a list of every vendor or IT provider that can access your systems?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, and it's up to date"
+          },
+          {
+            "value": "partial",
+            "label": "Partly, or out of date"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "THIRD",
+          "riskName": "A vendor or IT provider gets breached",
+          "effect": "likelihood",
+          "weight": 0.4
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.10",
+          "controlName": "Secure cloud and outsourced IT",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.10.2",
+              "summary": "Evaluate how outsourced IT providers handle and access your sensitive information"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "15.1",
+          "title": "Establish and Maintain an Inventory of Service Providers",
+          "implementationGroup": 1,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "CCCS does not require a vendor inventory, but you cannot evaluate how providers access your systems (BC.10.2) without one.",
+      "fixedByActions": [
+        {
+          "id": "A4",
+          "title": "Create an offboarding checklist"
+        }
+      ]
+    },
+    {
+      "id": "Q23",
+      "section": "Vendors and planning",
+      "topic": "Vendor breach notice in contracts",
+      "question": "Do your contracts require vendors to tell you if they are breached?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P9",
+        "cardTitle": "Vendors and IT providers",
+        "label": "Do your contracts require vendors to tell you if they're hacked?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, with all key vendors"
+          },
+          {
+            "value": "partial",
+            "label": "Some contracts"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "THIRD",
+          "riskName": "A vendor or IT provider gets breached",
+          "effect": "likelihood",
+          "weight": 0.3
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.10",
+          "controlName": "Secure cloud and outsourced IT",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.10.2",
+              "summary": "Evaluate how outsourced IT providers handle and access your sensitive information"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "15.4",
+          "title": "Ensure Service Provider Contracts Include Security Requirements",
+          "implementationGroup": 2,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "CIS 15.4 lists incident and data breach notification as an example contract requirement.",
+      "fixedByActions": [
+        {
+          "id": "A16",
+          "title": "Add breach notification to vendor contracts"
+        }
+      ]
+    },
+    {
+      "id": "Q24",
+      "section": "Vendors and planning",
+      "topic": "Written incident plan",
+      "question": "Do you have a written list of who to call and what to do if you get hacked?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P10",
+        "cardTitle": "If something goes wrong",
+        "label": "Do you have a written list of who to call and what to do if you get hacked?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, written down"
+          },
+          {
+            "value": "partial",
+            "label": "Roughly, but not written down"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "impact",
+          "reductionWhenYes": 0.15
+        },
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "impact",
+          "reductionWhenYes": 0.15
+        },
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "impact",
+          "reductionWhenYes": 0.15
+        },
+        {
+          "risk": "OT",
+          "riskName": "Tampering with connected equipment",
+          "effect": "impact",
+          "reductionWhenYes": 0.15
+        },
+        {
+          "risk": "THIRD",
+          "riskName": "A vendor or IT provider gets breached",
+          "effect": "impact",
+          "reductionWhenYes": 0.15
+        },
+        {
+          "risk": "DATALOSS",
+          "riskName": "Losing data you cannot get back",
+          "effect": "impact",
+          "reductionWhenYes": 0.15
+        },
+        {
+          "risk": "SHARED",
+          "riskName": "Misuse of shared or leftover accounts",
+          "effect": "impact",
+          "reductionWhenYes": 0.15
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.1",
+          "controlName": "Incident response plan",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.1.1",
+              "summary": "Have a basic plan for responding to incidents of varying severity"
+            },
+            {
+              "id": "BC.1.2",
+              "summary": "Written plan naming who handles incidents and external contacts, with an up-to-date hard copy"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "17.2",
+          "title": "Establish and Maintain Contact Information for Reporting Security Incidents",
+          "implementationGroup": 1,
+          "strength": "direct"
+        },
+        {
+          "safeguard": "17.1",
+          "title": "Designate Personnel to Manage Incident Handling",
+          "implementationGroup": 1,
+          "strength": "partial"
+        },
+        {
+          "safeguard": "17.4",
+          "title": "Establish and Maintain an Incident Response Process",
+          "implementationGroup": 2,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "A written contact list and first steps meet CIS 17.2 directly. Naming who is in charge (17.1) and a full response process (17.4) are only partly covered.",
+      "fixedByActions": [
+        {
+          "id": "A17",
+          "title": "Write a one-page \"we got hacked\" plan"
+        }
+      ]
+    },
+    {
+      "id": "Q25",
+      "section": "Vendors and planning",
+      "topic": "Cyber insurance",
+      "question": "Do you have cyber insurance?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P10",
+        "cardTitle": "If something goes wrong",
+        "label": "Do you have cyber insurance?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes"
+          },
+          {
+            "value": "partial",
+            "label": "Some cover, but not sure it includes cyber attacks"
+          },
+          {
+            "value": "no",
+            "label": "No"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "impact",
+          "reductionWhenYes": 0.1
+        },
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "impact",
+          "reductionWhenYes": 0.1
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.1",
+          "controlName": "Incident response plan",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.1.3",
+              "summary": "Consider cyber insurance covering response and recovery, or document why not"
+            }
+          ]
+        }
+      ],
+      "cis": [],
+      "mappingNote": "CIS 17.2 lists your insurer as an incident contact but does not ask whether you have cyber insurance.",
+      "fixedByActions": [
+        {
+          "id": "A18",
+          "title": "Get a cyber insurance quote"
+        }
+      ]
+    }
+  ],
+  "byCccsControl": [
+    {
+      "id": "BC.1",
+      "name": "Incident response plan",
+      "requirementsTotal": 3,
+      "requirementsAssessed": 3,
+      "requirements": [
+        {
+          "id": "BC.1.1",
+          "summary": "Have a basic plan for responding to incidents of varying severity",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q24",
+              "topic": "Written incident plan",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.1.2",
+          "summary": "Written plan naming who handles incidents and external contacts, with an up-to-date hard copy",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q24",
+              "topic": "Written incident plan",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.1.3",
+          "summary": "Consider cyber insurance covering response and recovery, or document why not",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q25",
+              "topic": "Cyber insurance",
+              "strength": "direct"
+            }
+          ]
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q24",
+          "topic": "Written incident plan",
+          "strength": "direct"
+        },
+        {
+          "questionId": "Q25",
+          "topic": "Cyber insurance",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "17.1",
+        "17.2",
+        "17.4"
+      ]
+    },
+    {
+      "id": "BC.2",
+      "name": "Automatic patching",
+      "requirementsTotal": 2,
+      "requirementsAssessed": 1,
+      "requirements": [
+        {
+          "id": "BC.2.1",
+          "summary": "Enable automatic patching for all software and hardware",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q12",
+              "topic": "Automatic updates",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.2.2",
+          "summary": "Assess replacing anything that cannot update automatically, or patch it manually",
+          "assessed": false,
+          "questions": []
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q12",
+          "topic": "Automatic updates",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "7.3",
+        "7.4"
+      ]
+    },
+    {
+      "id": "BC.3",
+      "name": "Security software",
+      "requirementsTotal": 2,
+      "requirementsAssessed": 1,
+      "requirements": [
+        {
+          "id": "BC.3.1",
+          "summary": "Enable anti-malware that updates and scans automatically",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q13",
+              "topic": "Antivirus on every computer",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.3.2",
+          "summary": "Turn on built-in software firewalls on devices",
+          "assessed": false,
+          "questions": []
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q13",
+          "topic": "Antivirus on every computer",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "10.1",
+        "10.2"
+      ]
+    },
+    {
+      "id": "BC.4",
+      "name": "Securely configure devices",
+      "requirementsTotal": 1,
+      "requirementsAssessed": 1,
+      "requirements": [
+        {
+          "id": "BC.4.1",
+          "summary": "Secure configurations: change default passwords, turn off unnecessary features, enable security features",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q18",
+              "topic": "Vendor remote access off when idle",
+              "strength": "partial"
+            },
+            {
+              "questionId": "Q20",
+              "topic": "Default passwords changed",
+              "strength": "direct"
+            }
+          ]
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q18",
+          "topic": "Vendor remote access off when idle",
+          "strength": "partial"
+        },
+        {
+          "questionId": "Q20",
+          "topic": "Default passwords changed",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "4.7",
+        "4.8"
+      ]
+    },
+    {
+      "id": "BC.5",
+      "name": "Strong user authentication",
+      "requirementsTotal": 3,
+      "requirementsAssessed": 2,
+      "requirements": [
+        {
+          "id": "BC.5.1",
+          "summary": "Two-factor authentication wherever possible, and required for financial, admin, cloud admin, privileged, and executive accounts",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q1",
+              "topic": "Phone code on email",
+              "strength": "direct"
+            },
+            {
+              "questionId": "Q2",
+              "topic": "Phone code on business portals",
+              "strength": "direct"
+            },
+            {
+              "questionId": "Q17",
+              "topic": "Secure remote access",
+              "strength": "partial"
+            }
+          ]
+        },
+        {
+          "id": "BC.5.2",
+          "summary": "Only force password changes on suspicion or evidence of compromise",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.5.3",
+          "summary": "Clear policies on password length, reuse, password managers, and writing passwords down",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q5",
+              "topic": "Password manager",
+              "strength": "direct"
+            }
+          ]
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q1",
+          "topic": "Phone code on email",
+          "strength": "direct"
+        },
+        {
+          "questionId": "Q2",
+          "topic": "Phone code on business portals",
+          "strength": "direct"
+        },
+        {
+          "questionId": "Q5",
+          "topic": "Password manager",
+          "strength": "direct"
+        },
+        {
+          "questionId": "Q17",
+          "topic": "Secure remote access",
+          "strength": "partial"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "5.2",
+        "6.3"
+      ]
+    },
+    {
+      "id": "BC.6",
+      "name": "Employee awareness training",
+      "requirementsTotal": 1,
+      "requirementsAssessed": 1,
+      "requirements": [
+        {
+          "id": "BC.6.1",
+          "summary": "Invest in cyber security awareness and training for employees",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q9",
+              "topic": "Fake email training",
+              "strength": "direct"
+            }
+          ]
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q9",
+          "topic": "Fake email training",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "14.1",
+        "14.2"
+      ]
+    },
+    {
+      "id": "BC.7",
+      "name": "Backup and encryption",
+      "requirementsTotal": 2,
+      "requirementsAssessed": 2,
+      "requirements": [
+        {
+          "id": "BC.7.1",
+          "summary": "Back up essential systems, make sure restores work, and consider offline off-site backups",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q14",
+              "topic": "Regular backups",
+              "strength": "partial"
+            },
+            {
+              "questionId": "Q15",
+              "topic": "Offline, tested backup",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.7.2",
+          "summary": "Encrypt backups, restrict access to them, and keep long-term backups offline",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q15",
+              "topic": "Offline, tested backup",
+              "strength": "partial"
+            }
+          ]
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q14",
+          "topic": "Regular backups",
+          "strength": "partial"
+        },
+        {
+          "questionId": "Q15",
+          "topic": "Offline, tested backup",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "11.2",
+        "11.4",
+        "11.5"
+      ]
+    },
+    {
+      "id": "BC.8",
+      "name": "Secure mobility",
+      "requirementsTotal": 7,
+      "requirementsAssessed": 2,
+      "requirements": [
+        {
+          "id": "BC.8.1",
+          "summary": "Choose and document a mobile device ownership model",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.8.2",
+          "summary": "Separate work and personal data on mobile devices",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.8.3",
+          "summary": "Only install apps from trusted sources",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.8.4",
+          "summary": "Store sensitive information on mobile devices in an encrypted state",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q16",
+              "topic": "PIN and remote wipe on phones",
+              "strength": "partial"
+            }
+          ]
+        },
+        {
+          "id": "BC.8.5",
+          "summary": "Consider an enterprise mobility management solution",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q16",
+              "topic": "PIN and remote wipe on phones",
+              "strength": "partial"
+            }
+          ]
+        },
+        {
+          "id": "BC.8.6",
+          "summary": "Avoid open or unknown Wi-Fi and limit Bluetooth and NFC for sensitive data",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.8.7",
+          "summary": "Consider a VPN when using public Wi-Fi",
+          "assessed": false,
+          "questions": []
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q16",
+          "topic": "PIN and remote wipe on phones",
+          "strength": "partial"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "4.3",
+        "4.11"
+      ]
+    },
+    {
+      "id": "BC.9",
+      "name": "Perimeter defences",
+      "requirementsTotal": 8,
+      "requirementsAssessed": 4,
+      "requirements": [
+        {
+          "id": "BC.9.1",
+          "summary": "Dedicated firewall at the internet boundary; isolate internet-facing servers",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.9.2",
+          "summary": "DNS firewall for outbound DNS requests",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.9.3",
+          "summary": "Secure connectivity, with VPN and two-factor for all remote access",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q17",
+              "topic": "Secure remote access",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.9.4",
+          "summary": "Only secure Wi-Fi, preferably WPA2-Enterprise",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.9.5",
+          "summary": "Never connect public Wi-Fi networks to the corporate network",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q21",
+              "topic": "Separate guest Wi-Fi",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.9.6",
+          "summary": "Isolate point-of-sale systems with a firewall",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.9.7",
+          "summary": "Implement DMARC on all email services",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q11",
+              "topic": "DMARC spoofing protection",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.9.8",
+          "summary": "Email filtering at points of ingress and egress",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q10",
+              "topic": "External email warning",
+              "strength": "partial"
+            }
+          ]
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q10",
+          "topic": "External email warning",
+          "strength": "partial"
+        },
+        {
+          "questionId": "Q11",
+          "topic": "DMARC spoofing protection",
+          "strength": "direct"
+        },
+        {
+          "questionId": "Q17",
+          "topic": "Secure remote access",
+          "strength": "direct"
+        },
+        {
+          "questionId": "Q19",
+          "topic": "Equipment on separate network",
+          "strength": "partial"
+        },
+        {
+          "questionId": "Q21",
+          "topic": "Separate guest Wi-Fi",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "6.4",
+        "9.5",
+        "12.2",
+        "12.7"
+      ]
+    },
+    {
+      "id": "BC.10",
+      "name": "Secure cloud and outsourced IT",
+      "requirementsTotal": 5,
+      "requirementsAssessed": 1,
+      "requirements": [
+        {
+          "id": "BC.10.1",
+          "summary": "Require SOC 3 reports from cloud service providers",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.10.2",
+          "summary": "Evaluate how outsourced IT providers handle and access your sensitive information",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q18",
+              "topic": "Vendor remote access off when idle",
+              "strength": "partial"
+            },
+            {
+              "questionId": "Q22",
+              "topic": "List of vendor access",
+              "strength": "partial"
+            },
+            {
+              "questionId": "Q23",
+              "topic": "Vendor breach notice in contracts",
+              "strength": "partial"
+            }
+          ]
+        },
+        {
+          "id": "BC.10.3",
+          "summary": "Evaluate the legal jurisdictions where providers store or use your data",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.10.4",
+          "summary": "Communicate securely with all cloud services",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.10.5",
+          "summary": "Two-factor on cloud admin accounts, separate from internal admin accounts",
+          "assessed": false,
+          "questions": []
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q18",
+          "topic": "Vendor remote access off when idle",
+          "strength": "partial"
+        },
+        {
+          "questionId": "Q22",
+          "topic": "List of vendor access",
+          "strength": "partial"
+        },
+        {
+          "questionId": "Q23",
+          "topic": "Vendor breach notice in contracts",
+          "strength": "partial"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "15.1",
+        "15.4"
+      ]
+    },
+    {
+      "id": "BC.11",
+      "name": "Secure websites",
+      "requirementsTotal": 2,
+      "requirementsAssessed": 0,
+      "requirements": [
+        {
+          "id": "BC.11.1",
+          "summary": "Websites address the OWASP Top 10 vulnerabilities",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.11.2",
+          "summary": "Know the ASVS level each website needs to meet",
+          "assessed": false,
+          "questions": []
+        }
+      ],
+      "questionsCountingTowardStatus": [],
+      "relatedCisSafeguards": []
+    },
+    {
+      "id": "BC.12",
+      "name": "Access control and authorization",
+      "requirementsTotal": 4,
+      "requirementsAssessed": 2,
+      "requirements": [
+        {
+          "id": "BC.12.1",
+          "summary": "Give accounts only what they need, and restrict admin privileges to an as-required basis",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q3",
+              "topic": "Own login for everyone",
+              "strength": "partial"
+            },
+            {
+              "questionId": "Q6",
+              "topic": "Limited admin rights",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.12.2",
+          "summary": "Use admin accounts only for admin tasks, not email or web browsing",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.12.3",
+          "summary": "Remove accounts and access when employees no longer need them",
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q3",
+              "topic": "Own login for everyone",
+              "strength": "partial"
+            },
+            {
+              "questionId": "Q4",
+              "topic": "Same-day access removal",
+              "strength": "direct"
+            }
+          ]
+        },
+        {
+          "id": "BC.12.4",
+          "summary": "Consider centralized authorization control",
+          "assessed": false,
+          "questions": []
+        }
+      ],
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q3",
+          "topic": "Own login for everyone",
+          "strength": "partial"
+        },
+        {
+          "questionId": "Q4",
+          "topic": "Same-day access removal",
+          "strength": "direct"
+        },
+        {
+          "questionId": "Q6",
+          "topic": "Limited admin rights",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "5.1",
+        "5.4",
+        "6.2"
+      ]
+    },
+    {
+      "id": "BC.13",
+      "name": "Secure portable media",
+      "requirementsTotal": 2,
+      "requirementsAssessed": 0,
+      "requirements": [
+        {
+          "id": "BC.13.1",
+          "summary": "Only organization-owned, encrypted portable media under asset control",
+          "assessed": false,
+          "questions": []
+        },
+        {
+          "id": "BC.13.2",
+          "summary": "Sanitize or destroy portable media before disposal",
+          "assessed": false,
+          "questions": []
+        }
+      ],
+      "questionsCountingTowardStatus": [],
+      "relatedCisSafeguards": []
+    }
+  ],
+  "byCisSafeguard": [
+    {
+      "id": "4.3",
+      "title": "Configure Automatic Session Locking on Enterprise Assets",
+      "control": 4,
+      "controlName": "Secure Configuration of Enterprise Assets and Software",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q16",
+          "topic": "PIN and remote wipe on phones",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "4.7",
+      "title": "Manage Default Accounts on Enterprise Assets and Software",
+      "control": 4,
+      "controlName": "Secure Configuration of Enterprise Assets and Software",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q20",
+          "topic": "Default passwords changed",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "4.8",
+      "title": "Uninstall or Disable Unnecessary Services on Enterprise Assets and Software",
+      "control": 4,
+      "controlName": "Secure Configuration of Enterprise Assets and Software",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q18",
+          "topic": "Vendor remote access off when idle",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "4.11",
+      "title": "Enforce Remote Wipe Capability on Portable End-User Devices",
+      "control": 4,
+      "controlName": "Secure Configuration of Enterprise Assets and Software",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q16",
+          "topic": "PIN and remote wipe on phones",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "5.1",
+      "title": "Establish and Maintain an Inventory of Accounts",
+      "control": 5,
+      "controlName": "Account Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q3",
+          "topic": "Own login for everyone",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "5.2",
+      "title": "Use Unique Passwords",
+      "control": 5,
+      "controlName": "Account Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q5",
+          "topic": "Password manager",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "5.4",
+      "title": "Restrict Administrator Privileges to Dedicated Administrator Accounts",
+      "control": 5,
+      "controlName": "Account Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q6",
+          "topic": "Limited admin rights",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "6.2",
+      "title": "Establish an Access Revoking Process",
+      "control": 6,
+      "controlName": "Access Control Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q4",
+          "topic": "Same-day access removal",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "6.3",
+      "title": "Require MFA for Externally-Exposed Applications",
+      "control": 6,
+      "controlName": "Access Control Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q1",
+          "topic": "Phone code on email",
+          "strength": "direct"
+        },
+        {
+          "questionId": "Q2",
+          "topic": "Phone code on business portals",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "6.4",
+      "title": "Require MFA for Remote Network Access",
+      "control": 6,
+      "controlName": "Access Control Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q17",
+          "topic": "Secure remote access",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "7.3",
+      "title": "Perform Automated Operating System Patch Management",
+      "control": 7,
+      "controlName": "Continuous Vulnerability Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q12",
+          "topic": "Automatic updates",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "7.4",
+      "title": "Perform Automated Application Patch Management",
+      "control": 7,
+      "controlName": "Continuous Vulnerability Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q12",
+          "topic": "Automatic updates",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "9.5",
+      "title": "Implement DMARC",
+      "control": 9,
+      "controlName": "Email and Web Browser Protections",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q11",
+          "topic": "DMARC spoofing protection",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "10.1",
+      "title": "Deploy and Maintain Anti-Malware Software",
+      "control": 10,
+      "controlName": "Malware Defenses",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q13",
+          "topic": "Antivirus on every computer",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "10.2",
+      "title": "Configure Automatic Anti-Malware Signature Updates",
+      "control": 10,
+      "controlName": "Malware Defenses",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q13",
+          "topic": "Antivirus on every computer",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "11.2",
+      "title": "Perform Automated Backups",
+      "control": 11,
+      "controlName": "Data Recovery",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q14",
+          "topic": "Regular backups",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "11.4",
+      "title": "Establish and Maintain an Isolated Instance of Recovery Data",
+      "control": 11,
+      "controlName": "Data Recovery",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q15",
+          "topic": "Offline, tested backup",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "11.5",
+      "title": "Test Data Recovery",
+      "control": 11,
+      "controlName": "Data Recovery",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q15",
+          "topic": "Offline, tested backup",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "12.2",
+      "title": "Establish and Maintain a Secure Network Architecture",
+      "control": 12,
+      "controlName": "Network Infrastructure Management",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q19",
+          "topic": "Equipment on separate network",
+          "strength": "partial"
+        },
+        {
+          "questionId": "Q21",
+          "topic": "Separate guest Wi-Fi",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "12.7",
+      "title": "Ensure Remote Devices Utilize a VPN and are Connecting to an Enterprise's AAA Infrastructure",
+      "control": 12,
+      "controlName": "Network Infrastructure Management",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q17",
+          "topic": "Secure remote access",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "14.1",
+      "title": "Establish and Maintain a Security Awareness Program",
+      "control": 14,
+      "controlName": "Security Awareness and Skills Training",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q9",
+          "topic": "Fake email training",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "14.2",
+      "title": "Train Workforce Members to Recognize Social Engineering Attacks",
+      "control": 14,
+      "controlName": "Security Awareness and Skills Training",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q9",
+          "topic": "Fake email training",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "15.1",
+      "title": "Establish and Maintain an Inventory of Service Providers",
+      "control": 15,
+      "controlName": "Service Provider Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q22",
+          "topic": "List of vendor access",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "15.4",
+      "title": "Ensure Service Provider Contracts Include Security Requirements",
+      "control": 15,
+      "controlName": "Service Provider Management",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q23",
+          "topic": "Vendor breach notice in contracts",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "17.1",
+      "title": "Designate Personnel to Manage Incident Handling",
+      "control": 17,
+      "controlName": "Incident Response Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q24",
+          "topic": "Written incident plan",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "17.2",
+      "title": "Establish and Maintain Contact Information for Reporting Security Incidents",
+      "control": 17,
+      "controlName": "Incident Response Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q24",
+          "topic": "Written incident plan",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "17.4",
+      "title": "Establish and Maintain an Incident Response Process",
+      "control": 17,
+      "controlName": "Incident Response Management",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q24",
+          "topic": "Written incident plan",
+          "strength": "partial"
+        }
+      ]
+    }
+  ],
+  "gaps": {
+    "cccsControlsNotAssessed": [
+      "BC.11 Secure websites",
+      "BC.13 Secure portable media"
+    ],
+    "cccsRequirementsNotAssessed": [
+      "BC.2.2 Assess replacing anything that cannot update automatically, or patch it manually",
+      "BC.3.2 Turn on built-in software firewalls on devices",
+      "BC.5.2 Only force password changes on suspicion or evidence of compromise",
+      "BC.8.1 Choose and document a mobile device ownership model",
+      "BC.8.2 Separate work and personal data on mobile devices",
+      "BC.8.3 Only install apps from trusted sources",
+      "BC.8.6 Avoid open or unknown Wi-Fi and limit Bluetooth and NFC for sensitive data",
+      "BC.8.7 Consider a VPN when using public Wi-Fi",
+      "BC.9.1 Dedicated firewall at the internet boundary; isolate internet-facing servers",
+      "BC.9.2 DNS firewall for outbound DNS requests",
+      "BC.9.4 Only secure Wi-Fi, preferably WPA2-Enterprise",
+      "BC.9.6 Isolate point-of-sale systems with a firewall",
+      "BC.10.1 Require SOC 3 reports from cloud service providers",
+      "BC.10.3 Evaluate the legal jurisdictions where providers store or use your data",
+      "BC.10.4 Communicate securely with all cloud services",
+      "BC.10.5 Two-factor on cloud admin accounts, separate from internal admin accounts",
+      "BC.11.1 Websites address the OWASP Top 10 vulnerabilities",
+      "BC.11.2 Know the ASVS level each website needs to meet",
+      "BC.12.2 Use admin accounts only for admin tasks, not email or web browsing",
+      "BC.12.4 Consider centralized authorization control",
+      "BC.13.1 Only organization-owned, encrypted portable media under asset control",
+      "BC.13.2 Sanitize or destroy portable media before disposal"
+    ],
+    "questionsWithNoCccsMapping": [
+      {
+        "id": "Q7",
+        "topic": "Call-back rule for bank changes",
+        "reason": "A call-back rule is a payment procedure, not a baseline IT control. CCCS BC.6.1 and CIS 14.2 cover training staff to recognize business email compromise, but neither requires verifying bank changes. Shown separately on the Supplier Security Summary."
+      },
+      {
+        "id": "Q8",
+        "topic": "Second approval on large payments",
+        "reason": "Dual approval of payments is a financial control. CCCS BC.12 and CIS Control 6 cover access to IT systems, not payment approval. Shown separately on the Supplier Security Summary."
+      }
+    ],
+    "questionsWithNoCisMapping": [
+      {
+        "id": "Q7",
+        "topic": "Call-back rule for bank changes",
+        "reason": "A call-back rule is a payment procedure, not a baseline IT control. CCCS BC.6.1 and CIS 14.2 cover training staff to recognize business email compromise, but neither requires verifying bank changes. Shown separately on the Supplier Security Summary."
+      },
+      {
+        "id": "Q8",
+        "topic": "Second approval on large payments",
+        "reason": "Dual approval of payments is a financial control. CCCS BC.12 and CIS Control 6 cover access to IT systems, not payment approval. Shown separately on the Supplier Security Summary."
+      },
+      {
+        "id": "Q10",
+        "topic": "External email warning",
+        "reason": "External-sender tagging is an email gateway rule, closest to BC.9.8 (email filtering). No CIS v8.1 safeguard covers it: Control 9 addresses browsers, DNS filtering, DMARC, file types, and email anti-malware."
+      },
+      {
+        "id": "Q25",
+        "topic": "Cyber insurance",
+        "reason": "CIS 17.2 lists your insurer as an incident contact but does not ask whether you have cyber insurance."
+      }
+    ]
+  }
+}

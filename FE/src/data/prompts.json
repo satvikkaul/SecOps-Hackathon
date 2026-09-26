@@ -1,0 +1,316 @@
+{
+  "intro": "There are no wrong answers. Honest answers get you better advice. If you're not sure, tap \"Not sure\" and we'll add it to your list to check.",
+  "prompts": [
+    {
+      "id": "P1",
+      "section": "logins",
+      "type": "rows",
+      "title": "Do you need a code from your phone to log in?",
+      "why": "This is called two-step login. Even if someone steals a password, they can't get in without the code from your phone. Email matters most because password resets go there, and your money and load tools are what criminals want.",
+      "rows": [
+        {
+          "question": "Q1",
+          "label": "Company email",
+          "options": [
+            { "value": "yes", "label": "Yes, for everyone" },
+            { "value": "partial", "label": "Some people" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q2",
+          "label": "Banking, accounting, and other business websites",
+          "labelBySector": {
+            "carrier": "Banking, accounting, load boards, and fleet or TMS portals",
+            "broker": "Banking, accounting, load boards, and TMS portals",
+            "farm": "Banking, accounting, and co-op or grain marketing accounts"
+          },
+          "options": [
+            { "value": "yes", "label": "Yes, all of them" },
+            { "value": "partial", "label": "Some of them" },
+            { "value": "no", "label": "No" }
+          ],
+          "na": "We don't use any"
+        }
+      ]
+    },
+    {
+      "id": "P2",
+      "section": "logins",
+      "type": "rows",
+      "title": "Accounts and passwords",
+      "why": "Shared logins hide who did what and can't be switched off for one person. Old accounts of people who left are an easy way in. Reused passwords turn one website's breach into many. Admin rights on everyday accounts let one bad click take over a computer.",
+      "rows": [
+        {
+          "question": "Q3",
+          "label": "Does everyone have their own login, with no shared accounts or shared tablets?",
+          "options": [
+            { "value": "yes", "label": "Yes" },
+            { "value": "partial", "label": "Mostly, a few are shared" },
+            { "value": "no", "label": "No, we share logins" }
+          ]
+        },
+        {
+          "question": "Q4",
+          "label": "When someone leaves, how soon is their access removed?",
+          "options": [
+            { "value": "yes", "label": "The same day" },
+            { "value": "partial", "label": "Within a few days" },
+            { "value": "no", "label": "It can take longer or get missed" }
+          ]
+        },
+        {
+          "question": "Q5",
+          "label": "How do people keep track of passwords?",
+          "options": [
+            { "value": "yes", "label": "A password manager" },
+            { "value": "partial", "label": "Some people use one" },
+            { "value": "no", "label": "Memory, paper, or the same password everywhere" }
+          ]
+        },
+        {
+          "question": "Q6",
+          "label": "Who has admin rights to install software on work computers?",
+          "options": [
+            { "value": "yes", "label": "Only one or two trusted people" },
+            { "value": "partial", "label": "A few people" },
+            { "value": "no", "label": "Most people, or everyone" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P3",
+      "section": "payments",
+      "type": "rows",
+      "title": "Paying suppliers",
+      "why": "Most payment fraud starts with an email saying \"we changed banks.\" Calling a number you already trust, not the one in the email, stops it. A second person approving big payments catches rushed or unusual requests.",
+      "rows": [
+        {
+          "question": "Q7",
+          "label": "Before changing a supplier's or carrier's bank details, do you call them at a number you already had on file?",
+          "options": [
+            { "value": "yes", "label": "Always" },
+            { "value": "partial", "label": "Sometimes" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q8",
+          "label": "Do large payments need a second person to approve them?",
+          "options": [
+            { "value": "yes", "label": "Always" },
+            { "value": "partial", "label": "Sometimes" },
+            { "value": "no", "label": "No" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P4",
+      "section": "payments",
+      "type": "rows",
+      "title": "Email",
+      "why": "Most attacks start with an email. Short training helps people pause before clicking. An \"External\" label shows when a message claiming to be from your boss came from outside. DMARC stops strangers sending email that looks like it came from your company, such as fake invoices to your customers.",
+      "rows": [
+        {
+          "question": "Q9",
+          "label": "Has your team had any training on spotting fake emails in the past year?",
+          "options": [
+            { "value": "yes", "label": "Yes, everyone" },
+            { "value": "partial", "label": "Some people" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q10",
+          "label": "Do emails from outside the company show a warning label?",
+          "options": [
+            { "value": "yes", "label": "Yes" },
+            { "value": "partial", "label": "For some people" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q11",
+          "label": "Is your email domain protected against spoofing (DMARC)?",
+          "options": [
+            { "value": "yes", "label": "Yes, fakes are blocked" },
+            { "value": "partial", "label": "Set up, but only monitoring" },
+            { "value": "no", "label": "No" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P5",
+      "section": "computers",
+      "type": "rows",
+      "title": "Computers, phones, and tablets",
+      "why": "Attackers use known holes in old software, and automatic updates close them. Built-in antivirus like Microsoft Defender blocks most common malware, but only if it's on. A lost phone or truck tablet can hold email and saved passwords.",
+      "rows": [
+        {
+          "question": "Q12",
+          "label": "Do computers install security updates automatically?",
+          "options": [
+            { "value": "yes", "label": "Every computer" },
+            { "value": "partial", "label": "Some computers" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q13",
+          "label": "Is antivirus (like Microsoft Defender) turned on?",
+          "options": [
+            { "value": "yes", "label": "Every computer" },
+            { "value": "partial", "label": "Some computers" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q16",
+          "label": "Are work phones and tablets locked with a PIN, and can you wipe them remotely if they're lost?",
+          "options": [
+            { "value": "yes", "label": "Both, on every device" },
+            { "value": "partial", "label": "Only one of these, or only some devices" },
+            { "value": "no", "label": "Neither" }
+          ],
+          "na": "We don't use phones or tablets for work"
+        }
+      ]
+    },
+    {
+      "id": "P6",
+      "section": "computers",
+      "type": "ladder",
+      "title": "How are your files and business data backed up?",
+      "why": "Backups let you recover from ransomware or a dead hard drive without paying anyone. Ransomware hunts for backups it can reach, so the copy that saves you is one that's offline or separate, and that you've actually restored from.",
+      "questions": ["Q14", "Q15"],
+      "options": [
+        { "label": "We don't really back up", "sets": { "Q14": "no", "Q15": "no" } },
+        { "label": "Now and then, when someone remembers", "sets": { "Q14": "partial", "Q15": "no" } },
+        { "label": "Regularly, but only one copy, and we've never tried restoring it", "sets": { "Q14": "yes", "Q15": "no" } },
+        { "label": "Regularly, plus either an offline copy or a restore we've tested (not both)", "sets": { "Q14": "yes", "Q15": "partial" } },
+        { "label": "Regularly, with an offline or separate copy we've restored from", "sets": { "Q14": "yes", "Q15": "yes" } }
+      ]
+    },
+    {
+      "id": "P7",
+      "section": "equipment",
+      "type": "rows",
+      "title": "Connecting from outside the office",
+      "why": "Remote desktop left open to the internet is one of the top ways ransomware gangs get in. A secure connection that also needs a phone code closes that door.",
+      "rows": [
+        {
+          "question": "Q17",
+          "label": "When people connect to office computers from home or on the road, how do they do it?",
+          "options": [
+            { "value": "yes", "label": "A secure connection that needs a phone code" },
+            { "value": "partial", "label": "A secure connection, but no phone code" },
+            { "value": "no", "label": "Remote desktop or a remote tool with just a password" }
+          ],
+          "na": "Nobody connects from outside the office"
+        }
+      ]
+    },
+    {
+      "id": "P8",
+      "section": "equipment",
+      "type": "rows",
+      "title": "Equipment, routers, and Wi-Fi",
+      "why": "Always-on vendor remote access is an open door to your equipment. A separate network keeps an infected office computer away from refrigeration or sensors. Factory passwords like \"admin\" are published online. Visitors' and drivers' phones shouldn't share a network with your business computers.",
+      "rows": [
+        {
+          "question": "Q18",
+          "label": "Is vendor remote access to your equipment (TeamViewer, AnyDesk) switched off when it's not being used?",
+          "options": [
+            { "value": "yes", "label": "Yes, only on when needed" },
+            { "value": "partial", "label": "For some equipment" },
+            { "value": "no", "label": "No, it's always on" }
+          ]
+        },
+        {
+          "question": "Q19",
+          "label": "Is your connected equipment on a separate network from office computers?",
+          "options": [
+            { "value": "yes", "label": "Yes" },
+            { "value": "partial", "label": "Some of it" },
+            { "value": "no", "label": "No, same network" }
+          ]
+        },
+        {
+          "question": "Q20",
+          "label": "Have the default passwords been changed on routers, cameras, and equipment?",
+          "options": [
+            { "value": "yes", "label": "Yes, all of them" },
+            { "value": "partial", "label": "Some of them" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q21",
+          "label": "Is guest or driver Wi-Fi separate from your business network?",
+          "options": [
+            { "value": "yes", "label": "Yes, separate" },
+            { "value": "no", "label": "No, same network" }
+          ],
+          "na": "We don't offer guest Wi-Fi"
+        }
+      ]
+    },
+    {
+      "id": "P9",
+      "section": "vendors",
+      "type": "rows",
+      "title": "Vendors and IT providers",
+      "why": "You can't protect a door you don't know about, so keep a list of who can get into your systems. If a vendor is hacked and doesn't tell you, attackers can use that access for weeks.",
+      "rows": [
+        {
+          "question": "Q22",
+          "label": "Do you keep a list of every vendor or IT provider that can access your systems?",
+          "options": [
+            { "value": "yes", "label": "Yes, and it's up to date" },
+            { "value": "partial", "label": "Partly, or out of date" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q23",
+          "label": "Do your contracts require vendors to tell you if they're hacked?",
+          "options": [
+            { "value": "yes", "label": "Yes, with all key vendors" },
+            { "value": "partial", "label": "Some contracts" },
+            { "value": "no", "label": "No" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P10",
+      "section": "vendors",
+      "type": "rows",
+      "title": "If something goes wrong",
+      "why": "These don't stop an attack, but they make every attack less damaging. A one-page plan saves hours of panic. Cyber insurance helps pay for recovery and often includes expert help on the day.",
+      "rows": [
+        {
+          "question": "Q24",
+          "label": "Do you have a written list of who to call and what to do if you get hacked?",
+          "options": [
+            { "value": "yes", "label": "Yes, written down" },
+            { "value": "partial", "label": "Roughly, but not written down" },
+            { "value": "no", "label": "No" }
+          ]
+        },
+        {
+          "question": "Q25",
+          "label": "Do you have cyber insurance?",
+          "options": [
+            { "value": "yes", "label": "Yes" },
+            { "value": "partial", "label": "Some cover, but not sure it includes cyber attacks" },
+            { "value": "no", "label": "No" }
+          ]
+        }
+      ]
+    }
+  ]
+}

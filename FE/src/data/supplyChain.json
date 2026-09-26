@@ -1,0 +1,18 @@
+{
+  "impacts": [
+    { "id": "SPOIL", "label": "Delayed or spoiled shipments to your customers" },
+    { "id": "FRAUD", "label": "Fraudulent invoices sent to partners in your name" },
+    { "id": "PIVOT", "label": "Attackers reaching partners through shared systems" },
+    { "id": "AUDIT", "label": "Failed customer security audit" },
+    { "id": "DATA", "label": "Partner and customer data exposed" }
+  ],
+  "links": {
+    "RANSOM": { "SPOIL": 1.0, "AUDIT": 0.4 },
+    "BEC": { "FRAUD": 1.0, "AUDIT": 0.3 },
+    "ATO": { "FRAUD": 0.5, "PIVOT": 0.5, "DATA": 0.4 },
+    "OT": { "SPOIL": 0.8, "PIVOT": 0.3 },
+    "THIRD": { "PIVOT": 1.0, "AUDIT": 0.4 },
+    "DATALOSS": { "SPOIL": 0.4, "DATA": 0.6, "AUDIT": 0.3 },
+    "SHARED": { "PIVOT": 0.4, "AUDIT": 0.6, "DATA": 0.3 }
+  }
+}

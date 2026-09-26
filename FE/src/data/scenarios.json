@@ -1,0 +1,100 @@
+[
+  {
+    "id": "RANSOM",
+    "name": "Ransomware shuts down operations",
+    "short": "Ransomware",
+    "phrase": "ransomware shutting down operations",
+    "description": "Criminals lock your computers and demand payment, and your operations stop until you recover.",
+    "base": {
+      "farm": 0.5,
+      "processor": 0.7,
+      "coldstorage": 0.6,
+      "carrier": 0.6,
+      "broker": 0.6
+    }
+  },
+  {
+    "id": "BEC",
+    "name": "Fake payment request or invoice fraud",
+    "short": "Payment fraud",
+    "phrase": "fake payment requests",
+    "description": "Someone impersonates a supplier, carrier, or your boss by email and redirects a payment to their own bank account.",
+    "base": {
+      "farm": 0.5,
+      "processor": 0.6,
+      "coldstorage": 0.5,
+      "carrier": 0.8,
+      "broker": 0.9
+    }
+  },
+  {
+    "id": "ATO",
+    "name": "Stolen logins to online business tools",
+    "short": "Stolen logins",
+    "phrase": "stolen logins to your online tools",
+    "description": "Someone gets into your load board, accounting, banking, or fleet portal using a stolen or guessed password.",
+    "base": {
+      "farm": 0.4,
+      "processor": 0.5,
+      "coldstorage": 0.5,
+      "carrier": 0.7,
+      "broker": 0.8
+    }
+  },
+  {
+    "id": "OT",
+    "name": "Tampering with connected equipment",
+    "short": "Equipment tampering",
+    "phrase": "tampering with connected equipment",
+    "description": "Refrigeration, grain dryers, sensors, or cameras are disrupted or accessed remotely by someone who should not be there.",
+    "base": {
+      "farm": 0.5,
+      "processor": 0.6,
+      "coldstorage": 0.7,
+      "carrier": 0.4,
+      "broker": 0.2
+    }
+  },
+  {
+    "id": "THIRD",
+    "name": "A vendor or IT provider gets breached",
+    "short": "Vendor breach",
+    "phrase": "a breach at a vendor or IT provider",
+    "description": "Attackers get into your business through a company you trust, like your IT provider or an equipment vendor.",
+    "base": {
+      "farm": 0.4,
+      "processor": 0.5,
+      "coldstorage": 0.5,
+      "carrier": 0.5,
+      "broker": 0.6
+    }
+  },
+  {
+    "id": "DATALOSS",
+    "name": "Losing data you cannot get back",
+    "short": "Data loss",
+    "phrase": "losing data you cannot get back",
+    "description": "Files, records, or accounting data are destroyed and there is no way to restore them.",
+    "base": {
+      "farm": 0.5,
+      "processor": 0.5,
+      "coldstorage": 0.5,
+      "carrier": 0.5,
+      "broker": 0.5
+    }
+  },
+  {
+    "id": "SHARED",
+    "name": "Misuse of shared or leftover accounts",
+    "short": "Shared accounts",
+    "phrase": "misuse of shared or leftover accounts",
+    "description": "Shared logins or ex-employee accounts are used without anyone knowing who did it.",
+    "base": {
+      "farm": 0.6,
+      "processor": 0.5,
+      "coldstorage": 0.5,
+      "carrier": 0.6,
+      "broker": 0.5
+    }
+  }
+]

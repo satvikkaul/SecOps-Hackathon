@@ -1,0 +1,124 @@
+{
+  "source": "Canadian Centre for Cyber Security, Baseline Cyber Security Controls for Small and Medium Organizations, V1.2 (February 2020)",
+  "url": "https://www.cyber.gc.ca/en/guidance/baseline-cyber-security-controls-small-and-medium-organizations",
+  "controls": [
+    {
+      "id": "BC.1",
+      "name": "Incident response plan",
+      "requirements": [
+        { "id": "BC.1.1", "summary": "Have a basic plan for responding to incidents of varying severity" },
+        { "id": "BC.1.2", "summary": "Written plan naming who handles incidents and external contacts, with an up-to-date hard copy" },
+        { "id": "BC.1.3", "summary": "Consider cyber insurance covering response and recovery, or document why not" }
+      ]
+    },
+    {
+      "id": "BC.2",
+      "name": "Automatic patching",
+      "requirements": [
+        { "id": "BC.2.1", "summary": "Enable automatic patching for all software and hardware" },
+        { "id": "BC.2.2", "summary": "Assess replacing anything that cannot update automatically, or patch it manually" }
+      ]
+    },
+    {
+      "id": "BC.3",
+      "name": "Security software",
+      "requirements": [
+        { "id": "BC.3.1", "summary": "Enable anti-malware that updates and scans automatically" },
+        { "id": "BC.3.2", "summary": "Turn on built-in software firewalls on devices" }
+      ]
+    },
+    {
+      "id": "BC.4",
+      "name": "Securely configure devices",
+      "requirements": [
+        { "id": "BC.4.1", "summary": "Secure configurations: change default passwords, turn off unnecessary features, enable security features" }
+      ]
+    },
+    {
+      "id": "BC.5",
+      "name": "Strong user authentication",
+      "requirements": [
+        { "id": "BC.5.1", "summary": "Two-factor authentication wherever possible, and required for financial, admin, cloud admin, privileged, and executive accounts" },
+        { "id": "BC.5.2", "summary": "Only force password changes on suspicion or evidence of compromise" },
+        { "id": "BC.5.3", "summary": "Clear policies on password length, reuse, password managers, and writing passwords down" }
+      ]
+    },
+    {
+      "id": "BC.6",
+      "name": "Employee awareness training",
+      "requirements": [{ "id": "BC.6.1", "summary": "Invest in cyber security awareness and training for employees" }]
+    },
+    {
+      "id": "BC.7",
+      "name": "Backup and encryption",
+      "requirements": [
+        { "id": "BC.7.1", "summary": "Back up essential systems, make sure restores work, and consider offline off-site backups" },
+        { "id": "BC.7.2", "summary": "Encrypt backups, restrict access to them, and keep long-term backups offline" }
+      ]
+    },
+    {
+      "id": "BC.8",
+      "name": "Secure mobility",
+      "requirements": [
+        { "id": "BC.8.1", "summary": "Choose and document a mobile device ownership model" },
+        { "id": "BC.8.2", "summary": "Separate work and personal data on mobile devices" },
+        { "id": "BC.8.3", "summary": "Only install apps from trusted sources" },
+        { "id": "BC.8.4", "summary": "Store sensitive information on mobile devices in an encrypted state" },
+        { "id": "BC.8.5", "summary": "Consider an enterprise mobility management solution" },
+        { "id": "BC.8.6", "summary": "Avoid open or unknown Wi-Fi and limit Bluetooth and NFC for sensitive data" },
+        { "id": "BC.8.7", "summary": "Consider a VPN when using public Wi-Fi" }
+      ]
+    },
+    {
+      "id": "BC.9",
+      "name": "Perimeter defences",
+      "requirements": [
+        { "id": "BC.9.1", "summary": "Dedicated firewall at the internet boundary; isolate internet-facing servers" },
+        { "id": "BC.9.2", "summary": "DNS firewall for outbound DNS requests" },
+        { "id": "BC.9.3", "summary": "Secure connectivity, with VPN and two-factor for all remote access" },
+        { "id": "BC.9.4", "summary": "Only secure Wi-Fi, preferably WPA2-Enterprise" },
+        { "id": "BC.9.5", "summary": "Never connect public Wi-Fi networks to the corporate network" },
+        { "id": "BC.9.6", "summary": "Isolate point-of-sale systems with a firewall" },
+        { "id": "BC.9.7", "summary": "Implement DMARC on all email services" },
+        { "id": "BC.9.8", "summary": "Email filtering at points of ingress and egress" }
+      ]
+    },
+    {
+      "id": "BC.10",
+      "name": "Secure cloud and outsourced IT",
+      "requirements": [
+        { "id": "BC.10.1", "summary": "Require SOC 3 reports from cloud service providers" },
+        { "id": "BC.10.2", "summary": "Evaluate how outsourced IT providers handle and access your sensitive information" },
+        { "id": "BC.10.3", "summary": "Evaluate the legal jurisdictions where providers store or use your data" },
+        { "id": "BC.10.4", "summary": "Communicate securely with all cloud services" },
+        { "id": "BC.10.5", "summary": "Two-factor on cloud admin accounts, separate from internal admin accounts" }
+      ]
+    },
+    {
+      "id": "BC.11",
+      "name": "Secure websites",
+      "requirements": [
+        { "id": "BC.11.1", "summary": "Websites address the OWASP Top 10 vulnerabilities" },
+        { "id": "BC.11.2", "summary": "Know the ASVS level each website needs to meet" }
+      ]
+    },
+    {
+      "id": "BC.12",
+      "name": "Access control and authorization",
+      "requirements": [
+        { "id": "BC.12.1", "summary": "Give accounts only what they need, and restrict admin privileges to an as-required basis" },
+        { "id": "BC.12.2", "summary": "Use admin accounts only for admin tasks, not email or web browsing" },
+        { "id": "BC.12.3", "summary": "Remove accounts and access when employees no longer need them" },
+        { "id": "BC.12.4", "summary": "Consider centralized authorization control" }
+      ]
+    },
+    {
+      "id": "BC.13",
+      "name": "Secure portable media",
+      "requirements": [
+        { "id": "BC.13.1", "summary": "Only organization-owned, encrypted portable media under asset control" },
+        { "id": "BC.13.2", "summary": "Sanitize or destroy portable media before disposal" }
+      ]
+    }
+  ]
+}

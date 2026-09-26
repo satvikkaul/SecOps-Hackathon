@@ -1,0 +1,33 @@
+{
+  "defaultMode": "effort",
+  "modes": {
+    "effort": {
+      "label": "Effort only",
+      "description": "Most risk removed for the work involved. Cost is shown but not counted.",
+      "formula": "risk reduction ÷ effort"
+    },
+    "cost": {
+      "label": "Effort + cost",
+      "description": "Cost counts as extra effort, so a free fix beats a paid one that does the same good. Essential recovery fixes are exempt from the cost penalty.",
+      "formula": "risk reduction ÷ (effort + cost weight × cost points)"
+    }
+  },
+  "costWeight": 1,
+  "costPoints": {
+    "Free": 0,
+    "Free to $": 0.5,
+    "$": 1,
+    "$ to $$": 1.5,
+    "$$": 2,
+    "$$$": 3
+  },
+  "essential": {
+    "description": "A fix is essential when it resolves a CIS Implementation Group 1 safeguard in one of these recovery and response controls. Essential fixes skip the cost penalty and are scheduled no later than latestTimeframe days.",
+    "maxImplementationGroup": 1,
+    "cisControls": {
+      "11": "Lets you recover your data after ransomware or a failure, without paying.",
+      "17": "Limits the damage and downtime when an attack gets through."
+    },
+    "latestTimeframe": 60
+  }
+}

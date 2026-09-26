@@ -1,0 +1,94 @@
+[
+  {
+    "id": "sector",
+    "text": "Which best describes your business?",
+    "why": "Different kinds of businesses get targeted in different ways. Freight brokers see far more payment fraud; cold storage sites rely more on connected equipment.",
+    "options": [
+      { "value": "farm", "label": "Farm or producer", "icon": "🌾" },
+      { "value": "processor", "label": "Food processor", "icon": "🏭" },
+      { "value": "coldstorage", "label": "Cold storage or warehouse", "icon": "❄️" },
+      { "value": "carrier", "label": "Trucking or freight carrier", "icon": "🚚" },
+      { "value": "broker", "label": "Freight broker or 3PL", "icon": "📦" }
+    ]
+  },
+  {
+    "id": "employees",
+    "text": "How many people work here?",
+    "why": "More people means more logins to manage, and more chances for a shared or forgotten account.",
+    "options": [
+      { "value": "1-10", "label": "1 to 10" },
+      { "value": "11-50", "label": "11 to 50" },
+      { "value": "51-150", "label": "51 to 150" },
+      { "value": "150+", "label": "More than 150" }
+    ]
+  },
+  {
+    "id": "downtime",
+    "text": "If your computers stopped working, how long before you start losing serious money?",
+    "why": "This tells us how badly an outage like ransomware would hurt. The faster the losses start, the higher the impact.",
+    "options": [
+      { "value": "lt4h", "label": "Under 4 hours" },
+      { "value": "4-24h", "label": "4 to 24 hours" },
+      { "value": "1-3d", "label": "1 to 3 days" },
+      { "value": "gt3d", "label": "More than 3 days" }
+    ]
+  },
+  {
+    "id": "perishable",
+    "text": "Do you handle perishable goods (food, livestock, or temperature-sensitive cargo)?",
+    "why": "When goods can spoil, even a short disruption turns into real losses for you and your customers.",
+    "options": [
+      { "value": "yes", "label": "Yes" },
+      { "value": "no", "label": "No" }
+    ]
+  },
+  {
+    "id": "concentration",
+    "text": "Do your top 3 customers make up more than half your revenue?",
+    "why": "If a few big customers matter most, an incident that affects them, or a failed security audit, could hit you hard.",
+    "options": [
+      { "value": "yes", "label": "Yes" },
+      { "value": "no", "label": "No" },
+      { "value": "unsure", "label": "Not sure" }
+    ]
+  },
+  {
+    "id": "payments",
+    "text": "Do you send or receive bank transfers to suppliers, carriers, or growers every week?",
+    "why": "Regular transfers are exactly what payment fraud criminals look for. They try to slip their own bank details into a routine payment.",
+    "options": [
+      { "value": "yes", "label": "Yes" },
+      { "value": "no", "label": "No" }
+    ]
+  },
+  {
+    "id": "sensitiveData",
+    "text": "Do you store employee SINs, banking details, or customer payment info?",
+    "why": "Losing or leaking this kind of information can bring legal duties, notification costs, and lost trust.",
+    "options": [
+      { "value": "yes", "label": "Yes" },
+      { "value": "no", "label": "No" }
+    ]
+  },
+  {
+    "id": "hasOT",
+    "text": "Do you have equipment connected to the internet, like refrigeration monitoring, grain systems, sensors, or cameras?",
+    "why": "Connected equipment can be reached from outside. If you are not sure, we will assume yes so we do not miss a risk.",
+    "options": [
+      { "value": "yes", "label": "Yes" },
+      { "value": "no", "label": "No" },
+      { "value": "unsure", "label": "Not sure" }
+    ]
+  },
+  {
+    "id": "emailProvider",
+    "text": "What do you use for email?",
+    "why": "We use this to give you step-by-step instructions for the system you actually have. The domain check on the next screen can fill this in for you.",
+    "options": [
+      { "value": "m365", "label": "Microsoft 365 / Outlook" },
+      { "value": "google", "label": "Google Workspace / Gmail" },
+      { "value": "other", "label": "Other" },
+      { "value": "unsure", "label": "Not sure" }
+    ]
+  }
+]
