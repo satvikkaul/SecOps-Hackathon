@@ -60,6 +60,22 @@
       "Set a PIN on every work phone and tablet and turn on remote wipe through your email provider's device settings.",
       "Change the old shared password once everyone has moved over, so it no longer works."
     ],
+    "stepsByProvider": {
+      "m365": [
+        "Go to admin.microsoft.com and sign in with your Microsoft 365 admin account.",
+        "Under Users, then Active users, select 'Add a user' for each person who currently shares a login.",
+        "Create a shared mailbox instead of a shared password: go to Teams & groups, then Shared mailboxes, then 'Add a shared mailbox' for team inboxes.",
+        "Enroll phones and tablets in mobile device management (Devices, then Enrollment) to require a PIN and allow remote wipe.",
+        "Once everyone has moved over, change the old shared password so it no longer works."
+      ],
+      "google": [
+        "Go to admin.google.com and sign in with your Google Workspace admin account.",
+        "Under Directory, then Users, select 'Add new user' for each person who currently shares a login.",
+        "Create a Google Group with a collaborative inbox instead of a shared password: go to Groups, then 'Create group', then turn on 'Collaborative Inbox' under access settings.",
+        "Enroll phones and tablets under Devices, then Mobile & endpoints, to require a PIN and allow remote wipe.",
+        "Once everyone has moved over, change the old shared password so it no longer works."
+      ]
+    },
     "cost": "Free to $",
     "time": "A few days",
     "effort": 3,
@@ -76,6 +92,22 @@
       "When someone leaves, go down the list that same day: disable accounts, collect devices, and change any shared passwords they knew.",
       "Review the vendor list every six months and remove anyone you no longer work with."
     ],
+    "stepsByProvider": {
+      "m365": [
+        "In your checklist, note that access is cut in admin.microsoft.com under Users, then Active users: select the person and choose 'Block sign-in'.",
+        "From the same page, reset their password and remove them from Microsoft 365 groups and Teams.",
+        "Add every outside vendor or IT provider with delegated admin access (Settings, then Partner relationships) to the list with a contact name.",
+        "When someone leaves, block sign-in and reset their password that same day, then reassign or remove their mailbox once their files are backed up.",
+        "Review the vendor and partner access list every six months and remove anyone you no longer work with."
+      ],
+      "google": [
+        "In your checklist, note that access is cut in admin.google.com under Directory, then Users: select the person and choose 'Suspend user'.",
+        "From the same page, reset their password and remove them from Google Groups; use the data transfer tool if you need to move their Drive files first.",
+        "Add every outside vendor or IT provider with an admin role (Account, then Admin roles) to the list with a contact name.",
+        "When someone leaves, suspend the account that same day, then delete it once their files and email are transferred or backed up.",
+        "Review the vendor and admin role list every six months and remove anyone you no longer work with."
+      ]
+    },
     "cost": "Free",
     "time": "Under 1 hour",
     "effort": 1,
@@ -108,6 +140,20 @@
       "Keep a separate admin account for the one or two people who install software, and use it only when needed.",
       "If you use Microsoft 365 or Google admin roles, check that only one or two people hold the top admin role."
     ],
+    "stepsByProvider": {
+      "m365": [
+        "On each Windows computer, open Settings, then Accounts, then Other users, and check which accounts are 'Administrator'. Change everyday accounts to 'Standard user'.",
+        "Keep a separate local admin account for the one or two people who install software, and use it only when needed.",
+        "Go to entra.microsoft.com, open Identity, then Roles & admins, then 'Global Administrator', and confirm only one or two trusted people are assigned.",
+        "Turn on Security defaults (Identity, then Overview, then Properties) so anyone with an admin role must use MFA."
+      ],
+      "google": [
+        "On each Windows computer, open Settings, then Accounts, then Other users, and check which accounts are 'Administrator'. Change everyday accounts to 'Standard user'.",
+        "Keep a separate local admin account for the one or two people who install software, and use it only when needed.",
+        "Go to admin.google.com, open Account, then Admin roles, then 'Super Admin', and confirm only one or two trusted people are assigned.",
+        "Turn on 2-step verification enforcement for anyone holding an admin role (Security, then Authentication, then 2-step verification)."
+      ]
+    },
     "cost": "Free",
     "time": "Half a day",
     "effort": 2,
@@ -225,6 +271,22 @@
       "Once a quarter, pick a file or folder and actually restore it to prove the backup works.",
       "Write down where the backups are and how to restore them, and keep it with your incident plan."
     ],
+    "stepsByProvider": {
+      "m365": [
+        "List what you cannot lose: accounting files, dispatch and load records, driver logs, customer lists, and email.",
+        "If you use SharePoint, OneDrive, or Exchange Online, turn on Microsoft 365 Backup (search 'Backup' in admin.microsoft.com) to keep restorable copies of your files and mailboxes.",
+        "Also keep a second, separate copy offline or with a third-party cloud backup service that supports 'immutable' or locked copies. The default recycle bin and version history are not enough on their own.",
+        "Once a quarter, restore a file or mailbox item to prove the backup works.",
+        "Write down where the backups are and how to restore them, and keep it with your incident plan."
+      ],
+      "google": [
+        "List what you cannot lose: accounting files, dispatch and load records, driver logs, customer lists, and email.",
+        "If you use Google Drive or Gmail, turn on Google Vault (admin.google.com, then Apps, then Google Workspace, then Vault) so files and email can be retained and recovered through vault.google.com. Also check Drive's version history and trash retention.",
+        "Also keep a second, separate copy offline or with a third-party cloud backup service that supports 'immutable' or locked copies. Vault and Drive's built-in history are not enough on their own.",
+        "Once a quarter, restore a file or email to prove the backup works.",
+        "Write down where the backups are and how to restore them, and keep it with your incident plan."
+      ]
+    },
     "cost": "$ to $$",
     "time": "A few days",
     "effort": 3,
