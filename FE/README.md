@@ -10,7 +10,7 @@ Answer a short plain-language questionnaire and get:
 4. A risk flow diagram showing how your gaps could reach your supply chain partners
 5. A one-page, printable Supplier Security Summary for large customers
 
-Everything runs in the browser. No login, no database, no backend. Answers are saved to `localStorage` so a refresh does not lose them.
+Everything runs in the browser. No login, no database, no backend. State lives in Zustand stores (`src/store/`). The company name, domain, profile, answers, and DNS results stay in memory and are cleared on refresh or tab close. Only display preferences (detail level, report template, ranking mode) are saved to `localStorage`. Supabase sign-in tokens are also held in memory, so a refresh signs you out.
 
 ## Run it
 

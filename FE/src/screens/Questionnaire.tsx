@@ -16,7 +16,8 @@ import {
   type RowsPrompt,
 } from '../engine/prompts';
 import type { AnswerValue } from '../engine/types';
-import type { AppApi } from '../state';
+import { useShallow } from 'zustand/react/shallow';
+import { useAppStore } from '../store/appStore';
 
 const TONE: Record<string, 'yes' | 'partial' | 'no' | 'neutral'> = { yes: 'yes', partial: 'partial', no: 'no', na: 'neutral' };
 
@@ -41,19 +42,22 @@ function AutoTag() {
   );
 }
 
-function Row({ row, app, showLabel }: { row: PromptRow; app: AppApi; showLabel: boolean }) {
-  const { state, setAnswer } = app;
-  const current = state.answers[row.question];
+function Row({ row, showLabel }: { row: PromptRow; showLabel: boolean }) {
+  const current = useAppStore((s) => s.answers[row.question]);
+  const profile = useAppStore((s) => s.profile);
+  const expertise = useAppStore((s) => s.expertise);
+  const q11AutoFilled = useAppStore((s) => !!s.autoFilled.Q11);
+  const setAnswer = useAppStore((s) => s.setAnswer);
   const choices: { value: AnswerValue; label: string }[] = [...row.options, ...(row.na ? [{ value: 'na' as const, label: row.na }] : [])];
   return (
     <div>
       {showLabel && (
         <div className="font-medium leading-snug text-slate-900">
-          {rowLabel(row, state.profile, state.expertise)}
-          {row.question === 'Q11' && state.autoFilled.Q11 && <AutoTag />}
+          {rowLabel(row, profile, expertise)}
+          {row.question === 'Q11' && q11AutoFilled && <AutoTag />}
         </div>
       )}
-      {state.expertise === 'expert' && <TechTag>{questionById[row.question].tech}</TechTag>}
+      {expertise === 'expert' && <TechTag>{questionById[row.question].tech}</TechTag>}
       <div className={`mt-2.5 grid gap-2 sm:grid-cols-2 ${choices.length >= 4 ? 'lg:grid-cols-4' : 'lg:grid-cols-3'}`}>
         {choices.map((o) => (
           <OptionCard key={o.value} label={o.label} tone={TONE[o.value]} selected={current === o.value} onClick={() => setAnswer(row.question, o.value)} />
@@ -64,26 +68,28 @@ function Row({ row, app, showLabel }: { row: PromptRow; app: AppApi; showLabel: 
   );
 }
 
-function RowsCard({ p, app }: { p: RowsPrompt; app: AppApi }) {
+function RowsCard({ p }: { p: RowsPrompt }) {
   // A single-row card whose title already asks the question does not need the row label repeated.
   const single = p.rows.length === 1;
   return (
     <div className={single ? '' : 'divide-y divide-slate-100'}>
       {p.rows.map((r) => (
         <div key={r.question} className={single ? 'mt-3' : 'py-4 first:pt-3 last:pb-0'}>
-          <Row row={r} app={app} showLabel={!single || r.label !== p.title} />
+          <Row row={r} showLabel={!single || r.label !== p.title} />
         </div>
       ))}
     </div>
   );
 }
 
-function LadderCard({ p, app }: { p: LadderPrompt; app: AppApi }) {
-  const { state, setAnswers } = app;
-  const selected = ladderSelection(p, state.answers);
+function LadderCard({ p }: { p: LadderPrompt }) {
+  const answers = useAppStore((s) => s.answers);
+  const expertise = useAppStore((s) => s.expertise);
+  const setAnswers = useAppStore((s) => s.setAnswers);
+  const selected = ladderSelection(p, answers);
   return (
     <div className="mt-3">
-      {state.expertise === 'expert' && (
+      {expertise === 'expert' && (
         <div className="mb-2.5 flex flex-wrap gap-1.5">
           {p.questions.map((id) => (
             <TechTag key={id}>{questionById[id].tech}</TechTag>
@@ -95,13 +101,16 @@ function LadderCard({ p, app }: { p: LadderPrompt; app: AppApi }) {
           <OptionCard key={o.label} label={o.label} selected={selected === i} onClick={() => setAnswers(ladderAnswers(p, i))} />
         ))}
       </div>
-      <NotSure selected={ladderUnsure(p, state.answers)} onClick={() => setAnswers(ladderAnswers(p, 'unsure'))} />
+      <NotSure selected={ladderUnsure(p, answers)} onClick={() => setAnswers(ladderAnswers(p, 'unsure'))} />
     </div>
   );
 }
 
-export default function Questionnaire({ app }: { app: AppApi }) {
-  const { state, go } = app;
+export default function Questionnaire() {
+  const state = useAppStore(
+    useShallow((s) => ({ sectionIndex: s.sectionIndex, profile: s.profile, answers: s.answers, expertise: s.expertise, autoFilled: s.autoFilled })),
+  );
+  const go = useAppStore((s) => s.go);
   const idx = Math.min(state.sectionIndex, sections.length - 1);
   const section = sections[idx];
   const all = visiblePrompts(state.profile);
@@ -161,7 +170,7 @@ export default function Questionnaire({ app }: { app: AppApi }) {
                     </span>
                   )}
                 </WhyWeAsk>
-                {p.type === 'rows' ? <RowsCard p={p} app={app} /> : <LadderCard p={p} app={app} />}
+                {p.type === 'rows' ? <RowsCard p={p} /> : <LadderCard p={p} />}
               </div>
             </div>
           </Card>

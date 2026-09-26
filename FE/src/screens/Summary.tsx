@@ -4,7 +4,8 @@ import { StatusPill } from '../components/StandardsPanel';
 import { Button } from '../components/ui';
 import { countStatuses, type CioscResult } from '../engine/controls';
 import { cccs as cccsCatalog, ciosc as cioscCatalog, cis as cisCatalog, profileQuestions, ranking } from '../engine/data';
-import type { AppApi } from '../state';
+import { useShallow } from 'zustand/react/shallow';
+import { useAppStore } from '../store/appStore';
 import { useResults } from '../useResults';
 
 function CioscSummary({ rows }: { rows: CioscResult[] }) {
@@ -47,8 +48,11 @@ function CioscSummary({ rows }: { rows: CioscResult[] }) {
   );
 }
 
-export default function Summary({ app }: { app: AppApi }) {
-  const { state, go } = app;
+export default function Summary() {
+  const state = useAppStore(
+    useShallow((s) => ({ company: s.company, domain: s.domain, profile: s.profile, answers: s.answers, rankingMode: s.rankingMode, template: s.template })),
+  );
+  const go = useAppStore((s) => s.go);
   const { assessment, ranked, cccs, cis, ciosc, otherPractices, plan } = useResults(state.profile, state.answers, state.rankingMode);
   const sector = profileQuestions.find((q) => q.id === 'sector')?.options.find((o) => o.value === state.profile.sector)?.label ?? '—';
   const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });

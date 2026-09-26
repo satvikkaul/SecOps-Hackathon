@@ -6,7 +6,7 @@
 | --- | --- | --- |
 | Runs | Static Vite build on Railway | FastAPI on Railway, Postgres on Supabase, Gemini via the Interactions API |
 | Owns | Questionnaire, **all scoring** (TS engine), results UI, share view UI | Persistence, share tokens, server-side DNS check, demo seed data, Gemini wording |
-| Stores | Draft answers in `localStorage` | Finished assessments, DNS results, and cached Gemini wording in Supabase Postgres |
+| Stores | Draft answers in memory (Zustand); only display preferences in `localStorage` | Finished assessments, DNS results, and cached Gemini wording in Supabase Postgres |
 
 **The BE does not score.** The scoring engine is TypeScript, has 111 tests, and already ships. Porting it to Python would mean keeping two copies in sync by tomorrow morning. The BE stores what the FE computed.
 
@@ -22,7 +22,7 @@ Carrier (browser)                          BE (FastAPI)                 Postgres
 ─────────────────                          ────────────                 ────────
 Domain step ── GET /api/dns/{domain} ────► dnspython lookup ──────────► dns_checks (cache)
             ◄── {mx, spf, dmarc} ──────────  (cache hit if < 24h, or on lookup failure)
-Questionnaire (local, localStorage)
+Questionnaire (local, in memory)
 Results (scored in browser)
 "Share with a partner" ── POST /api/assessments ──► validate ─────────► assessments
             ◄── {shareUrl} ────────────────

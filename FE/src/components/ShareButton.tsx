@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { createShare } from '../api';
-import type { AppState } from '../state';
+import { useAppStore } from '../store/appStore';
 import { Button } from './ui';
 
 /** Saves a snapshot to the BE and shows a read-only link for a broker or grocery DC. */
-export default function ShareButton({ state }: { state: AppState }) {
+export default function ShareButton() {
   const [url, setUrl] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -14,7 +14,7 @@ export default function ShareButton({ state }: { state: AppState }) {
     setBusy(true);
     setError(null);
     try {
-      setUrl(await createShare(state));
+      setUrl(await createShare(useAppStore.getState()));
     } catch {
       setError("Couldn't create a link right now. Try again in a moment.");
     } finally {

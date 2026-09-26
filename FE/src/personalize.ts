@@ -3,7 +3,7 @@ import { personalize, type Personalized } from './api';
 import { profileQuestions, questionById } from './engine/data';
 import { chainFor } from './engine/explain';
 import { visibleQuestions } from './engine/scoring';
-import type { AppState } from './state';
+import type { AppState } from './store/appStore';
 import type { Results } from './useResults';
 
 /**
@@ -11,7 +11,7 @@ import type { Results } from './useResults';
  * profile and gaps. Never the company name or domain. The BE rejects any answer that reorders, adds, or
  * drops items, or that contains numbers not in this request.
  */
-export function personalizeRequest(state: AppState, results: Results) {
+export function personalizeRequest(state: Pick<AppState, 'profile' | 'answers' | 'expertise'>, results: Results) {
   const { profile, answers } = state;
   const business: Record<string, string> = {};
   for (const q of profileQuestions) {

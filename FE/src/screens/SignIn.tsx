@@ -1,11 +1,11 @@
 import { useState, type FormEvent } from 'react';
 import { Button, Card } from '../components/ui';
-import { useAuth } from '../auth/useAuth';
+import { useAuthStore } from '../store/authStore';
 
 /** The magic-link form itself. Rendered inside a modal from the header's "Sign in" button, or
  * inline as a "save your score" prompt on Results — never as a full-page gate. */
 export default function SignIn({ onClose }: { onClose?: () => void }) {
-  const { signInWithEmail } = useAuth();
+  const signInWithEmail = useAuthStore((s) => s.signInWithEmail);
   const [email, setEmail] = useState('');
   const [status, setStatus] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const [error, setError] = useState('');
@@ -39,7 +39,8 @@ export default function SignIn({ onClose }: { onClose?: () => void }) {
         <div className="text-center">
           <h2 className="text-xl font-bold text-slate-900">Check your email</h2>
           <p className="mt-2 text-slate-600">
-            We sent a sign-in link to <span className="font-medium text-slate-900">{email}</span>. Open it on this device to continue.
+            We sent a sign-in link to <span className="font-medium text-slate-900">{email}</span>. Open it on this device to continue. You stay signed in
+            until you refresh or close the tab.
           </p>
           <Button variant="ghost" className="mt-4" onClick={() => setStatus('idle')}>
             Use a different email

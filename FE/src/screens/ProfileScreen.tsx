@@ -1,12 +1,16 @@
 import { Button, Card, OptionCard, ProgressBar, WhyWeAsk } from '../components/ui';
 import { profileQuestions } from '../engine/data';
-import type { AppApi } from '../state';
+import { useShallow } from 'zustand/react/shallow';
+import { useAppStore } from '../store/appStore';
 
 /** emailProvider is optional here because the domain check on the next screen can fill it in. */
 const OPTIONAL = new Set(['emailProvider']);
 
-export default function ProfileScreen({ app }: { app: AppApi }) {
-  const { state, update, setProfile, go } = app;
+export default function ProfileScreen() {
+  const state = useAppStore(useShallow((s) => ({ company: s.company, profile: s.profile })));
+  const update = useAppStore((s) => s.update);
+  const setProfile = useAppStore((s) => s.setProfile);
+  const go = useAppStore((s) => s.go);
   const required = profileQuestions.filter((q) => !OPTIONAL.has(q.id));
   const answered = required.filter((q) => state.profile[q.id]).length;
   const done = answered === required.length;

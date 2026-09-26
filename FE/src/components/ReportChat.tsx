@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { sendChatMessage } from '../api';
 import { buildChatContext } from '../chatContext';
-import type { AppApi } from '../state';
+import { useAppStore } from '../store/appStore';
+import { AssistantMessage } from './ChatReply';
 import { Button, Card } from './ui';
 
 interface Message {
@@ -19,8 +20,8 @@ const DEFAULT_HINT = 'Ask what Chain of Custody is, how the check-up works, or a
 /** Floating chat available on every screen: a product guide before there's a report, a way to ask
  * about the current questions during the check-up, and grounded Q&A about the report once there is one.
  * Session id/history live only in this component's state — a new tab or refresh starts fresh, by design. */
-export default function ReportChat({ app }: { app: AppApi }) {
-  const { state } = app;
+export default function ReportChat() {
+  const screen = useAppStore((s) => s.screen);
   const [sessionId] = useState(() => crypto.randomUUID());
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -37,7 +38,7 @@ export default function ReportChat({ app }: { app: AppApi }) {
     setMessages((m) => [...m, { role: 'user', text }]);
     setSending(true);
     try {
-      const reply = await sendChatMessage(sessionId, text, buildChatContext(state));
+      const reply = await sendChatMessage(sessionId, text, buildChatContext(useAppStore.getState()));
       setMessages((m) => [...m, { role: 'assistant', text: reply }]);
     } catch {
       setError("Couldn't reach the assistant. Check your connection and try again.");
@@ -72,16 +73,16 @@ export default function ReportChat({ app }: { app: AppApi }) {
           </button>
         </div>
 
-        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
-          {messages.length === 0 && <p className="text-sm text-slate-500">{HINTS[state.screen] ?? DEFAULT_HINT}</p>}
+        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
+          {messages.length === 0 && <p className="text-sm text-slate-500">{HINTS[screen] ?? DEFAULT_HINT}</p>}
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
               <div
-                className={`max-w-[85%] whitespace-pre-wrap rounded-2xl px-3.5 py-2 text-sm leading-relaxed ${
-                  m.role === 'user' ? 'bg-brand-600 text-white' : 'bg-slate-100 text-slate-800'
+                className={`max-w-[92%] rounded-2xl px-3.5 py-2.5 text-sm leading-relaxed ${
+                  m.role === 'user' ? 'whitespace-pre-wrap bg-brand-600 text-white' : 'bg-slate-100 text-slate-800'
                 }`}
               >
-                {m.text}
+                {m.role === 'assistant' ? <AssistantMessage text={m.text} /> : m.text}
               </div>
             </div>
           ))}

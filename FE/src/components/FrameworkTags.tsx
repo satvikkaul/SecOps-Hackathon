@@ -1,6 +1,6 @@
 import { frameworkRefs } from '../engine/controls';
 import { cisById, ciosc as cioscCatalog } from '../engine/data';
-import { useTemplate } from '../state';
+import { useTemplate } from '../store/appStore';
 
 const cioscName = Object.fromEntries(cioscCatalog.sections.map((s) => [s.id, s.name]));
 

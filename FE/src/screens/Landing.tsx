@@ -1,6 +1,6 @@
 import { Button, Card } from '../components/ui';
 import { demoPersona } from '../engine/data';
-import type { AppApi } from '../state';
+import { useAppStore } from '../store/appStore';
 
 const STEPS = [
   { title: 'Tell us about your business', body: 'Nine quick questions about what you do and what hurts most when things stop.' },
@@ -8,14 +8,19 @@ const STEPS = [
   { title: 'Get your fix-first list', body: 'Your top risks, the cheapest fixes that matter most, and a summary to share with customers.' },
 ];
 
-export default function Landing({ app }: { app: AppApi }) {
-  const { state, go, loadDemo } = app;
-  const hasProgress = !state.isDemo && (Object.keys(state.profile).length > 0 || Object.keys(state.answers).length > 0);
+export default function Landing() {
+  const isDemo = useAppStore((s) => s.isDemo);
+  const hasProfile = useAppStore((s) => Object.keys(s.profile).length > 0);
+  const hasAnswers = useAppStore((s) => Object.keys(s.answers).length > 0);
+  const go = useAppStore((s) => s.go);
+  const loadDemo = useAppStore((s) => s.loadDemo);
+  const reset = useAppStore((s) => s.reset);
+  const hasProgress = !isDemo && (hasProfile || hasAnswers);
 
   const start = () => {
     // Starting a real check-up after viewing the demo should not keep the demo answers.
-    if (state.isDemo) app.reset();
-    go(hasProgress ? (Object.keys(state.answers).length > 0 ? 'questions' : 'profile') : 'template');
+    if (isDemo) reset();
+    go(hasProgress ? (hasAnswers ? 'questions' : 'profile') : 'template');
   };
 
   return (
@@ -39,7 +44,7 @@ export default function Landing({ app }: { app: AppApi }) {
               Load demo company
             </Button>
           </div>
-          <p className="mt-4 text-sm text-slate-500">No sign-up, no account. Your scores are calculated on this computer.</p>
+          <p className="mt-4 text-sm text-slate-500">No sign-up, no account. Your scores are calculated on this computer, and your answers are cleared when you close the tab.</p>
         </div>
 
         <Card className="p-6">

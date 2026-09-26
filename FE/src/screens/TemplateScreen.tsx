@@ -3,10 +3,13 @@ import { ExpertisePicker } from '../components/Expertise';
 import { Button, ProgressBar } from '../components/ui';
 import { templateById, templates } from '../engine/data';
 import { visibleQuestions } from '../engine/scoring';
-import type { AppApi } from '../state';
+import { useShallow } from 'zustand/react/shallow';
+import { useAppStore } from '../store/appStore';
 
-export default function TemplateScreen({ app }: { app: AppApi }) {
-  const { state, update, go } = app;
+export default function TemplateScreen() {
+  const state = useAppStore(useShallow((s) => ({ profile: s.profile, answers: s.answers, expertise: s.expertise, template: s.template })));
+  const update = useAppStore((s) => s.update);
+  const go = useAppStore((s) => s.go);
   // Coming back from results to switch templates should not restart the check-up.
   const finished = !!state.profile.sector && visibleQuestions(state.profile).every((q) => state.answers[q.id]);
   // The standards choice is jargon for someone who asked for the simple view: default it, and offer it on request.

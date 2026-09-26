@@ -1,8 +1,8 @@
 import { useState } from 'react';
 import { Logo, Button } from './components/ui';
 import ReportChat from './components/ReportChat';
-import { TemplateContext, useAppState } from './state';
-import { useAuth } from './auth/useAuth';
+import { useAppStore } from './store/appStore';
+import { useAuthStore } from './store/authStore';
 import Landing from './screens/Landing';
 import TemplateScreen from './screens/TemplateScreen';
 import ProfileScreen from './screens/ProfileScreen';
@@ -17,13 +17,17 @@ import SignIn from './screens/SignIn';
 const shareToken = new URLSearchParams(window.location.search).get('share');
 
 export default function App() {
-  const app = useAppState();
-  const { state, go, reset } = app;
-  const { user, loading: authLoading, signOut } = useAuth();
+  const screen = useAppStore((s) => s.screen);
+  const isDemo = useAppStore((s) => s.isDemo);
+  const go = useAppStore((s) => s.go);
+  const reset = useAppStore((s) => s.reset);
+  const user = useAuthStore((s) => s.user);
+  const authLoading = useAuthStore((s) => s.loading);
+  const signOut = useAuthStore((s) => s.signOut);
   const [showSignIn, setShowSignIn] = useState(false);
 
   const confirmReset = () => {
-    if (window.confirm('Start over? This clears all your answers on this computer.')) reset();
+    if (window.confirm('Start over? This clears all your answers.')) reset();
   };
 
   if (shareToken)
@@ -44,10 +48,10 @@ export default function App() {
         <div className="mx-auto flex max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
           <Logo onClick={() => go('landing')} />
           <div className="flex items-center gap-1">
-            {state.isDemo && state.screen !== 'landing' && (
+            {isDemo && screen !== 'landing' && (
               <span className="mr-2 hidden rounded-full bg-sky-100 px-3 py-1 text-xs font-semibold text-sky-800 sm:inline">Demo company</span>
             )}
-            {state.screen !== 'landing' && (
+            {screen !== 'landing' && (
               <Button variant="ghost" onClick={confirmReset} className="px-3 py-1.5 text-sm">
                 Start over
               </Button>
@@ -66,15 +70,13 @@ export default function App() {
       </header>
 
       <main>
-        <TemplateContext.Provider value={state.template}>
-          {state.screen === 'landing' && <Landing app={app} />}
-          {state.screen === 'template' && <TemplateScreen app={app} />}
-          {state.screen === 'profile' && <ProfileScreen app={app} />}
-          {state.screen === 'domain' && <DomainCheck app={app} />}
-          {state.screen === 'questions' && <Questionnaire app={app} />}
-          {state.screen === 'results' && <Results app={app} onReset={confirmReset} onSignIn={() => setShowSignIn(true)} signedIn={!!user} />}
-          {state.screen === 'summary' && <Summary app={app} />}
-        </TemplateContext.Provider>
+        {screen === 'landing' && <Landing />}
+        {screen === 'template' && <TemplateScreen />}
+        {screen === 'profile' && <ProfileScreen />}
+        {screen === 'domain' && <DomainCheck />}
+        {screen === 'questions' && <Questionnaire />}
+        {screen === 'results' && <Results onReset={confirmReset} onSignIn={() => setShowSignIn(true)} signedIn={!!user} />}
+        {screen === 'summary' && <Summary />}
       </main>
 
       <footer className="no-print mx-auto max-w-6xl px-6 py-10 text-center text-sm text-slate-500">
@@ -92,7 +94,7 @@ export default function App() {
         </div>
       )}
 
-      <ReportChat app={app} />
+      <ReportChat />
     </div>
   );
 }

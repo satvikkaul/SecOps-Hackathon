@@ -3,7 +3,7 @@ import type { ChatContext } from './chatContext';
 import { checkDomain, type DnsResult } from './engine/dns';
 import { buildSnapshot, type Snapshot } from './engine/snapshot';
 import type { RankingMode } from './engine/types';
-import type { AppState } from './state';
+import type { AppState } from './store/appStore';
 
 // Inlined at build time: set VITE_API_URL in Railway *before* the FE build.
 const API = (import.meta.env.VITE_API_URL ?? '').replace(/\/$/, '');
@@ -49,7 +49,7 @@ export async function lookupDomain(domain: string): Promise<DnsResult> {
   return checkDomain(domain);
 }
 
-export async function createShare(state: AppState): Promise<string> {
+export async function createShare(state: Pick<AppState, 'company' | 'domain' | 'profile' | 'answers' | 'rankingMode'>): Promise<string> {
   const res = await apiFetch('/api/assessments', {
     method: 'POST',
     headers: { 'content-type': 'application/json' },

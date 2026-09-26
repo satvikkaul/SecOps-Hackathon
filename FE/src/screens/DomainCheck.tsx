@@ -4,8 +4,9 @@ import { demoPersona, profileQuestions } from '../engine/data';
 import { prompts } from '../engine/prompts';
 import { describeFindings, dmarcToAnswer, isValidDomain, normalizeDomain, type Indicator } from '../engine/dns';
 import type { AnswerValue } from '../engine/types';
-import type { AppApi } from '../state';
+import { useShallow } from 'zustand/react/shallow';
 import { lookupDomain } from '../api';
+import { useAppStore } from '../store/appStore';
 
 const DOT: Record<Indicator, string> = {
   green: 'bg-emerald-500',
@@ -27,8 +28,14 @@ const Q11_OPTIONS: { value: AnswerValue; label: string; tone: 'yes' | 'partial' 
   { value: 'unsure', label: 'Not sure', tone: 'unsure' },
 ];
 
-export default function DomainCheck({ app }: { app: AppApi }) {
-  const { state, update, go, setProfile, setAnswer } = app;
+export default function DomainCheck() {
+  const state = useAppStore(
+    useShallow((s) => ({ domain: s.domain, dns: s.dns, profile: s.profile, answers: s.answers, autoFilled: s.autoFilled })),
+  );
+  const update = useAppStore((s) => s.update);
+  const go = useAppStore((s) => s.go);
+  const setProfile = useAppStore((s) => s.setProfile);
+  const setAnswer = useAppStore((s) => s.setAnswer);
   const [input, setInput] = useState(state.domain);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -47,11 +54,12 @@ export default function DomainCheck({ app }: { app: AppApi }) {
 
     const q11 = dmarcToAnswer(result.dmarc);
     const provider = result.mx.provider;
+    const { profile, answers } = useAppStore.getState();
     update({
       domain,
       dns: result,
-      profile: provider ? { ...state.profile, emailProvider: provider } : state.profile,
-      answers: q11 ? { ...state.answers, Q11: q11 } : state.answers,
+      profile: provider ? { ...profile, emailProvider: provider } : profile,
+      answers: q11 ? { ...answers, Q11: q11 } : answers,
       autoFilled: { emailProvider: !!provider, Q11: !!q11 },
     });
   };

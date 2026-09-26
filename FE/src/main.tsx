@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import App from './App';
 import './index.css';
+import { startAuthListener } from './store/authStore';
 
 Sentry.init({
   dsn: 'https://9fbcc11a8b19f02d52ef68580e59f2f7@o4509746519474176.ingest.us.sentry.io/4512154703233024',
@@ -23,6 +24,8 @@ declare global {
 window.__testSentryError = () => {
   throw new Error('Sentry test error (triggered manually from the browser console)');
 };
+
+startAuthListener();
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>

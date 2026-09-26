@@ -14,7 +14,8 @@ import { profileQuestions, scenarioById, templateById } from '../engine/data';
 import { chainFor, explainRisk } from '../engine/explain';
 import type { ScenarioResult } from '../engine/scoring';
 import type { Band, Expertise, Profile, ScenarioId } from '../engine/types';
-import type { AppApi } from '../state';
+import { useShallow } from 'zustand/react/shallow';
+import { useAppStore } from '../store/appStore';
 import { personalizeRequest, usePersonalized } from '../personalize';
 import { printRule, ruleFor } from '../printRule';
 import { timePhrase, useResults } from '../useResults';
@@ -188,18 +189,22 @@ function RiskGauge({ score, band, showScore = true }: { score: number; band: Ban
   );
 }
 
-export default function Results({
-  app,
-  onReset,
-  onSignIn,
-  signedIn,
-}: {
-  app: AppApi;
-  onReset: () => void;
-  onSignIn: () => void;
-  signedIn: boolean;
-}) {
-  const { state, go } = app;
+export default function Results({ onReset, onSignIn, signedIn }: { onReset: () => void; onSignIn: () => void; signedIn: boolean }) {
+  const state = useAppStore(
+    useShallow((s) => ({
+      company: s.company,
+      domain: s.domain,
+      profile: s.profile,
+      answers: s.answers,
+      isDemo: s.isDemo,
+      rankingMode: s.rankingMode,
+      template: s.template,
+      expertise: s.expertise,
+    })),
+  );
+  const go = useAppStore((s) => s.go);
+  const update = useAppStore((s) => s.update);
+  const loadDemo = useAppStore((s) => s.loadDemo);
   const { profile, answers } = state;
   const results = useResults(profile, answers, state.rankingMode);
   const { assessment, plan, ranked, unsure, flow, cccs, cis, ciosc } = results;
@@ -223,7 +228,7 @@ export default function Results({
         <p className="mt-2 text-slate-600">Start the check-up or load the demo company to see results.</p>
         <div className="mt-6 flex justify-center gap-3">
           <Button onClick={() => go('profile')}>Start check-up</Button>
-          <Button variant="secondary" onClick={app.loadDemo}>
+          <Button variant="secondary" onClick={loadDemo}>
             Load demo company
           </Button>
         </div>
@@ -343,7 +348,7 @@ export default function Results({
             </button>
           )}
           <span className="hidden text-sm text-slate-500 sm:inline">Detail</span>
-          <ExpertiseSwitch value={expertise} onChange={(e) => app.update({ expertise: e })} />
+          <ExpertiseSwitch value={expertise} onChange={(e) => update({ expertise: e })} />
         </div>
       </div>
 
@@ -485,7 +490,7 @@ export default function Results({
                 </SectionTitle>
                 {!basic && (
                   <div className="mb-4">
-                    <RankingToggle mode={state.rankingMode} onChange={(m) => app.update({ rankingMode: m })} />
+                    <RankingToggle mode={state.rankingMode} onChange={(m) => update({ rankingMode: m })} />
                   </div>
                 )}
                 {plan.top.length === 0 ? (
@@ -704,7 +709,7 @@ export default function Results({
               <Button onClick={() => go('summary')} className="w-full py-2 text-sm">
                 Supplier Security Summary
               </Button>
-              <ShareButton state={state} />
+              <ShareButton />
               <RiskRegisterButton assessment={assessment} ranked={ranked} profile={profile} answers={answers} company={state.company} className="w-full py-2 text-sm" />
               <div className="grid grid-cols-2 gap-2">
                 <Button variant="secondary" onClick={() => go('profile')} className="w-full px-2 py-2 text-sm">
