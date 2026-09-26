@@ -1,4 +1,5 @@
 import FrameworkTags from '../components/FrameworkTags';
+import RiskRegisterButton from '../components/RiskRegisterButton';
 import { StatusPill } from '../components/StandardsPanel';
 import { Button } from '../components/ui';
 import { countStatuses } from '../engine/controls';
@@ -8,7 +9,7 @@ import { useResults } from '../useResults';
 
 export default function Summary({ app }: { app: AppApi }) {
   const { state, go } = app;
-  const { cccs, cis, otherPractices, plan } = useResults(state.profile, state.answers, state.rankingMode);
+  const { assessment, ranked, cccs, cis, otherPractices, plan } = useResults(state.profile, state.answers, state.rankingMode);
   const sector = profileQuestions.find((q) => q.id === 'sector')?.options.find((o) => o.value === state.profile.sector)?.label ?? '—';
   const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
   const cccsCounts = countStatuses(cccs);
@@ -23,7 +24,10 @@ export default function Summary({ app }: { app: AppApi }) {
         <Button variant="ghost" onClick={() => go('results')}>
           ← Back to results
         </Button>
-        <Button onClick={() => window.print()}>Print / Save as PDF</Button>
+        <div className="flex flex-wrap gap-2">
+          <RiskRegisterButton assessment={assessment} ranked={ranked} profile={state.profile} answers={state.answers} company={state.company} />
+          <Button onClick={() => window.print()}>Print / Save as PDF</Button>
+        </div>
       </div>
 
       <article className="print-page rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">

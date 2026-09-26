@@ -6,6 +6,10 @@ import DomainCheck from './screens/DomainCheck';
 import Questionnaire from './screens/Questionnaire';
 import Results from './screens/Results';
 import Summary from './screens/Summary';
+import SharedSummary from './screens/SharedSummary';
+
+// ?share=<token> opens a partner's read-only view instead of the app.
+const shareToken = new URLSearchParams(window.location.search).get('share');
 
 export default function App() {
   const app = useAppState();
@@ -14,6 +18,18 @@ export default function App() {
   const confirmReset = () => {
     if (window.confirm('Start over? This clears all your answers on this computer.')) reset();
   };
+
+  if (shareToken)
+    return (
+      <div className="min-h-screen">
+        <header className="no-print border-b border-slate-200 bg-white/90">
+          <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
+            <Logo onClick={() => window.location.assign('/')} />
+          </div>
+        </header>
+        <SharedSummary token={shareToken} />
+      </div>
+    );
 
   return (
     <div className="min-h-screen">
@@ -43,7 +59,7 @@ export default function App() {
       </main>
 
       <footer className="no-print mx-auto max-w-6xl px-6 py-10 text-center text-sm text-slate-500">
-        Everything runs in your browser. Your answers never leave this computer.
+        Everything runs in your browser. Your answers stay on this computer unless you create a share link.
       </footer>
     </div>
   );

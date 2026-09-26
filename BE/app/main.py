@@ -20,9 +20,13 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://secops-hackathon-producti
 MAX_BODY = 64 * 1024
 DNS_TTL = "24 hours"
 
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if not DATABASE_URL:
+    raise RuntimeError("DATABASE_URL is not set (Supabase: Connect -> Session pooler URI)")
+
 # prepare_threshold=None: Supabase's transaction pooler (port 6543) breaks prepared statements.
 pool = ConnectionPool(
-    os.environ.get("DATABASE_URL", ""),
+    DATABASE_URL,
     open=False,
     min_size=1,
     max_size=5,

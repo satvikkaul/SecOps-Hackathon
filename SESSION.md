@@ -2,6 +2,62 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — share link live end to end
+
+**Done**
+- Pushed `main` (`dbffc0c..64b6e55`). The Railway FE was switched to `main`, and the live bundle has the BE URL and the share UI.
+- Live check in headless Chrome: `?demo` → Share → the link opened the summary for Peel Valley, with the pinned DNS showing DMARC missing. The test row was deleted.
+- Priority 3 (shareable read-only link) is done.
+
+**Note**
+- Every Share click creates a new row. That's fine for the demo, and there's no cleanup job.
+
+## 2026-09-26 (Sat) — teammate branches integrated into main
+
+**Found**
+- The Railway FE deploys from `nima` (based on the first commit), which is why the live FE lacked the share UI.
+- `nima` (`c421af6`) adds a risk register CSV export matching the OCI DCC workbook, plus a scenario `category`. `Hala's` (`ff90c8f`) adds provider-specific action steps, and a Supabase browser client that nothing uses.
+
+**Done**
+- Cherry-picked both onto `main` with the original authors kept (`0b03c0b` Nima, `3a0c4bf` Hala). Dropped the committed `node_modules` and `tsbuildinfo`. Results shows both the Share and the risk register buttons. `vite-env.d.ts` was merged to include `VITE_API_URL` and the Supabase vars.
+- FE 125 tests pass and the build is clean. The BE demo seed is unchanged.
+
+**Open**
+- The Railway FE branch needs switching `nima` → `main`.
+- Decide what to do with the Supabase browser client (NEXT_STEPS).
+
+## 2026-09-26 (Sat) — pushed FE + BE integration
+
+**Done**
+- Pushed `5591a39..dbffc0c` to `main`. Nothing new from the teammate on the remote.
+- The BE redeployed: `/api/health` ok, and the demo reseeded with `sector`.
+
+**Open**
+- The live FE bundle still served the old code at the last check (no share UI, no BE URL). Either the deploy is still running or it didn't trigger. Verify it in Railway.
+
+## 2026-09-26 (Sat) — FE wired to BE
+
+**Done** (at the user's request, in `FE/`)
+- `api.ts` holds the three BE calls. `VITE_API_URL` is set on the Railway FE service.
+- The domain check calls the BE first and falls back to the browser DoH check.
+- Results has a "Share with a partner" button that shows the link and a copy button. `?share=<token>` renders `SharedSummary` from the stored snapshot, with DNS labelled as independently verified.
+- `engine/snapshot.ts` (`buildSnapshot`) is shared by the Share button and `BE/gen_demo.ts`. It has a unit test, and the FE is at 112 tests.
+- The footer copy changed from "answers never leave this computer" to "…unless you create a share link".
+- Verified: the real payload against the live BE (201, CORS from the FE origin, server DNS attached, answers not exposed), and headless-Chrome screenshots of the share page and results. Test rows were deleted.
+
+## 2026-09-26 (Sat) — BE deployed
+
+**Done**
+- BE live on Railway at https://imaginative-tenderness-production-be96.up.railway.app with Supabase (session pooler). All endpoints were smoke-tested on the live URL, and the test row was deleted afterwards.
+- The BE now fails fast with a clear error when `DATABASE_URL` is missing.
+
+**Gotchas hit**
+- An empty `DATABASE_URL` made psycopg try a local socket, which crashed startup and caused 502s.
+- Pasting log lines into the Railway Raw Editor created junk variables, which broke the build with `secret psycopg_pool not found`. Keep the BE variables to exactly `DATABASE_URL`, `FRONTEND_URL`, and `PORT=8080`.
+
+**Open**
+- The Supabase DB password was shared in chat. Rotate it after judging.
+
 ## 2026-09-26 (Sat) — BE storage built
 
 **Done**
