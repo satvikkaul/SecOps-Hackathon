@@ -6,7 +6,7 @@ _Last updated: 2026-09-26 (Sat). Overwrite this file at the end of every session
 
 ## Live
 
-- FE: https://secops-hackathon-production.up.railway.app. **The Railway FE service deploys from the `nima` branch, not `main`**, so the live FE has none of the BE integration. Fix: switch the FE service's source branch to `main`. `main` now contains nima's and Hala's work. `VITE_API_URL` is set on the FE service.
+- FE: **live** at https://secops-hackathon-production.up.railway.app, deploying from `main`, with `VITE_API_URL` set. Verified end to end in a fresh headless Chrome profile: `?demo` → Share with a partner → the link opens the read-only summary, which shows the verified DNS section. The risk register button is present.
 - BE: **live** at https://imaginative-tenderness-production-be96.up.railway.app (port 8080). Redeployed from `dbffc0c` (demo reseeded with `sector`). All endpoints were verified on the live URL on 2026-09-26: health `db:true`, demo share, live DNS, CORS (FE allowed, other origins rejected), create/share, 422 on bad input, 404 on an unknown token.
 - DB: **Supabase live** (session pooler, us-east-1). Schema applied, RLS confirmed on both tables, and `demo-peel-valley` seeded. The Railway Postgres is unused and can be deleted.
 
@@ -30,7 +30,7 @@ Tests: `BE/test_api.py` 2 passing (local Postgres 17). FE 112 passing (includes 
 | 1 | Questionnaire → score → ranked plan on the live URL | Done (FE, client-side) |
 | 1a | "One person can change a destination alone" question + action | Missing (FE teammate) |
 | 2 | Two demo profiles with visibly different rankings | One profile only |
-| 3 | Shareable read-only link | BE live. FE code pushed (`dbffc0c`). Waiting on the live FE deploy, then the incognito test |
+| 3 | Shareable read-only link | **Done and live**, verified end to end |
 | 4 | Partner diagram | Exists in FE (`RiskFlow`) |
 | 5 | Gemini-worded plan | Designed |
 

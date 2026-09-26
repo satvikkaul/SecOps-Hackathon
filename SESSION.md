@@ -2,6 +2,16 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — share link live end to end
+
+**Done**
+- Pushed `main` (`dbffc0c..64b6e55`). The Railway FE was switched to `main`, and the live bundle has the BE URL and the share UI.
+- Live check in headless Chrome: `?demo` → Share → the link opened the summary for Peel Valley, with the pinned DNS showing DMARC missing. The test row was deleted.
+- Priority 3 (shareable read-only link) is done.
+
+**Note**
+- Every Share click creates a new row. That's fine for the demo, and there's no cleanup job.
+
 ## 2026-09-26 (Sat) — teammate branches integrated into main
 
 **Found**
