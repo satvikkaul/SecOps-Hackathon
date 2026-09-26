@@ -28,6 +28,20 @@ def c():
         yield client
 
 
+def test_personalize_preflight_allows_sentry_headers(c):
+    origin = "https://secops-hackathon-production.up.railway.app"
+    res = c.options(
+        "/api/personalize",
+        headers={
+            "Origin": origin,
+            "Access-Control-Request-Method": "POST",
+            "Access-Control-Request-Headers": "content-type,sentry-trace,baggage",
+        },
+    )
+    assert res.status_code == 200, res.text
+    assert res.headers["access-control-allow-origin"] == origin
+
+
 def test_api(c):
     assert c.get("/api/health").json() == {"ok": True, "db": True}
 

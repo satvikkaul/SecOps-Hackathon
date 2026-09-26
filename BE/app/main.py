@@ -80,7 +80,9 @@ app.add_middleware(
     # than just 5173 — this regex never matches a non-localhost origin, so prod is unaffected.
     allow_origin_regex=r"http://localhost:\d+",
     allow_methods=["GET", "POST"],
-    allow_headers=["content-type"],
+    # Sentry browser tracing adds sentry-trace and baggage on calls to this host. A preflight that
+    # asks for them is rejected with 400 ("Disallowed CORS headers") unless they are listed here.
+    allow_headers=["content-type", "baggage", "sentry-trace"],
 )
 
 
