@@ -116,10 +116,13 @@ export default function ActionCard({
   rank,
   expertise = 'medium',
   stops,
+  text,
 }: {
   r: RankedAction;
   rank: number;
   expertise?: Expertise;
+  /** Gemini's rewording for this business; the engine's text is used when absent */
+  text?: { title: string; whatToDo: string; why: string; steps: string[] };
   /** The risk this fix lowers most, and how that risk plays out for this business */
   stops?: { name: string; chain: string[] };
 }) {
@@ -132,14 +135,14 @@ export default function ActionCard({
         <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-600 text-lg font-bold text-white">{rank}</div>
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2">
-            <h3 className="text-lg font-bold leading-snug text-slate-900">{r.action.title}</h3>
+            <h3 className="text-lg font-bold leading-snug text-slate-900">{text?.title ?? r.action.title}</h3>
             <div className="shrink-0 rounded-lg bg-brand-50 px-3 py-1 text-right">
               <div className="text-xs font-medium text-brand-700">{basic ? 'Lowers your risk by' : 'Cuts total risk by'}</div>
               <div className="text-xl font-extrabold tabular-nums text-brand-800">{pct(r.pctReduction)}</div>
             </div>
           </div>
           {r.essential && <EssentialNote r={r} />}
-          <p className="mt-1 text-slate-700">{r.action.whatToDo}</p>
+          <p className="mt-1 text-slate-700">{text?.whatToDo ?? r.action.whatToDo}</p>
           {stops && stops.chain.length > 0 && (
             <div className="mt-3 rounded-xl bg-rose-50/60 px-3 py-2">
               <div className="text-xs font-semibold uppercase tracking-wide text-rose-800">Helps stop: {stops.name}</div>
@@ -147,8 +150,8 @@ export default function ActionCard({
             </div>
           )}
           <p className="mt-2 text-sm leading-relaxed text-slate-600">
-            <span className="font-semibold text-slate-700">Why: </span>
-            {r.action.why}
+            <span className="font-semibold text-slate-700">{text ? 'Why it matters to you: ' : 'Why: '}</span>
+            {text?.why ?? r.action.why}
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
             <CostTime r={r} showEffort={!basic} />
@@ -185,7 +188,7 @@ export default function ActionCard({
               {showEffect ? 'Hide the effect' : 'See the effect'}
             </button>
           </div>
-          {showSteps && <Steps steps={r.steps} />}
+          {showSteps && <Steps steps={text?.steps ?? r.steps} />}
           {showEffect && <WhatIf r={r} />}
         </div>
       </div>

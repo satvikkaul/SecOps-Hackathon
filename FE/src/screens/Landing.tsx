@@ -39,7 +39,7 @@ export default function Landing({ app }: { app: AppApi }) {
               Load demo company
             </Button>
           </div>
-          <p className="mt-4 text-sm text-slate-500">No sign-up, no account. Your answers stay on this computer.</p>
+          <p className="mt-4 text-sm text-slate-500">No sign-up, no account. Your scores are calculated on this computer.</p>
         </div>
 
         <Card className="p-6">

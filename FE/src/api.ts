@@ -54,3 +54,25 @@ export async function getShare(token: string): Promise<SharedAssessment | null> 
   if (!res.ok) throw new Error(`Could not load (${res.status})`);
   return (await res.json()) as SharedAssessment;
 }
+
+export interface Personalized {
+  profile: string;
+  risks: { id: string; why: string }[];
+  actions: { id: string; title: string; whatToDo: string; why: string; steps: string[] }[];
+  cached: boolean;
+}
+
+/** Gemini's rewording of the engine's results, or null if unavailable (no BE, timeout, failed validation). */
+export async function personalize(request: unknown): Promise<Personalized | null> {
+  if (!API) return null;
+  try {
+    const res = await fetch(`${API}/api/personalize`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(request),
+    });
+    return res.ok ? ((await res.json()) as Personalized) : null;
+  } catch {
+    return null;
+  }
+}

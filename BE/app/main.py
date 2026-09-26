@@ -1,6 +1,10 @@
+import hashlib
 import json
 import os
 import secrets
+import threading
+import time
+from collections import deque
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Any, Literal
@@ -13,6 +17,7 @@ from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel, Field, StringConstraints
 
+from app import personalize as ai
 from app.dns_check import all_failed, check_domain, is_valid_domain, normalize_domain
 
 HERE = Path(__file__).parent
@@ -178,3 +183,87 @@ def get_share(token: str):
         "dns": row["dns"],
         "createdAt": row["created_at"].isoformat(),
     }
+
+
+# ---------- Gemini personalization ----------
+
+Short = Annotated[str, StringConstraints(max_length=200)]
+Text = Annotated[str, StringConstraints(max_length=600)]
+
+
+class RiskIn(BaseModel):
+    id: Annotated[str, StringConstraints(pattern=r"^[A-Z]{2,10}$")]
+    name: Short
+    band: Literal["High", "Elevated", "Moderate", "Low"]
+    chain: list[Short] = Field(max_length=6)
+    reasons: list[Short] = Field(max_length=8)
+
+
+class ActionIn(BaseModel):
+    id: Annotated[str, StringConstraints(pattern=r"^A\d{1,3}$")]
+    title: Short
+    whatToDo: Text
+    why: Text
+    cost: Short
+    time: Short
+    timeframe: Literal[30, 60, 90]
+    steps: list[Text] = Field(min_length=1, max_length=8)
+    yourGaps: list[Short] = Field(max_length=8)
+
+
+class PersonalizeIn(BaseModel):
+    level: Literal["basic", "medium", "expert"]
+    business: dict[Short, Short] = Field(max_length=20)
+    gaps: list[Short] = Field(max_length=30)
+    strengths: list[Short] = Field(max_length=30)
+    risks: list[RiskIn] = Field(min_length=1, max_length=5)
+    actions: list[ActionIn] = Field(max_length=5)
+
+
+# Uncached calls spend the Gemini key, so cap them. Cache hits are free and unlimited.
+# ponytail: in-memory, per process; fine for one Railway replica. Move to Postgres if we scale out.
+_calls: dict[str, deque] = {}
+_all_calls: deque = deque()
+_lock = threading.Lock()
+PER_IP_PER_MIN = 6
+ALL_PER_HOUR = 300
+
+
+def _allow(ip: str) -> bool:
+    now = time.monotonic()
+    with _lock:
+        q = _calls.setdefault(ip, deque())
+        while q and now - q[0] > 60:
+            q.popleft()
+        while _all_calls and now - _all_calls[0] > 3600:
+            _all_calls.popleft()
+        if len(q) >= PER_IP_PER_MIN or len(_all_calls) >= ALL_PER_HOUR:
+            return False
+        q.append(now)
+        _all_calls.append(now)
+        return True
+
+
+@app.post("/api/personalize")
+def post_personalize(body: PersonalizeIn, request: Request):
+    req = body.model_dump()
+    key = hashlib.sha256(f"{ai.PROMPT_VERSION}|{ai.MODEL}|{json.dumps(req, sort_keys=True)}".encode()).hexdigest()
+    with pool.connection() as conn:
+        row = conn.execute("select result from ai_texts where key = %s", (key,)).fetchone()
+    if row:
+        return {**row["result"], "cached": True}
+
+    ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "")).split(",")[0].strip()
+    if not _allow(ip):
+        raise HTTPException(429, "Too many requests, try again in a minute")
+    try:
+        result = ai.personalize(req)
+    except ai.PersonalizeError as e:
+        print(f"personalize failed: {e}", flush=True)
+        raise HTTPException(503, "Personalization unavailable")
+    with pool.connection() as conn:
+        conn.execute(
+            "insert into ai_texts (key, model, result) values (%s, %s, %s) on conflict (key) do nothing",
+            (key, ai.MODEL, Jsonb(result)),
+        )
+    return {**result, "cached": False}

@@ -4,9 +4,9 @@
 
 | | FE (`FE/`, owned by the FE teammate) | BE (`BE/`, owned by us) |
 | --- | --- | --- |
-| Runs | Static Vite build on Railway | FastAPI on Railway, Postgres on Supabase |
-| Owns | Questionnaire, **all scoring** (TS engine), results UI, share view UI | Persistence, share tokens, server-side DNS check, demo seed data, Gemini wording (phase 2) |
-| Stores | Draft answers in `localStorage` | Finished assessments, DNS results, and (phase 2) Gemini plans in Supabase Postgres |
+| Runs | Static Vite build on Railway | FastAPI on Railway, Postgres on Supabase, Gemini via the Interactions API |
+| Owns | Questionnaire, **all scoring** (TS engine), results UI, share view UI | Persistence, share tokens, server-side DNS check, demo seed data, Gemini wording |
+| Stores | Draft answers in `localStorage` | Finished assessments, DNS results, and cached Gemini wording in Supabase Postgres |
 
 **The BE does not score.** The scoring engine is TypeScript, has 111 tests, and already ships. Porting it to Python would mean keeping two copies in sync by tomorrow morning. The BE stores what the FE computed.
 
@@ -117,33 +117,30 @@ Supabase is **only a Postgres host** for us. The BE connects with a plain connec
 
 Why JSONB and not a table per question: the questions, actions and weights live in the FE's JSON files, and the teammate is still changing them. JSONB means adding a question needs no migration. Sector reporting later is still one query: `select profile->>'sector', count(*) from assessments group by 1`.
 
-**`action_plans`** (phase 2, Gemini; not created yet)
+**`ai_texts`**: cached, validated Gemini wording.
 
 | Column | Type | Notes |
 | --- | --- | --- |
-| `id` | uuid PK | |
-| `assessment_id` | uuid FK → assessments | |
-| `model` | text | e.g. `gemini-2.5-flash` |
-| `prompt_version` | text | Bumped whenever the prompt changes |
-| `plan` | jsonb | The validated Gemini output |
+| `key` | text PK | sha256 of the request + prompt version + model |
+| `model` | text | e.g. `gemini-3.5-flash-lite` |
+| `result` | jsonb | Validated rewording (profile, risks, actions) |
 | `created_at` | timestamptz | |
 
-Stored once per assessment and served from the DB after that. The demo never waits on Gemini, and the share page shows the same text every time.
+## Gemini personalization (built)
 
-## Phase 2: Gemini action plan
+**Gemini rewords the results for one business. It does not choose, rank, or score.** The engine's formula (Risk ÷ Effort, with "show the math") is the pitch. An LLM that ranked things couldn't show its math and would give different answers on reruns.
 
-**Gemini writes the plan's wording. It does not choose or rank the actions.** The engine's formula (Risk ÷ Effort, with "show the math") is the pitch. An LLM that picks the actions can't show its math, can make things up, and gives different answers on reruns.
+`POST /api/personalize` (see `BE/app/personalize.py`):
+1. The FE builds the request (`FE/src/personalize.ts`): level (basic/medium/expert), profile labels, gaps, strengths, top 3 risks (with chain and reasons), and top 5 fixes (with the vetted, provider-specific steps and the user's open gaps for each). No company name or domain.
+2. Gemini (Interactions API, `gemini-3.5-flash-lite`, JSON-schema output) returns: `profile`, `risks[{id, why}]`, `actions[{id, title, whatToDo, why, steps}]`.
+3. `validate()`: ids and order identical to the request, 3–6 steps, length caps, no links, and no numbers that weren't in the request. Failure → 503 → the FE keeps the engine's text.
+4. Cached in `ai_texts` (sha256 of request + prompt version + model), with RLS on. Uncached calls are rate-limited.
 
-`POST /api/assessments/{id}/plan`:
-1. The BE loads the stored `results.topActions` (already ranked by the engine) and the `profile`.
-2. It sends Gemini **only** the sector, size, profile flags, and the top 5 actions with their cost, effort and CCCS IDs. It never sends the company name, the domain, or the raw answers.
-3. It asks for structured JSON: for each action, `{id, headline, whyForYou, firstStep, owner}` in plain business language.
-4. The BE checks that the ids match the engine's list **in the same order**, with nothing added or removed, and that the fields are within length limits. If the check fails, or Gemini times out after 8 s or isn't configured, it falls back to the engine's own `whatToDo` text.
-5. The result is saved in `action_plans` and returned.
+Env on the BE service: `GEMINI_API_KEY` (required), `GEMINI_MODEL` (optional).
 
-Env: `GEMINI_API_KEY`, `GEMINI_MODEL`. SDK: `google-genai`.
+Judge answer: *"The ranking is deterministic and you can check it. Gemini only rewords it for this business, and the server rejects anything that changes the order or invents a number."*
 
-Judge answer: *"The ranking is deterministic and you can check it. Gemini only rewrites the top 5 for this business, and it can't change the order."*
+Not built (roadmap): dollar impact (needs load value and downtime cost questions, calculated by the engine and only worded by Gemini), free-text "anything else?" that Gemini maps to our questions for the user to confirm, and links to official vendor docs for each step.
 
 ## BE stack
 

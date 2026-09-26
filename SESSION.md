@@ -2,6 +2,20 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat) — Gemini personalization
+
+**Done**
+- BE `POST /api/personalize` (`app/personalize.py`). The FE sends the engine's top 3 risks and top 5 fixes (with their vetted steps), plus profile labels, gaps, strengths, and the level. **Never the company name or domain.** Gemini returns a 2–3 sentence profile, a per-risk "why it matters to you", and each fix's title, whatToDo, why, and 3–6 steps.
+- Guardrails in `validate()`: same ids in the same order, 3–6 steps, length caps, no links, and **no number that wasn't in the request** (this blocks invented dollars and stats). Any failure → 503, and the FE silently keeps the engine's text.
+- Cached in Postgres `ai_texts`, keyed by sha256(request + prompt version + model), with RLS on. Uncached calls are rate-limited (6/min per IP, 300/hour overall, in memory).
+- FE: `src/personalize.ts` (request builder + hook). Results shows a "✨ Personalizing…" pill, then a "Personalized · show original" toggle and a "Your business, as we understand it" card on the Overview. Risk cards and fix cards use Gemini's text when it's available. The footer and landing copy now say that answers go to Gemini.
+- Tests: BE 9 passing (validate rejects added/dropped items, invented figures, links, and bad step counts; the route caches and falls back). FE 139.
+
+**Gotchas**
+- New keys can't use `generateContent`: `gemini-2.5-flash` returns 404 "no longer available to new users". We use the **Interactions API** (`POST /v1beta/interactions`, `response_format` = the JSON schema, text at `steps[].content[].text`, `store: false`).
+- The key is **free tier**. `gemini-3.8-flash` took 15–31 s and allows 5 requests/min, so the default is **`gemini-3.5-flash-lite`** (about 5 s for the full request, all 3 levels passed validation). Override with `GEMINI_MODEL`.
+- The Gemini key was pasted in chat: rotate it after judging.
+
 ## 2026-09-26 (Sat) — load-redirect risk, expertise levels, tabbed results
 
 **Done** (FE, pulled on top of Nima's report-template and results-layout work)

@@ -63,7 +63,7 @@ export default function App() {
       </main>
 
       <footer className="no-print mx-auto max-w-6xl px-6 py-10 text-center text-sm text-slate-500">
-        Everything runs in your browser. Your answers stay on this computer unless you create a share link.
+        Scores are calculated in your browser. To word your results for you, your answers (never your company name or domain) are sent to Google Gemini. A share link is only created when you ask for one.
       </footer>
     </div>
   );

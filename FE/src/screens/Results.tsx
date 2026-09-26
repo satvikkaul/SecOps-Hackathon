@@ -15,6 +15,7 @@ import { chainFor, explainRisk } from '../engine/explain';
 import type { ScenarioResult } from '../engine/scoring';
 import type { Band, Expertise, Profile, ScenarioId } from '../engine/types';
 import type { AppApi } from '../state';
+import { personalizeRequest, usePersonalized } from '../personalize';
 import { timePhrase, useResults } from '../useResults';
 
 const POSTURE_TEXT: Record<string, string> = {
@@ -31,8 +32,11 @@ function RiskCard({
   onToggle,
   expertise,
   profile,
+  why,
 }: {
   s: ScenarioResult;
+  /** Gemini's explanation of why this risk matters to this business */
+  why?: string;
   rank: number;
   open: boolean;
   onToggle: () => void;
@@ -66,7 +70,11 @@ function RiskCard({
         <BandBadge band={s.band} />
       </div>
       <h3 className="mt-2 text-lg font-bold leading-snug text-slate-900">{s.name}</h3>
-      {!basic && <p className="mt-1 text-sm leading-relaxed text-slate-700">{s.description}</p>}
+      {why ? (
+        <p className="mt-1 text-sm leading-relaxed text-slate-700">{why}</p>
+      ) : (
+        !basic && <p className="mt-1 text-sm leading-relaxed text-slate-700">{s.description}</p>
+      )}
       {basic ? (
         <ol className="mt-3 space-y-1.5">
           {chain.map((step, i) => (
@@ -182,7 +190,14 @@ function RiskGauge({ score, band, showScore = true }: { score: number; band: Ban
 export default function Results({ app, onReset }: { app: AppApi; onReset: () => void }) {
   const { state, go } = app;
   const { profile, answers } = state;
-  const { assessment, plan, ranked, unsure, flow, cccs, cis, ciosc } = useResults(profile, answers, state.rankingMode);
+  const results = useResults(profile, answers, state.rankingMode);
+  const { assessment, plan, ranked, unsure, flow, cccs, cis, ciosc } = results;
+  // Gemini rewords the engine's results for this business and level. It never changes a score or the order.
+  const ai = usePersonalized(profile.sector ? personalizeRequest(state, results) : null);
+  const [showOriginal, setShowOriginal] = useState(false);
+  const personal = showOriginal ? null : ai.data;
+  const aiAction = (id: string) => personal?.actions.find((a) => a.id === id);
+  const aiRisk = (id: string) => personal?.risks.find((r) => r.id === id)?.why;
   const [mathOpen, setMathOpen] = useState(false);
   const [standardsOpen, setStandardsOpen] = useState(false);
   const [openRisk, setOpenRisk] = useState<ScenarioId | null>(null);
@@ -299,7 +314,23 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
           </div>
           <h1 className="truncate text-2xl font-extrabold tracking-tight text-slate-900">{state.company || 'Your business'}</h1>
         </div>
-        <div className="no-print flex items-center gap-2">
+        <div className="no-print flex flex-wrap items-center gap-2">
+          {ai.status === 'loading' && (
+            <span className="animate-pulse rounded-full bg-violet-50 px-3 py-1 text-sm font-semibold text-violet-800">✨ Personalizing for you…</span>
+          )}
+          {ai.status === 'ready' && (
+            <button
+              type="button"
+              onClick={() => setShowOriginal((o) => !o)}
+              aria-pressed={!showOriginal}
+              title="Scores come from our engine. Gemini only rewords the results for your business."
+              className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
+                showOriginal ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-violet-50 text-violet-800 hover:bg-violet-100'
+              }`}
+            >
+              {showOriginal ? 'Show personalized wording' : '✨ Personalized · show original'}
+            </button>
+          )}
           <span className="hidden text-sm text-slate-500 sm:inline">Detail</span>
           <ExpertiseSwitch value={expertise} onChange={(e) => app.update({ expertise: e })} />
         </div>
@@ -351,6 +382,16 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
                 </div>
               </Card>
 
+              {personal && (
+                <Card className="fade-in border-violet-200 p-5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <h2 className="text-sm font-bold uppercase tracking-wide text-violet-800">✨ Your business, as we understand it</h2>
+                    <span className="text-xs text-slate-500">Written by Gemini from your answers. Scores come from our engine.</span>
+                  </div>
+                  <p className="mt-2 text-lg leading-relaxed text-slate-800">{personal.profile}</p>
+                </Card>
+              )}
+
               <Block>
                 <SectionTitle icon="⚠️" sub="Here's how your biggest risk would actually play out, step by step.">
                   {top.name}
@@ -379,7 +420,7 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
                             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-600 text-sm font-bold text-white">{i + 1}</span>
                             <span className="text-sm font-semibold text-brand-800">Lowers your risk by {pct(r.pctReduction)}</span>
                           </div>
-                          <div className="mt-2 font-bold leading-snug text-slate-900">{r.action.title}</div>
+                          <div className="mt-2 font-bold leading-snug text-slate-900">{aiAction(r.action.id)?.title ?? r.action.title}</div>
                           {stops && <div className="mt-1 text-sm text-slate-600">Helps stop: {stops.name.toLowerCase()}</div>}
                           <div className="mt-auto flex flex-wrap gap-1.5 pt-3 text-xs font-semibold">
                             <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-800">💲 {r.action.cost}</span>
@@ -429,7 +470,7 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
                 ) : (
                   <div className="space-y-4">
                     {plan.top.map((r, i) => (
-                      <ActionCard key={r.action.id} r={r} rank={i + 1} expertise={expertise} stops={stopsFor(r)} />
+                      <ActionCard key={r.action.id} r={r} rank={i + 1} expertise={expertise} stops={stopsFor(r)} text={aiAction(r.action.id)} />
                     ))}
                   </div>
                 )}
@@ -485,7 +526,16 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
               </SectionTitle>
               <div className="grid gap-4 md:grid-cols-3">
                 {topRisks.map((s, i) => (
-                  <RiskCard key={s.id} s={s} rank={i + 1} open={openRisk === s.id} onToggle={() => toggleRisk(s.id)} expertise={expertise} profile={profile} />
+                  <RiskCard
+                    key={s.id}
+                    s={s}
+                    rank={i + 1}
+                    open={openRisk === s.id}
+                    onToggle={() => toggleRisk(s.id)}
+                    expertise={expertise}
+                    profile={profile}
+                    why={aiRisk(s.id)}
+                  />
                 ))}
               </div>
               {story && topRisks.some((s) => s.id === openRisk) && <div className="mt-4">{storyPanel}</div>}
@@ -599,7 +649,7 @@ export default function Results({ app, onReset }: { app: AppApi; onReset: () => 
           <SideCard title="Your next step" icon="👉">
             {first ? (
               <>
-                <div className="font-semibold leading-snug text-slate-900">{first.action.title}</div>
+                <div className="font-semibold leading-snug text-slate-900">{aiAction(first.action.id)?.title ?? first.action.title}</div>
                 <p className="mt-1 text-sm text-slate-600">
                   {basic ? 'Lowers' : 'Cuts'} your total risk by <b className="text-brand-800">{pct(first.pctReduction)}</b> and {timePhrase(first.action.time)}.
                 </p>

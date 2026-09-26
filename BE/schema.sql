@@ -20,7 +20,15 @@ create table if not exists dns_checks (
   checked_at timestamptz not null default now()
 );
 
+create table if not exists ai_texts (
+  key        text primary key,                -- sha256 of the request + prompt version + model
+  model      text not null,
+  result     jsonb not null,                  -- validated Gemini rewording
+  created_at timestamptz not null default now()
+);
+
 -- Supabase exposes the public schema over its REST API with the public anon key.
 -- RLS on + no policies = that API sees nothing. The BE connects as the table owner, which bypasses RLS.
 alter table assessments enable row level security;
 alter table dns_checks enable row level security;
+alter table ai_texts enable row level security;

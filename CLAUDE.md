@@ -73,6 +73,7 @@ uv run uvicorn app.main:app --reload --port 8000
 - `app/main.py` holds the routes, validation, DB pool, and seed. `app/dns_check.py` is the MX/SPF/DMARC lookup. `schema.sql` is applied on startup.
 - `app/demo_*.json` are generated from the FE engine, not written by hand. Regenerate them with `BE/gen_demo.ts` (the command is at the top of that file) when the FE's weights or questions change.
 - Every table has RLS on with no policies. Keep it that way for any new table (Supabase REST API exposure).
+- `app/personalize.py`: Gemini rewording. It must never rank or score. Bump `PROMPT_VERSION` when the prompt changes (it invalidates the `ai_texts` cache). BE env: `GEMINI_API_KEY`, optional `GEMINI_MODEL`.
 
 ## Deploy checklist (do Saturday, not Sunday)
 
