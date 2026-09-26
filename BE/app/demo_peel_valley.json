@@ -1,0 +1,252 @@
+{
+  "company": "Peel Valley Fresh Logistics",
+  "domain": "peelvalleyfresh.ca",
+  "profile": {
+    "sector": "carrier",
+    "employees": "11-50",
+    "downtime": "lt4h",
+    "perishable": "yes",
+    "concentration": "yes",
+    "payments": "yes",
+    "sensitiveData": "yes",
+    "hasOT": "yes",
+    "emailProvider": "m365"
+  },
+  "answers": {
+    "Q1": "no",
+    "Q2": "no",
+    "Q3": "no",
+    "Q4": "no",
+    "Q5": "no",
+    "Q6": "no",
+    "Q7": "no",
+    "Q8": "no",
+    "Q9": "no",
+    "Q10": "no",
+    "Q11": "no",
+    "Q12": "no",
+    "Q13": "partial",
+    "Q14": "partial",
+    "Q15": "no",
+    "Q16": "no",
+    "Q17": "no",
+    "Q18": "no",
+    "Q19": "no",
+    "Q20": "unsure",
+    "Q21": "no",
+    "Q22": "no",
+    "Q23": "unsure",
+    "Q24": "no",
+    "Q25": "no"
+  },
+  "rankingMode": "effort",
+  "results": {
+    "posture": {
+      "score": 3.2,
+      "band": "High"
+    },
+    "scenarios": [
+      {
+        "id": "BEC",
+        "name": "Fake payment request or invoice fraud",
+        "risk": 3.2,
+        "band": "High"
+      },
+      {
+        "id": "ATO",
+        "name": "Stolen logins to online business tools",
+        "risk": 2.8,
+        "band": "Elevated"
+      },
+      {
+        "id": "RANSOM",
+        "name": "Ransomware shuts down operations",
+        "risk": 2.17,
+        "band": "Elevated"
+      },
+      {
+        "id": "OT",
+        "name": "Tampering with connected equipment",
+        "risk": 2,
+        "band": "Elevated"
+      },
+      {
+        "id": "DATALOSS",
+        "name": "Losing data you cannot get back",
+        "risk": 1.88,
+        "band": "Moderate"
+      },
+      {
+        "id": "THIRD",
+        "name": "A vendor or IT provider gets breached",
+        "risk": 1.5,
+        "band": "Moderate"
+      },
+      {
+        "id": "SHARED",
+        "name": "Misuse of shared or leftover accounts",
+        "risk": 1.2,
+        "band": "Moderate"
+      }
+    ],
+    "topActions": [
+      {
+        "id": "A1",
+        "title": "Turn on two-step login for email",
+        "whatToDo": "Require a code from a phone app every time someone signs in to company email from a new device.",
+        "cost": "Free",
+        "time": "Under 1 hour",
+        "effort": 1,
+        "priority": 3.434,
+        "pctReduction": 0.233,
+        "timeframe": 30,
+        "cccs": [
+          "BC.5.1"
+        ]
+      },
+      {
+        "id": "A7",
+        "title": "Adopt a call-back rule for any bank detail change",
+        "whatToDo": "Never change a supplier's, carrier's, or grower's bank details without calling them at a number you already had on file, and require a second approval for large payments.",
+        "cost": "Free",
+        "time": "Under 1 hour",
+        "effort": 1,
+        "priority": 2.304,
+        "pctReduction": 0.156,
+        "timeframe": 30,
+        "cccs": []
+      },
+      {
+        "id": "A4",
+        "title": "Create an offboarding checklist",
+        "whatToDo": "Write a one-page checklist of every system and vendor with access, and use it the same day anyone leaves.",
+        "cost": "Free",
+        "time": "Under 1 hour",
+        "effort": 1,
+        "priority": 1.64,
+        "pctReduction": 0.111,
+        "timeframe": 30,
+        "cccs": [
+          "BC.12.3",
+          "BC.10.2"
+        ]
+      },
+      {
+        "id": "A13",
+        "title": "Turn off always-on vendor remote access to equipment",
+        "whatToDo": "Switch off TeamViewer, AnyDesk, or similar tools on equipment computers, and only turn them on when the vendor actually needs to connect.",
+        "cost": "Free",
+        "time": "Under 1 hour",
+        "effort": 1,
+        "priority": 1.45,
+        "pctReduction": 0.098,
+        "timeframe": 30,
+        "cccs": [
+          "BC.4.1",
+          "BC.10.2"
+        ]
+      },
+      {
+        "id": "A8",
+        "title": "Run a 30-minute fake email awareness session",
+        "whatToDo": "Walk staff through real examples of fake emails and turn on an 'External sender' warning in email.",
+        "cost": "Free",
+        "time": "Half a day",
+        "effort": 2,
+        "priority": 1.287,
+        "pctReduction": 0.175,
+        "timeframe": 30,
+        "cccs": [
+          "BC.6.1",
+          "BC.9.8"
+        ]
+      }
+    ],
+    "cccs": [
+      {
+        "control": "BC.1",
+        "name": "Incident response plan",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.2",
+        "name": "Automatic patching",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.3",
+        "name": "Security software",
+        "status": "Partially met"
+      },
+      {
+        "control": "BC.4",
+        "name": "Securely configure devices",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.5",
+        "name": "Strong user authentication",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.6",
+        "name": "Employee awareness training",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.7",
+        "name": "Backup and encryption",
+        "status": "Partially met"
+      },
+      {
+        "control": "BC.8",
+        "name": "Secure mobility",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.9",
+        "name": "Perimeter defences",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.10",
+        "name": "Secure cloud and outsourced IT",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.11",
+        "name": "Secure websites",
+        "status": "Not assessed"
+      },
+      {
+        "control": "BC.12",
+        "name": "Access control and authorization",
+        "status": "Not yet met"
+      },
+      {
+        "control": "BC.13",
+        "name": "Secure portable media",
+        "status": "Not assessed"
+      }
+    ]
+  },
+  "dns": {
+    "domain": "peelvalleyfresh.ca",
+    "mx": {
+      "status": "ok",
+      "records": [
+        "0 peelvalleyfresh-ca.mail.protection.outlook.com."
+      ],
+      "provider": "m365"
+    },
+    "spf": {
+      "status": "ok",
+      "record": "v=spf1 include:spf.protection.outlook.com -all"
+    },
+    "dmarc": {
+      "status": "missing",
+      "record": null,
+      "policy": null
+    }
+  }
+}
