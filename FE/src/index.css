@@ -73,7 +73,7 @@ body {
 @keyframes flash-target {
   0%,
   35% {
-    box-shadow: 0 0 0 4px #32856e, 0 10px 25px -5px rgb(50 133 110 / 0.35);
+    box-shadow: 0 0 0 4px #0077fc, 0 10px 25px -5px rgb(0 119 252 / 0.35);
   }
   100% {
     box-shadow: 0 0 0 0 transparent;

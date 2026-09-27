@@ -3,7 +3,7 @@ import { useState, type ReactNode } from 'react';
 import type { Band, ScenarioId } from '../engine/types';
 
 /** Icons the catalog content can name (profile option `icon`), by name. */
-const CONTENT_ICONS: Record<string, LucideIcon> = { wheat: Wheat, factory: Factory, snowflake: Snowflake, truck: Truck, package: Package };
+export const CONTENT_ICONS: Record<string, LucideIcon> = { wheat: Wheat, factory: Factory, snowflake: Snowflake, truck: Truck, package: Package };
 
 export const BAND_STYLES: Record<Band, { solid: string; soft: string; text: string; ring: string; dot: string; hex: string }> = {
   High: { solid: 'bg-rose-600 text-white', soft: 'bg-rose-50', text: 'text-rose-700', ring: 'border-rose-200', dot: 'bg-rose-500', hex: '#e11d48' },
@@ -158,10 +158,16 @@ export function Pill({ children, className = '' }: { children: ReactNode; classN
 export function Logo({ onClick }: { onClick?: () => void }) {
   return (
     <button type="button" onClick={onClick} className="flex items-center gap-2.5 text-left">
-      <svg viewBox="0 0 32 32" className="h-9 w-9" aria-hidden>
-        <rect width="32" height="32" rx="8" fill="#256a58" />
-        <rect x="6" y="12" width="11" height="8" rx="4" fill="none" stroke="#fff" strokeWidth="2.4" />
-        <rect x="15" y="12" width="11" height="8" rx="4" fill="none" stroke="#acd9ca" strokeWidth="2.4" />
+      {/* Cropped from the 1500×1500 source artwork to the two chain links. */}
+      <svg viewBox="436 385 640 740" className="h-9 w-9" aria-hidden>
+        <path
+          fill="#0077fc"
+          d="M600.14 471.69l47.1 38.53c42.81-51.38 117.74-57.8 171.26-17.13l117.75 96.34c51.38 42.82 57.8 117.75 17.13 171.27-42.82 51.38-117.75 57.8-171.27 17.12l-38.54 47.1c77.07 64.23 190.54 53.52 254.76-23.55 64.22-77.07 53.52-190.53-23.55-254.76L857.04 450.28c-79.21-66.37-192.68-55.66-256.9 21.41z"
+        />
+        <path
+          fill="#0077fc"
+          d="M899.85 1028.3l-47.1-38.53c-42.81 51.38-117.74 57.8-169.12 14.99l-115.61-98.48c-53.52-40.68-57.8-117.75-14.98-169.13 42.81-51.38 117.74-57.8 169.12-14.99l38.54-47.1c-77.07-64.22-190.54-53.52-254.76 23.55-64.22 77.07-55.66 192.68 21.41 256.9l115.61 98.48c79.21 62.08 192.67 51.38 256.9-25.69z"
+        />
       </svg>
       <div className="leading-tight">
         <div className="font-bold text-slate-900">Chain of Custody</div>
