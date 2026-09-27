@@ -31,6 +31,12 @@ export interface ProfileQuestion {
   options: ProfileOption[];
 }
 
+/** The quick tier: the few questions asked first. The rest stay "not asked" until the user answers them. */
+export interface QuickCheck {
+  questions: string[];
+  intro: string;
+}
+
 export interface SupplyChain {
   impacts: { id: string; label: string; description: string }[];
   links: Record<ScenarioId, Record<string, number>>;
@@ -62,7 +68,7 @@ export interface Catalog {
   ciosc: CioscCatalog;
   impactRules: ImpactRules;
   profile: ProfileQuestion[];
-  prompts: { intro: string; prompts: Prompt[] };
+  prompts: { intro: string; quick: QuickCheck; prompts: Prompt[] };
   questions: { sections: Section[]; questions: Question[] };
   ranking: RankingConfig;
   rules: RuleSheet[];
@@ -87,6 +93,7 @@ export let cisById: Record<string, CisSafeguard>;
 export let profileQuestions: ProfileQuestion[];
 export let supplyChain: SupplyChain;
 export let promptIntro: string;
+export let quickCheck: QuickCheck;
 export let prompts: Prompt[];
 export let rules: RuleSheet[];
 export let dataset: Dataset;
@@ -110,6 +117,7 @@ export function setCatalog(c: Catalog): void {
   profileQuestions = c.profile;
   supplyChain = c.supplyChain;
   promptIntro = c.prompts.intro;
+  quickCheck = c.prompts.quick;
   prompts = c.prompts.prompts;
   rules = c.rules;
   dataset = { scenarios, questions, impactRules, actions };

@@ -1,4 +1,4 @@
-import { dataset as defaultDataset, prompts } from './data';
+import { dataset as defaultDataset, prompts, quickCheck, sections } from './data';
 import { isVisible } from './scoring';
 import type { Answers, AnswerValue, Dataset, Expertise, Profile, ShowIf } from './types';
 
@@ -51,7 +51,7 @@ export interface LadderPrompt extends PromptBase {
 }
 export type Prompt = RowsPrompt | LadderPrompt;
 
-export { promptIntro, prompts } from './data';
+export { promptIntro, prompts, quickCheck } from './data';
 
 /** Underlying question ids a prompt fills in. */
 export function promptQuestionIds(p: Prompt): string[] {
@@ -86,6 +86,38 @@ export function visiblePrompts(profile: Profile, data: Dataset = defaultDataset,
     }
   }
   return out;
+}
+
+export type Tier = 'quick' | 'full';
+
+/** The quick tier: visible prompts cut down to the quick questions (a ladder is kept whole). */
+export function quickPrompts(profile: Profile, data: Dataset = defaultDataset, all: Prompt[] = prompts, quick: string[] = quickCheck.questions): Prompt[] {
+  const inQuick = new Set(quick);
+  const out: Prompt[] = [];
+  for (const p of visiblePrompts(profile, data, all)) {
+    if (p.type === 'rows') {
+      const rows = p.rows.filter((r) => inQuick.has(r.question));
+      if (rows.length) out.push({ ...p, rows });
+    } else if (p.questions.some((q) => inQuick.has(q))) {
+      out.push(p);
+    }
+  }
+  return out;
+}
+
+export function tierPrompts(tier: Tier, profile: Profile): Prompt[] {
+  return tier === 'quick' ? quickPrompts(profile) : visiblePrompts(profile);
+}
+
+/** Index of the first questionnaire section with a card still to answer, or 0 when everything is answered. */
+export function firstOpenSection(profile: Profile, answers: Answers, sectionIds: string[] = sections.map((s) => s.id)): number {
+  const open = visiblePrompts(profile).find((p) => !promptComplete(p, answers));
+  return open ? Math.max(0, sectionIds.indexOf(open.section)) : 0;
+}
+
+/** Rough time to answer, at about 20 seconds a question. */
+export function minutesFor(questionCount: number): number {
+  return Math.max(1, Math.round((questionCount * 20) / 60));
 }
 
 /** The ladder option matching the current answers, or -1 (none chosen, "Not sure", or answers set some other way). */

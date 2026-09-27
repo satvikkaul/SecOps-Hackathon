@@ -79,6 +79,13 @@ Top 5 → "Do these first". The rest go into the 30 / 60 / 90 day plan by effort
 
 ## The questionnaire
 
+There are two tiers, and answers carry over between them:
+
+- **Quick check** (the default on the landing page): the business profile, the domain check, then one page with the questions listed in `prompts.json` under `quick.questions` (up to 9: two-step login, one login per person, the bank-change call-back, the load-change check, phishing training, backups, and vendor remote access). It skips the wording step, which can be changed on the results.
+- **Full check-up**: every card, section by section. Any card can be skipped ("Skip for now") and the results viewed at any point ("Results so far").
+
+A visible question with no answer is **not asked**. Likelihood assumes it is partly in place (`NOT_ASKED_VALUE` = 0.5 in `scoring.ts`), so a short check is neither falsely alarming nor falsely reassuring. It never produces a fix, a "biggest reason", a flow gap, or control evidence, so its controls read Not assessed. Results, the Supplier Security Summary, and share links say "based on X of Y questions" until everything is answered, with an **Answer the other N** button that opens the full check-up at the first card left. With every question answered the scores are exactly as before.
+
 People answer **11 cards** (`prompts.json`), not 31 separate questions. Each card fills in the underlying questions (`questions.json`) that the scoring and the CCCS/CIS mappings use, so none of that changes.
 
 - **Grouped rows.** Related questions share a card, e.g. "Accounts and passwords" has 4 short rows. Each row has answers written for that question ("The same day / Within a few days / It can take longer or get missed") instead of Yes / Partly / No, and each option maps to yes, partial, or no.

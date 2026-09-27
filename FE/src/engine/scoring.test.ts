@@ -6,7 +6,10 @@ import {
   computeImpact,
   computeLikelihood,
   isVisible,
+  coverage,
   MIN_LIKELIHOOD,
+  NOT_ASKED_VALUE,
+  topContributors,
   unsureQuestions,
 } from './scoring';
 import { questionById, questions, scenarios } from './data';
@@ -28,6 +31,7 @@ const baseProfile: Profile = {
 const withPayments: Profile = { ...baseProfile, payments: 'yes' };
 
 const allYes: Answers = Object.fromEntries(questions.map((q) => [q.id, 'yes']));
+const allNo: Answers = Object.fromEntries(questions.map((q) => [q.id, 'no']));
 
 describe('data integrity', () => {
   it('has 8 scenarios and 31 questions', () => {
@@ -80,34 +84,56 @@ describe('showIf', () => {
     expect(isVisible(questionById.Q16, { phones: 'none' })).toBe(false);
   });
   it('gives no credit for a question hidden by sector, unlike one hidden by the rest of the profile', () => {
-    const carrier = computeLikelihood('CARGO', { sector: 'carrier' }, {});
+    const carrier = computeLikelihood('CARGO', { sector: 'carrier' }, allNo);
     expect(carrier.final).toBe(carrier.base);
     expect(carrier.factors.find((f) => f.questionId === 'Q31')).toBeUndefined();
-    const noOT = computeLikelihood('OT', { sector: 'carrier', hasOT: 'no' }, {});
+    expect(carrier.notAsked).not.toContain('Q31');
+    const noOT = computeLikelihood('OT', { sector: 'carrier', hasOT: 'no' }, allNo);
     expect(noOT.factors.find((f) => f.questionId === 'Q18')?.notApplicable).toBe('hidden');
   });
 });
 
 describe('likelihood', () => {
-  it('equals base when nothing is answered', () => {
-    const l = computeLikelihood('BEC', withPayments, {});
+  it('equals base when every answer is No', () => {
+    const l = computeLikelihood('BEC', withPayments, allNo);
     expect(l.base).toBe(0.9);
     expect(l.final).toBe(0.9);
-    expect(l.factors).toHaveLength(0);
+    expect(l.notAsked).toEqual([]);
   });
   it('multiplies (1 - weight × value) for each answered question', () => {
-    const l = computeLikelihood('BEC', withPayments, { Q1: 'yes', Q8: 'partial', Q9: 'no' });
+    const l = computeLikelihood('BEC', withPayments, { ...allNo, Q1: 'yes', Q8: 'partial', Q9: 'no' });
     // 0.9 × (1 − 0.5) × (1 − 0.3 × 0.5) × 1
     expect(l.final).toBeCloseTo(0.9 * 0.5 * 0.85, 10);
-    expect(l.factors.map((f) => f.questionId)).toEqual(['Q1', 'Q8', 'Q9']);
+    expect(l.factors.find((f) => f.questionId === 'Q8')!.factor).toBeCloseTo(0.85, 10);
+  });
+  it('assumes a question not asked yet is partly in place, and lists it', () => {
+    const { Q1: _asked, ...rest } = allNo;
+    const l = computeLikelihood('BEC', withPayments, rest);
+    // Q1 has BEC weight 0.5: 0.9 × (1 − 0.5 × 0.5)
+    expect(l.final).toBeCloseTo(0.9 * 0.75, 10);
+    expect(l.notAsked).toEqual(['Q1']);
+    expect(l.factors.find((f) => f.questionId === 'Q1')).toBeUndefined();
+    expect(NOT_ASKED_VALUE).toBe(0.5);
   });
   it('treats questions hidden by the profile as "does not apply" (no exposure through that route)', () => {
     // No weekly bank transfers → the bank-detail-change route (Q7) does not exist, whatever Q7's stored answer is
-    const hidden = computeLikelihood('BEC', { ...baseProfile, payments: 'no' }, { Q7: 'no' });
+    const hidden = computeLikelihood('BEC', { ...baseProfile, payments: 'no' }, allNo);
     expect(hidden.final).toBeCloseTo(0.9 * 0.4, 10);
     expect(hidden.factors.find((f) => f.questionId === 'Q7')!.notApplicable).toBe('hidden');
-    const shown = computeLikelihood('BEC', { ...baseProfile, payments: 'yes' }, { Q7: 'no' });
+    const shown = computeLikelihood('BEC', { ...baseProfile, payments: 'yes' }, allNo);
     expect(shown.final).toBe(0.9);
+  });
+  it('leaves questions not asked yet out of the biggest reasons', () => {
+    const { Q1: _asked, ...rest } = allNo;
+    expect(topContributors('BEC', withPayments, rest, undefined, 99).map((c) => c.questionId)).not.toContain('Q1');
+  });
+  it('counts how many visible questions are answered', () => {
+    const c = coverage(withPayments, { Q1: 'yes', Q7: 'na', Q18: 'no' });
+    const visible = questions.filter((q) => isVisible(q, withPayments)).length;
+    // Q18 is hidden without connected equipment, so its stored answer does not count
+    expect(c).toEqual({ answered: 2, total: visible, notAsked: expect.any(Array), complete: false });
+    expect(c.notAsked).not.toContain('Q1');
+    expect(coverage(withPayments, allNo).complete).toBe(true);
   });
   it('clamps to a 0.05 minimum', () => {
     const l = computeLikelihood('BEC', { ...baseProfile, payments: 'yes' }, allYes);

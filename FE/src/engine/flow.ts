@@ -45,7 +45,7 @@ export function buildFlow(
   chain: SupplyChain = defaultSupplyChain,
 ): FlowGraph {
   const gaps = data.questions
-    .filter((q) => isApplicable(q, profile, answers) && Object.keys(q.weights).length > 0)
+    .filter((q) => isApplicable(q, profile, answers) && !!answers[q.id] && Object.keys(q.weights).length > 0)
     .map((q) => {
       const gap = 1 - answerValue(answers[q.id]);
       const total = Object.values(q.weights).reduce((s, w) => s + (w ?? 0) * gap, 0);

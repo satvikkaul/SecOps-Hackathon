@@ -1,6 +1,7 @@
 import { Button, Card, OptionCard, ProgressBar, WhyWeAsk } from '../components/ui';
 import { profileQuestions } from '../engine/data';
 import { isImplied } from '../engine/profile';
+import { minutesFor } from '../engine/prompts';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../store/appStore';
 
@@ -8,7 +9,7 @@ import { useAppStore } from '../store/appStore';
 const OPTIONAL = new Set(['emailProvider']);
 
 export default function ProfileScreen() {
-  const state = useAppStore(useShallow((s) => ({ company: s.company, profile: s.profile })));
+  const state = useAppStore(useShallow((s) => ({ company: s.company, profile: s.profile, tier: s.tier })));
   const update = useAppStore((s) => s.update);
   const setProfile = useAppStore((s) => s.setProfile);
   const go = useAppStore((s) => s.go);
@@ -22,7 +23,9 @@ export default function ProfileScreen() {
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
       <ProgressBar value={answered / required.length} label={`Step 1 of 3 · About your business · ${answered} of ${required.length} answered`} />
       <h1 className="mt-6 text-3xl font-extrabold tracking-tight text-slate-900">About your business</h1>
-      <p className="mt-1 text-lg text-slate-600">This helps us understand what an attack would cost you. It takes about two minutes.</p>
+      <p className="mt-1 text-lg text-slate-600">
+        This helps us understand what an attack would cost you. It takes about {minutesFor(required.length / 2)} minutes, one tap each.
+      </p>
 
       <div className="mt-8 space-y-5">
         <Card className="p-6">
@@ -67,7 +70,7 @@ export default function ProfileScreen() {
       </div>
 
       <div className="mt-8 flex items-center justify-between gap-3">
-        <Button variant="ghost" onClick={() => go('template')}>
+        <Button variant="ghost" onClick={() => go(state.tier === 'quick' ? 'landing' : 'template')}>
           ← Back
         </Button>
         <div className="flex items-center gap-3">

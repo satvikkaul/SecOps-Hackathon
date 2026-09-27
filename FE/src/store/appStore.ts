@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { demoPersona, ranking, templates } from '../engine/data';
 import type { DnsResult } from '../engine/dns';
+import type { Tier } from '../engine/prompts';
 import { withSector } from '../engine/profile';
 import type { Answers, AnswerValue, Expertise, Profile, RankingMode, TemplateId } from '../engine/types';
 
@@ -12,6 +13,8 @@ export const DEFAULT_TEMPLATE: TemplateId = 'cccs-cis';
 /** Everything about this business and its answers. Lives in memory only and is gone on refresh or tab close. */
 export interface AssessmentState {
   screen: Screen;
+  /** Quick check (the few questions that matter most) or the full check-up. Answers carry over when switching. */
+  tier: Tier;
   sectionIndex: number;
   company: string;
   domain: string;
@@ -43,6 +46,8 @@ interface AppActions {
   /** Set several answers at once (a ladder prompt fills in more than one question). */
   setAnswers: (values: Record<string, AnswerValue>) => void;
   loadDemo: () => void;
+  /** Begin a new check-up in the chosen tier. A quick check skips the wording step (it can be changed on the results). */
+  startCheck: (tier: Tier) => void;
   /** Clears the assessment. Preferences are kept: they say nothing about the business. */
   reset: () => void;
 }
@@ -64,6 +69,7 @@ const defaultPreferences: Preferences = {
 
 const emptyAssessment: AssessmentState = {
   screen: 'landing',
+  tier: 'quick',
   sectionIndex: 0,
   company: '',
   domain: '',
@@ -77,6 +83,7 @@ const emptyAssessment: AssessmentState = {
 function demoAssessment(screen: Screen = 'results'): AssessmentState {
   return {
     screen,
+    tier: 'full',
     sectionIndex: 0,
     company: demoPersona.company,
     domain: demoPersona.domain,
@@ -161,6 +168,11 @@ export const useAppStore = create<AppStore>()(
 
       loadDemo: () => {
         set(demoAssessment());
+        scrollToTop();
+      },
+
+      startCheck: (tier) => {
+        set({ ...emptyAssessment, tier, screen: tier === 'quick' ? 'profile' : 'template' });
         scrollToTop();
       },
 

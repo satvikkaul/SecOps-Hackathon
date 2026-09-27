@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import { buildPlan, prioritizeActions } from './engine/actions';
 import { cccsStatuses, cioscStatuses, cisStatuses, otherPractices } from './engine/controls';
 import { buildFlow } from './engine/flow';
-import { assess, unsureQuestions } from './engine/scoring';
+import { assess, coverage, unsureQuestions } from './engine/scoring';
 import type { Answers, Profile, RankingMode } from './engine/types';
 
 export function useResults(profile: Profile, answers: Answers, mode: RankingMode) {
@@ -20,6 +20,7 @@ export function useResults(profile: Profile, answers: Answers, mode: RankingMode
       cis: cisStatuses(profile, answers),
       otherPractices: otherPractices(profile, answers),
       flow: buildFlow(profile, answers, assessment),
+      coverage: coverage(profile, answers),
     };
   }, [profile, answers, mode]);
 }

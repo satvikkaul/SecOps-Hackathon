@@ -1,5 +1,9 @@
 {
   "intro": "There are no wrong answers. Honest answers get you better advice. If you're not sure, tap \"Not sure\" and we'll add it to your list to check.",
+  "quick": {
+    "questions": ["Q1", "Q2", "Q3", "Q7", "Q26", "Q9", "Q14", "Q15", "Q18"],
+    "intro": "The questions that matter most for a business like yours. Anything we don't ask yet is assumed to be partly in place, and you can answer the rest whenever you like."
+  },
   "prompts": [
     {
       "id": "P1",

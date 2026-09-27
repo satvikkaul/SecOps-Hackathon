@@ -25,7 +25,8 @@ import { useMemo, type ReactNode } from 'react';
 import { BAND_STYLES, BandBadge, Button, CONTENT_ICONS, SCENARIO_COLORS } from '../components/ui';
 import { applyFix, buildPlan, prioritizeActions } from '../engine/actions';
 import { cccsStatuses, type ControlStatus } from '../engine/controls';
-import { actions, demoPersona, profileQuestions, prompts, questions, scenarios, templates } from '../engine/data';
+import { actions, demoPersona, profileQuestions, questions, quickCheck, scenarios, templates } from '../engine/data';
+import { minutesFor } from '../engine/prompts';
 import { assess } from '../engine/scoring';
 import { useAppStore } from '../store/appStore';
 
@@ -162,21 +163,26 @@ export default function Landing() {
   const hasAnswers = useAppStore((s) => Object.keys(s.answers).length > 0);
   const go = useAppStore((s) => s.go);
   const loadDemo = useAppStore((s) => s.loadDemo);
-  const reset = useAppStore((s) => s.reset);
+  const startCheck = useAppStore((s) => s.startCheck);
   const hasProgress = !isDemo && (hasProfile || hasAnswers);
   const preview = useDemoPreview();
   const sectors = profileQuestions.find((q) => q.id === 'sector')?.options ?? [];
+  const quickCount = quickCheck.questions.length;
+  const fullCount = questions.length;
+  // Profile questions are single taps, so they count as half a question each.
+  const quickMinutes = minutesFor(quickCount + profileQuestions.length / 2);
+  const fullMinutes = minutesFor(fullCount + profileQuestions.length / 2);
 
-  const start = () => {
-    // Starting a real check-up after viewing the demo should not keep the demo answers.
-    if (isDemo) reset();
-    go(hasProgress ? (hasAnswers ? 'questions' : 'profile') : 'template');
-  };
-  const startLabel = hasProgress ? 'Continue check-up' : 'Start the free check-up';
+  // Starting a real check-up (from scratch or after the demo) never keeps earlier answers.
+  const start = () => (hasProgress ? go(hasAnswers ? 'questions' : 'profile') : startCheck('quick'));
+  const startLabel = hasProgress ? 'Continue check-up' : `Start the ${quickMinutes}-minute quick check`;
 
   const steps = [
     { title: 'Tell us about your business', body: `${profileQuestions.length} quick questions about what you do and what hurts most when things stop. Add your email domain and we check it for you.` },
-    { title: 'Answer in plain language', body: `${prompts.length} short cards, no jargon. "Not sure" is always an option, and it goes on your list of things to check.` },
+    {
+      title: 'Answer in plain language',
+      body: `Start with the ${quickCount} questions that matter most, or all ${fullCount} at once. No jargon, and "Not sure" is always an option. Anything you skip can be answered later.`,
+    },
     { title: 'Get your fix-first plan', body: 'Your biggest risks, the fixes that remove the most risk for the least effort, and a summary to hand your customers.' },
   ];
 
@@ -202,8 +208,8 @@ export default function Landing() {
               before attackers do.
             </h1>
             <p className="mt-6 max-w-xl text-lg leading-relaxed text-slate-600 md:text-xl">
-              In about 10 minutes, see where your business is most exposed, what to fix first, and get proof of progress you can hand to the grocers
-              and partners you work with.
+              In about {quickMinutes} minutes, see where your business is most exposed and what to fix first. Finish the full check-up whenever you like
+              for proof of progress you can hand to the grocers and partners you work with.
             </p>
             <div className="mt-8 flex flex-wrap gap-3">
               <Button onClick={start} className="px-6 py-3 text-lg shadow-lg shadow-brand-600/25">
@@ -213,9 +219,18 @@ export default function Landing() {
                 <PlayCircle className="h-5 w-5 text-brand-600" aria-hidden /> See a sample report
               </Button>
             </div>
+            {!hasProgress && (
+              <p className="mt-3 text-sm text-slate-600">
+                Or{' '}
+                <button type="button" onClick={() => startCheck('full')} className="font-semibold text-brand-700 underline hover:text-brand-800">
+                  do the full check-up
+                </button>{' '}
+                ({fullCount} questions, about {fullMinutes} minutes) for a complete CCCS and CyberSecure Canada summary.
+              </p>
+            )}
             <ul className="mt-8 flex flex-wrap gap-x-6 gap-y-2 text-sm font-medium text-slate-600">
               <li className="flex items-center gap-1.5">
-                <Clock className="h-4 w-4 text-brand-600" aria-hidden /> About 10 minutes
+                <Clock className="h-4 w-4 text-brand-600" aria-hidden /> {quickMinutes} minutes to a first plan
               </li>
               <li className="flex items-center gap-1.5">
                 <BadgeCheck className="h-4 w-4 text-brand-600" aria-hidden /> No account needed
@@ -439,7 +454,7 @@ export default function Landing() {
             aria-hidden
           />
           <div className="relative">
-            <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">Ten minutes now beats a lost load later.</h2>
+            <h2 className="text-3xl font-extrabold tracking-tight text-white md:text-4xl">{quickMinutes} minutes now beats a lost load later.</h2>
             <p className="mx-auto mt-4 max-w-xl text-lg text-brand-100">Get your top risks and a fix-first plan today. Free, and no account needed.</p>
             <div className="mt-8 flex flex-wrap justify-center gap-3">
               <button

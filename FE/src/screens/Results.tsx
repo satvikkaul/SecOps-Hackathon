@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Chain } from '../components/Chain';
+import CoverageBanner from '../components/CoverageBanner';
 import { ExpertiseSwitch } from '../components/Expertise';
 import ActionCard, { CompactAction, pct } from '../components/ActionCard';
 import RiskFlow from '../components/RiskFlow';
@@ -359,6 +360,12 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
           <ExpertiseSwitch value={expertise} onChange={(e) => update({ expertise: e })} />
         </div>
       </div>
+
+      {!results.coverage.complete && (
+        <div className="mt-4">
+          <CoverageBanner coverage={results.coverage} />
+        </div>
+      )}
 
       {/* Tabs: one screen at a time instead of one long page */}
       <nav

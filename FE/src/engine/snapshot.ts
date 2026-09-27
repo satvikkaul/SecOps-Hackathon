@@ -1,7 +1,7 @@
 import { buildPlan, prioritizeActions, type Timeframe } from './actions';
 import { cccsStatuses, type ControlStatus } from './controls';
 import { profileQuestions, questionById } from './data';
-import { assess } from './scoring';
+import { assess, coverage } from './scoring';
 import type { Answers, Band, Profile, RankingMode, ScenarioId } from './types';
 
 /** What the BE stores and a partner sees via a share link. Also used by BE/gen_demo.ts for the seeded demo. */
@@ -22,6 +22,8 @@ export interface Snapshot {
     cccs: string[];
   }[];
   cccs: { control: string; name: string; status: ControlStatus }[];
+  /** How many of the questions that apply were answered. Absent on links made before the quick check existed. */
+  coverage?: { answered: number; total: number };
 }
 
 const round = (n: number, d: number) => +n.toFixed(d);
@@ -29,6 +31,7 @@ const round = (n: number, d: number) => +n.toFixed(d);
 export function buildSnapshot(profile: Profile, answers: Answers, mode: RankingMode): Snapshot {
   const assessment = assess(profile, answers);
   const plan = buildPlan(prioritizeActions(profile, answers, undefined, mode));
+  const cov = coverage(profile, answers);
   return {
     sector: profileQuestions.find((q) => q.id === 'sector')?.options.find((o) => o.value === profile.sector)?.label ?? '',
     posture: assessment.posture,
@@ -46,5 +49,6 @@ export function buildSnapshot(profile: Profile, answers: Answers, mode: RankingM
       cccs: [...new Set(r.action.questionIds.flatMap((id) => questionById[id].cccs.flatMap((c) => c.reqs)))],
     })),
     cccs: cccsStatuses(profile, answers).map((c) => ({ control: c.id, name: c.name, status: c.status })),
+    coverage: { answered: cov.answered, total: cov.total },
   };
 }
