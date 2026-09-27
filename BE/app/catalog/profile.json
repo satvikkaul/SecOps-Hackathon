@@ -23,6 +23,16 @@
     ]
   },
   {
+    "id": "itSupport",
+    "text": "Who looks after your computers and IT?",
+    "why": "An outside IT company usually has admin access to everything, so a breach at their end reaches you too. If nobody is in charge, updates get missed and recovering from an attack takes much longer.",
+    "options": [
+      { "value": "inhouse", "label": "Someone on our staff" },
+      { "value": "msp", "label": "An outside IT company" },
+      { "value": "nobody", "label": "Nobody in particular" }
+    ]
+  },
+  {
     "id": "downtime",
     "text": "If your computers stopped working, how long before you start losing serious money?",
     "why": "This tells us how badly an outage like ransomware would hurt. The faster the losses start, the higher the impact.",
@@ -71,6 +81,16 @@
     ]
   },
   {
+    "id": "website",
+    "text": "Do you have a website?",
+    "why": "A website that takes orders or logins has to be built and kept up securely. If you have no website, we mark that part of the standards as not applicable instead of leaving a gap.",
+    "options": [
+      { "value": "none", "label": "No website" },
+      { "value": "info", "label": "Yes, with information about us" },
+      { "value": "ordering", "label": "Yes, with online ordering, payments, or customer logins" }
+    ]
+  },
+  {
     "id": "hasOT",
     "text": "Do you have equipment connected to the internet, like refrigeration monitoring, grain systems, sensors, or cameras?",
     "why": "Connected equipment can be reached from outside. If you are not sure, we will assume yes so we do not miss a risk.",
@@ -78,6 +98,17 @@
       { "value": "yes", "label": "Yes" },
       { "value": "no", "label": "No" },
       { "value": "unsure", "label": "Not sure" }
+    ]
+  },
+  {
+    "id": "phones",
+    "text": "Do people use phones or tablets for work email, dispatch, or apps?",
+    "why": "Phones carry email, load details, and saved passwords. Company-owned devices can be locked down centrally; personal phones need work data kept separate so it can be removed if one is lost or someone leaves.",
+    "options": [
+      { "value": "company", "label": "Yes, company phones or tablets" },
+      { "value": "personal", "label": "Yes, people's own phones" },
+      { "value": "both", "label": "Yes, a mix of both" },
+      { "value": "none", "label": "No" }
     ]
   },
   {

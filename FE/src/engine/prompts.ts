@@ -1,10 +1,10 @@
 import { dataset as defaultDataset, prompts } from './data';
 import { isVisible } from './scoring';
-import type { Answers, AnswerValue, Dataset, Expertise, Profile } from './types';
+import type { Answers, AnswerValue, Dataset, Expertise, Profile, ShowIf } from './types';
 
 /**
  * The questionnaire the user sees is a set of prompts (cards). Each prompt fills in one or more of the
- * underlying questions Q1–Q26, which are what the scoring engine and the standards mappings use.
+ * underlying questions (Q1, Q2, …), which are what the scoring engine and the standards mappings use.
  *
  * - "rows":   one card with a row per underlying question, each with its own answer labels.
  * - "ladder": one choice that sets several nested questions at once (e.g. backups → Q14 and Q15).
@@ -20,6 +20,8 @@ export interface PromptRow {
   question: string;
   label: string;
   labelBySector?: Record<string, string>;
+  /** Wording for a profile answer (e.g. personal phones); the first match wins, ahead of the sector wording */
+  labelWhen?: (ShowIf & { label: string })[];
   /** Plainer wording for users who picked the simplest view */
   labelBasic?: string;
   options: RowOption[];
@@ -58,7 +60,11 @@ export function promptQuestionIds(p: Prompt): string[] {
 
 export function rowLabel(row: PromptRow, profile: Profile, expertise: Expertise = 'medium'): string {
   if (expertise === 'basic' && row.labelBasic) return row.labelBasic;
-  return (profile.sector && row.labelBySector?.[profile.sector]) || row.label;
+  const when = row.labelWhen?.find((w) => {
+    const v = profile[w.profile];
+    return v !== undefined && w.in.includes(v);
+  });
+  return when?.label || (profile.sector && row.labelBySector?.[profile.sector]) || row.label;
 }
 
 /**

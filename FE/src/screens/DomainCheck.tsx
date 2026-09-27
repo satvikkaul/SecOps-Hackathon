@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Button, Card, OptionCard, ProgressBar } from '../components/ui';
 import { profileQuestions } from '../engine/data';
 import { prompts } from '../engine/prompts';
-import { describeFindings, dmarcToAnswer, isValidDomain, normalizeDomain, type DnsResult, type Indicator } from '../engine/dns';
+import { describeFindings, emailAuthToAnswer, isValidDomain, normalizeDomain, type DnsResult, type Indicator } from '../engine/dns';
 import type { AnswerValue } from '../engine/types';
 import { useShallow } from 'zustand/react/shallow';
 import { useDomainCheck } from '../api/hooks';
@@ -52,7 +52,7 @@ export default function DomainCheck() {
   };
 
   const applyResult = (domain: string, result: DnsResult) => {
-    const q11 = dmarcToAnswer(result.dmarc);
+    const q11 = emailAuthToAnswer(result);
     const provider = result.mx.provider;
     const { profile, answers } = useAppStore.getState();
     update({

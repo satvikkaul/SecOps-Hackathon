@@ -1,5 +1,5 @@
 import { Fragment, useState } from 'react';
-import type { CccsResult, CioscResult, CisResult, ControlStatus, Evidence } from '../engine/controls';
+import type { CccsResult, CioscResult, CisResult, ControlStatus, Evidence, StatusCounts } from '../engine/controls';
 import { cccs as cccsCatalog, ciosc as cioscCatalog, cis as cisCatalog, questionById, questions } from '../engine/data';
 import type { AnswerValue, TemplateId } from '../engine/types';
 
@@ -8,7 +8,15 @@ export const STATUS_STYLE: Record<ControlStatus, string> = {
   'Partially met': 'bg-amber-100 text-amber-900',
   'Not yet met': 'bg-rose-100 text-rose-800',
   'Not assessed': 'bg-slate-100 text-slate-500',
+  'Not applicable': 'bg-sky-50 text-sky-700',
 };
+
+/** "3 met · 1 partly · …", leaving out "not applicable" when nothing is. */
+export function countsText(c: StatusCounts): string {
+  const parts = [`${c.Met} met`, `${c['Partially met']} partly`, `${c['Not yet met']} not yet`, `${c['Not assessed']} not assessed`];
+  if (c['Not applicable']) parts.push(`${c['Not applicable']} not applicable`);
+  return parts.join(' · ');
+}
 
 const ANSWER: Record<AnswerValue, string> = { yes: 'Yes', partial: 'Partly', no: 'No', unsure: 'Not sure', na: 'Does not apply' };
 
@@ -61,7 +69,7 @@ function CccsTable({ rows }: { rows: CccsResult[] }) {
                 </div>
               </td>
               <td className="px-3 py-2 text-slate-600">
-                <EvidenceList evidence={c.evidence} />
+                {c.status === 'Not applicable' ? <span className="text-slate-500">Does not apply to your business</span> : <EvidenceList evidence={c.evidence} />}
               </td>
               <td className="px-3 py-2 font-mono text-xs text-slate-600">{c.cisIds.join(', ') || '—'}</td>
             </tr>
@@ -171,9 +179,20 @@ function CioscTable({ rows }: { rows: CioscResult[] }) {
                       <StatusPill status={s.status} />
                     </td>
                     <td className="px-3 py-2 text-slate-600">
-                      {s.note ? <span className="text-slate-500">{s.note}</span> : <EvidenceList evidence={s.evidence} />}
+                      {s.status === 'Not applicable' ? (
+                        <span className="text-slate-500">Does not apply to your business</span>
+                      ) : s.evidence.length > 0 ? (
+                        <>
+                          <EvidenceList evidence={s.evidence} />
+                          {s.note && <div className="mt-1 text-xs text-slate-500">{s.note}</div>}
+                        </>
+                      ) : s.note ? (
+                        <span className="text-slate-500">{s.note}</span>
+                      ) : (
+                        <EvidenceList evidence={s.evidence} />
+                      )}
                     </td>
-                    <td className="px-3 py-2 font-mono text-xs text-slate-600">{s.cccsIds.join(', ') || '—'}</td>
+                    <td className="px-3 py-2 font-mono text-xs text-slate-600">{s.cccsIds.join(', ') || (s.questionIds.length ? 'Asked directly' : '—')}</td>
                   </tr>
                 ))}
             </Fragment>
@@ -247,7 +266,8 @@ export default function StandardsPanel({
         <>
           <p className="mb-3 text-sm text-slate-600">
             CAN/CIOSC 104 is the national standard version of the CCCS baseline, so each section is assessed through the CCCS control that covers the same ground.
-            Sections none of our questions test are marked Not assessed. Section numbers match the OCI Cybersecurity Workbook.
+            Where no CCCS control fits (log management), we ask about the section directly. Sections none of our questions test are marked Not assessed.
+            Section numbers match the OCI Cybersecurity Workbook.
           </p>
           <CioscTable rows={ciosc} />
         </>

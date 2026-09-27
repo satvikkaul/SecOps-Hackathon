@@ -85,8 +85,8 @@ def _insert(conn: Connection, f: dict[str, Any]) -> None:
           [(k, f[k]["source"], f[k]["url"]) for k in ("cccs", "cis", "ciosc")])
 
     controls = f["cccs"]["controls"]
-    _many(conn, "insert into catalog.cccs_controls (id, position, name) values (%s, %s, %s)",
-          [(c["id"], i, c["name"]) for i, c in enumerate(controls)])
+    _many(conn, "insert into catalog.cccs_controls (id, position, name, applies_if_profile, applies_if_in) values (%s, %s, %s, %s, %s)",
+          [(c["id"], i, c["name"], c.get("appliesIf", {}).get("profile"), c.get("appliesIf", {}).get("in")) for i, c in enumerate(controls)])
     _many(conn, "insert into catalog.cccs_requirements (id, control_id, position, summary) values (%s, %s, %s, %s)",
           [(r["id"], c["id"], j, r["summary"]) for c in controls for j, r in enumerate(c["requirements"])])
 
@@ -95,8 +95,8 @@ def _insert(conn: Connection, f: dict[str, Any]) -> None:
           [(s["id"], i, s["title"], s["ig"]) for i, s in enumerate(f["cis"]["safeguards"])])
 
     _many(conn, "insert into catalog.ciosc_groups (id, title) values (%s, %s)", list(f["ciosc"]["groups"].items()))
-    _many(conn, "insert into catalog.ciosc_sections (id, position, name, cccs, note) values (%s, %s, %s, %s, %s)",
-          [(s["id"], i, s["name"], s["cccs"], s.get("note")) for i, s in enumerate(f["ciosc"]["sections"])])
+    _many(conn, "insert into catalog.ciosc_sections (id, position, name, cccs, questions, note) values (%s, %s, %s, %s, %s, %s)",
+          [(s["id"], i, s["name"], s["cccs"], s.get("questions"), s.get("note")) for i, s in enumerate(f["ciosc"]["sections"])])
 
     _many(conn, "insert into catalog.report_templates (id, position, name, tagline, best_for, reports_on) values (%s, %s, %s, %s, %s, %s)",
           [(t["id"], i, t["name"], t["tagline"], t["bestFor"], t["reportsOn"]) for i, t in enumerate(f["templates"])])
@@ -140,9 +140,10 @@ def _insert(conn: Connection, f: dict[str, Any]) -> None:
     _many(conn, "insert into catalog.prompts (id, position, section_id, type, title, why, questions) values (%s, %s, %s, %s, %s, %s, %s)",
           [(p["id"], i, p["section"], p["type"], p["title"], p["why"], p.get("questions") if p["type"] == "ladder" else None)
            for i, p in enumerate(prompts)])
-    _many(conn, """insert into catalog.prompt_rows (prompt_id, question_id, position, label, label_basic, label_by_sector, options, na)
-                   values (%s, %s, %s, %s, %s, %s, %s, %s)""",
-          [(p["id"], r["question"], j, r["label"], r.get("labelBasic"), _jsonb(r.get("labelBySector")), Jsonb(r["options"]), r.get("na"))
+    _many(conn, """insert into catalog.prompt_rows (prompt_id, question_id, position, label, label_basic, label_by_sector, label_when, options, na)
+                   values (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
+          [(p["id"], r["question"], j, r["label"], r.get("labelBasic"), _jsonb(r.get("labelBySector")), _jsonb(r.get("labelWhen")),
+            Jsonb(r["options"]), r.get("na"))
            for p in prompts if p["type"] == "rows" for j, r in enumerate(p["rows"])])
     _many(conn, "insert into catalog.ladder_options (prompt_id, position, label, sets) values (%s, %s, %s, %s)",
           [(p["id"], j, o["label"], Jsonb(o["sets"])) for p in prompts if p["type"] == "ladder" for j, o in enumerate(p["options"])])
@@ -195,7 +196,10 @@ def load(conn: Connection) -> dict[str, Any]:
     cccs = {
         **frameworks["cccs"],
         "controls": [
-            {"id": c["id"], "name": c["name"], "requirements": [{"id": r["id"], "summary": r["summary"]} for r in reqs.get(c["id"], [])]}
+            _put(
+                {"id": c["id"], "name": c["name"], "requirements": [{"id": r["id"], "summary": r["summary"]} for r in reqs.get(c["id"], [])]},
+                "appliesIf", {"profile": c["applies_if_profile"], "in": c["applies_if_in"]} if c["applies_if_profile"] else None,
+            )
             for c in _rows(conn, "select * from catalog.cccs_controls order by position")
         ],
     }
@@ -210,7 +214,7 @@ def load(conn: Connection) -> dict[str, Any]:
         **frameworks["ciosc"],
         "groups": {r["id"]: r["title"] for r in _rows(conn, "select * from catalog.ciosc_groups order by id::int")},
         "sections": [
-            _put({"id": s["id"], "name": s["name"], "cccs": s["cccs"]}, "note", s["note"])
+            _put(_put({"id": s["id"], "name": s["name"], "cccs": s["cccs"]}, "questions", s["questions"]), "note", s["note"])
             for s in _rows(conn, "select * from catalog.ciosc_sections order by position")
         ],
     }
@@ -275,6 +279,7 @@ def load(conn: Connection) -> dict[str, Any]:
             for r in rows.get(p["id"], []):
                 row = {"question": r["question_id"], "label": r["label"], "options": r["options"]}
                 _put(row, "labelBySector", r["label_by_sector"])
+                _put(row, "labelWhen", r["label_when"])
                 _put(row, "na", r["na"])
                 _put(row, "labelBasic", r["label_basic"])
                 item["rows"].append(row)

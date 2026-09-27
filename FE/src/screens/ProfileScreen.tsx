@@ -1,5 +1,6 @@
 import { Button, Card, OptionCard, ProgressBar, WhyWeAsk } from '../components/ui';
 import { profileQuestions } from '../engine/data';
+import { isImplied } from '../engine/profile';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../store/appStore';
 
@@ -11,7 +12,9 @@ export default function ProfileScreen() {
   const update = useAppStore((s) => s.update);
   const setProfile = useAppStore((s) => s.setProfile);
   const go = useAppStore((s) => s.go);
-  const required = profileQuestions.filter((q) => !OPTIONAL.has(q.id));
+  // Questions the sector already answers (farms handle perishables) are not asked.
+  const shown = profileQuestions.filter((q) => !isImplied(q.id, state.profile));
+  const required = shown.filter((q) => !OPTIONAL.has(q.id));
   const answered = required.filter((q) => state.profile[q.id]).length;
   const done = answered === required.length;
 
@@ -36,7 +39,7 @@ export default function ProfileScreen() {
           />
         </Card>
 
-        {profileQuestions.map((q, i) => (
+        {shown.map((q, i) => (
           <Card key={q.id} className="p-6">
             <div className="flex gap-3">
               <span className="mt-0.5 text-sm font-bold text-slate-400">{i + 1}</span>

@@ -24,6 +24,6 @@
     { "id": "6.3", "name": "Secure websites", "cccs": ["BC.11"] },
     { "id": "6.4", "name": "Secure portable media", "cccs": ["BC.13"] },
     { "id": "6.5", "name": "Point of sale and financial systems", "cccs": [], "note": "Applies to businesses that take card payments. None of our questions test this." },
-    { "id": "6.6", "name": "Security log management", "cccs": [], "note": "About collecting and reviewing security logs. None of our questions test this." }
+    { "id": "6.6", "name": "Security log management", "cccs": [], "questions": ["Q30"], "note": "No CCCS control covers log management, so this section is assessed directly by the sign-in alerts question. It checks that someone reviews your email provider's alerts, not full log collection." }
   ]
 }

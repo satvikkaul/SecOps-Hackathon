@@ -28,7 +28,7 @@ describe('CAN/CIOSC 104 catalog', () => {
 
 describe('cioscStatuses', () => {
   const cccsRes = cccsStatuses(profile, answers);
-  const res = cioscStatuses(cccsRes);
+  const res = cioscStatuses(cccsRes, profile, answers);
   const byCccs = Object.fromEntries(cccsRes.map((c) => [c.id, c]));
 
   it('takes status, evidence, and CIS links from the matching CCCS control', () => {
@@ -39,11 +39,25 @@ describe('cioscStatuses', () => {
       expect(s.cisIds, s.id).toEqual(c.cisIds);
     }
   });
-  it('marks sections with no CCCS equivalent as Not assessed', () => {
-    for (const s of res.filter((x) => x.cccsIds.length === 0)) {
+  it('marks sections with no CCCS equivalent and no direct question as Not assessed', () => {
+    for (const s of res.filter((x) => x.cccsIds.length === 0 && x.questionIds.length === 0)) {
       expect(s.status, s.id).toBe('Not assessed');
       expect(s.evidence).toEqual([]);
     }
+  });
+  it('assesses log management (6.6) directly through the sign-in alerts question', () => {
+    const logs = res.find((s) => s.id === '6.6')!;
+    expect(logs.questionIds).toEqual(['Q30']);
+    expect(logs.status).toBe('Not yet met');
+    expect(logs.evidence).toEqual([{ questionId: 'Q30', answer: 'no', strength: 'direct' }]);
+    expect(logs.cisIds).toEqual(['8.2', '8.11']);
+    const yes = cioscStatuses(cccsRes, profile, { ...answers, Q30: 'yes' }).find((s) => s.id === '6.6')!;
+    expect(yes.status).toBe('Met');
+  });
+  it('marks a section Not applicable when all its CCCS controls are ruled out by the profile', () => {
+    const noSite = { ...profile, website: 'none' };
+    const web = cioscStatuses(cccsStatuses(noSite, answers), noSite, answers).find((s) => s.cccsIds.includes('BC.11'))!;
+    expect(web.status).toBe('Not applicable');
   });
   it('reports training under the organizational controls', () => {
     const training = res.find((s) => s.id === '4.3')!;
@@ -60,6 +74,9 @@ describe('frameworkRefs for CIOSC', () => {
   it('gives payment procedures no section', () => {
     expect(frameworkRefs(['Q7', 'Q8']).ciosc).toEqual([]);
   });
+  it('includes sections a question is asked for directly', () => {
+    expect(frameworkRefs(['Q30']).ciosc).toEqual(['6.6']);
+  });
 });
 
 describe('report templates', () => {
@@ -73,6 +90,6 @@ describe('report templates', () => {
   });
   it('does not change the questionnaire', () => {
     const none: Answers = {};
-    expect(cioscStatuses(cccsStatuses(profile, none)).every((s) => s.status === 'Not assessed')).toBe(true);
+    expect(cioscStatuses(cccsStatuses(profile, none), profile, none).every((s) => s.status === 'Not assessed')).toBe(true);
   });
 });

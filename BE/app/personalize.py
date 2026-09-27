@@ -11,8 +11,9 @@ import re
 import httpx
 
 PROMPT_VERSION = "v2"
-# Flash-Lite answers in ~1.5 s; gemini-3.8-flash took 15-30 s and allows 5 requests/min on the free tier.
-MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.5-flash-lite")
+# Own variable, not GEMINI_MODEL: the chatbot uses that one, and a model that suits chat (or a typo) broke this.
+# Flash-Lite answers in ~1.5 s; gemini-3.8-flash took 10-30 s and allows 5 requests/min on the free tier.
+MODEL = os.environ.get("PERSONALIZE_MODEL", "gemini-3.5-flash-lite")
 API_KEY = os.environ.get("GEMINI_API_KEY", "")
 TIMEOUT = 25.0
 
@@ -101,8 +102,11 @@ def call_gemini(request: dict) -> dict:
         res.raise_for_status()
         texts = [c["text"] for s in res.json()["steps"] if s.get("type") == "model_output" for c in s["content"] if c.get("type") == "text"]
         return json.loads(texts[-1])
+    except httpx.HTTPStatusError as e:
+        # Google's error text (e.g. "model not found", rate limit) is what makes this debuggable from the logs.
+        raise PersonalizeError(f"Gemini {e.response.status_code} for {MODEL}: {e.response.text[:300]}") from e
     except (httpx.HTTPError, KeyError, IndexError, ValueError) as e:
-        raise PersonalizeError(f"Gemini call failed: {type(e).__name__}") from e
+        raise PersonalizeError(f"Gemini call failed for {MODEL}: {type(e).__name__}") from e
 
 
 _NUM = re.compile(r"\d[\d,.]*")

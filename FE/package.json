@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "export:mappings": "node scripts/export-mappings.mjs"
+    "export:mappings": "node scripts/export-mappings.mjs",
+    "sync:catalog": "node scripts/sync-catalog.mjs"
   },
   "dependencies": {
     "@sentry/react": "^11.0.0",
@@ -21,7 +22,6 @@
     "zustand": "^5.0.15"
   },
   "devDependencies": {
-    "@tanstack/react-query-devtools": "^5.104.0",
     "@types/react": "^18.3.31",
     "@types/react-dom": "^18.3.7",
     "@vitejs/plugin-react": "^4.7.0",

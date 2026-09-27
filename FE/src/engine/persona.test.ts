@@ -35,8 +35,11 @@ describe('demo persona: Peel Valley Fresh Logistics', () => {
     const c = cccsStatuses(profile, answers);
     const status = (id: string) => c.find((x) => x.id === id)!.status;
     expect(c).toHaveLength(13);
+    // Has an information website, which no question covers
     expect(status('BC.11')).toBe('Not assessed');
-    expect(status('BC.13')).toBe('Not assessed');
+    // Q29: a personal, unencrypted backup drive
+    expect(status('BC.13')).toBe('Not yet met');
+    expect(cccsStatuses({ ...profile, website: 'none' }, answers).find((x) => x.id === 'BC.11')!.status).toBe('Not applicable');
     expect(status('BC.1')).toBe('Not yet met');
     expect(status('BC.3')).toBe('Partially met');
     expect(status('BC.5')).toBe('Not yet met');

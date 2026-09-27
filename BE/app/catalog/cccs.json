@@ -97,6 +97,7 @@
     {
       "id": "BC.11",
       "name": "Secure websites",
+      "appliesIf": { "profile": "website", "in": ["info", "ordering"] },
       "requirements": [
         { "id": "BC.11.1", "summary": "Websites address the OWASP Top 10 vulnerabilities" },
         { "id": "BC.11.2", "summary": "Know the ASVS level each website needs to meet" }

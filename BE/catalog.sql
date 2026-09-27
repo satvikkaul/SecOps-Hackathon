@@ -23,10 +23,14 @@ create table if not exists catalog.frameworks (
 );
 
 create table if not exists catalog.cccs_controls (
-  id        text primary key,           -- e.g. BC.5
-  position  int  not null,
-  name      text not null
+  id                  text primary key,   -- e.g. BC.5
+  position            int  not null,
+  name                text not null,
+  applies_if_profile  text,               -- the control applies only when this profile answer ...
+  applies_if_in       text[]              -- ... is one of these (e.g. BC.11 needs a website)
 );
+alter table catalog.cccs_controls add column if not exists applies_if_profile text;
+alter table catalog.cccs_controls add column if not exists applies_if_in text[];
 
 create table if not exists catalog.cccs_requirements (
   id          text primary key,         -- e.g. BC.5.1
@@ -56,9 +60,11 @@ create table if not exists catalog.ciosc_sections (
   id        text primary key,           -- e.g. 5.5
   position  int  not null,
   name      text not null,
-  cccs      text[] not null,            -- CCCS controls covering the same ground; empty = not assessed
+  cccs      text[] not null,            -- CCCS controls covering the same ground
+  questions text[],                     -- questions assessed directly where no CCCS control fits (6.6)
   note      text
 );
+alter table catalog.ciosc_sections add column if not exists questions text[];
 
 create table if not exists catalog.report_templates (
   id          text primary key,
@@ -187,10 +193,12 @@ create table if not exists catalog.prompt_rows (
   label            text not null,
   label_basic      text,
   label_by_sector  jsonb,               -- sector -> label
+  label_when       jsonb,               -- [{profile, in, label}], wording for a profile answer
   options          jsonb not null,      -- [{value, label}]
   na               text,                -- label for "does not apply"
   primary key (prompt_id, question_id)
 );
+alter table catalog.prompt_rows add column if not exists label_when jsonb;
 
 create table if not exists catalog.ladder_options (
   prompt_id  text not null references catalog.prompts(id),

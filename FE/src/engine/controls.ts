@@ -2,7 +2,7 @@ import { cccs as defaultCccs, ciosc as defaultCiosc, cis as defaultCis, dataset 
 import { isApplicable } from './scoring';
 import type { Answers, AnswerValue, CccsControl, CisSafeguard, Dataset, MappingStrength, Profile, Question } from './types';
 
-export type ControlStatus = 'Met' | 'Partially met' | 'Not yet met' | 'Not assessed';
+export type ControlStatus = 'Met' | 'Partially met' | 'Not yet met' | 'Not assessed' | 'Not applicable';
 
 export interface Evidence {
   questionId: string;
@@ -17,13 +17,19 @@ export interface Evidence {
 export function statusFrom(answers: (AnswerValue | undefined)[]): ControlStatus {
   const vals = answers.filter((a): a is AnswerValue => !!a && a !== 'na');
   if (vals.length === 0) return 'Not assessed';
-  if (vals.every((v) => v === 'yes')) return 'Met';
-  if (vals.every((v) => v === 'no' || v === 'unsure')) return 'Not yet met';
+  if (vals.every((v) => v === 'yes')) return 'Met';  if (vals.every((v) => v === 'no' || v === 'unsure')) return 'Not yet met';
   return 'Partially met';
 }
 
 function answeredVisible(profile: Profile, answers: Answers, data: Dataset): Question[] {
   return data.questions.filter((q) => isApplicable(q, profile, answers) && answers[q.id]);
+}
+
+/** A control with a profile condition (websites) does not apply once the profile rules it out. Unanswered = applies. */
+function controlApplies(ctl: CccsControl, profile: Profile): boolean {
+  if (!ctl.appliesIf) return true;
+  const v = profile[ctl.appliesIf.profile];
+  return v === undefined || ctl.appliesIf.in.includes(v);
 }
 
 // ---------- CCCS ----------
@@ -58,6 +64,9 @@ export function cccsStatuses(
 ): CccsResult[] {
   const qs = answeredVisible(profile, answers, data);
   return controls.map((ctl) => {
+    if (!controlApplies(ctl, profile)) {
+      return { id: ctl.id, name: ctl.name, status: 'Not applicable', evidence: [], reqsAssessed: [], reqsTotal: ctl.requirements.length, cisIds: [] };
+    }
     const evidence: Evidence[] = [];
     const reqs = new Set<string>();
     const cisIds = new Set<string>();
@@ -92,29 +101,44 @@ export interface CioscResult {
   status: ControlStatus;
   evidence: Evidence[];
   cccsIds: string[];
+  /** Questions assessed directly for this section, where no CCCS control covers it */
+  questionIds: string[];
   cisIds: string[];
   note?: string;
 }
 
-/** CIOSC 104 is the standardized form of the CCCS baseline, so each section takes its evidence from the matching CCCS controls. */
-export function cioscStatuses(cccsResults: CccsResult[], catalog: typeof defaultCiosc = defaultCiosc): CioscResult[] {
+/**
+ * CIOSC 104 is the standardized form of the CCCS baseline, so each section takes its evidence from the matching
+ * CCCS controls. A section no CCCS control covers (log management) can list questions that speak to it directly.
+ */
+export function cioscStatuses(
+  cccsResults: CccsResult[],
+  profile: Profile = {},
+  answers: Answers = {},
+  catalog: typeof defaultCiosc = defaultCiosc,
+  data: Dataset = defaultDataset,
+): CioscResult[] {
   const byId = Object.fromEntries(cccsResults.map((c) => [c.id, c]));
+  const answered = answeredVisible(profile, answers, data);
   return catalog.sections.map((sec) => {
     const matched = sec.cccs.map((id) => byId[id]).filter(Boolean);
     const evidence = new Map<string, Evidence>();
-    for (const e of matched.flatMap((c) => c.evidence)) {
+    const direct = answered.filter((q) => sec.questions?.includes(q.id));
+    for (const e of [...matched.flatMap((c) => c.evidence), ...direct.map((q) => ({ questionId: q.id, answer: answers[q.id]!, strength: 'direct' as const }))]) {
       const prev = evidence.get(e.questionId);
       if (!prev || (prev.strength === 'partial' && e.strength === 'direct')) evidence.set(e.questionId, e);
     }
     const ev = [...evidence.values()];
+    const notApplicable = matched.length > 0 && matched.every((c) => c.status === 'Not applicable') && direct.length === 0;
     return {
       id: sec.id,
       name: sec.name,
       group: catalog.groups[sec.id.split('.')[0]] ?? '',
-      status: statusFrom(ev.map((e) => e.answer)),
+      status: notApplicable ? 'Not applicable' : statusFrom(ev.map((e) => e.answer)),
       evidence: ev,
       cccsIds: sec.cccs,
-      cisIds: sortCis([...new Set(matched.flatMap((c) => c.cisIds))]),
+      questionIds: sec.questions ?? [],
+      cisIds: sortCis([...new Set([...matched.flatMap((c) => c.cisIds), ...direct.flatMap((q) => q.cis.map((m) => m.safeguard))])]),
       ...(sec.note && { note: sec.note }),
     };
   });
@@ -158,20 +182,21 @@ export interface StatusCounts {
   'Partially met': number;
   'Not yet met': number;
   'Not assessed': number;
+  'Not applicable': number;
 }
 
 export function countStatuses(items: { status: ControlStatus }[]): StatusCounts {
-  const c: StatusCounts = { Met: 0, 'Partially met': 0, 'Not yet met': 0, 'Not assessed': 0 };
+  const c: StatusCounts = { Met: 0, 'Partially met': 0, 'Not yet met': 0, 'Not assessed': 0, 'Not applicable': 0 };
   for (const i of items) c[i.status]++;
   return c;
 }
 
 // ---------- Outside both frameworks ----------
 
-/** Visible questions that map to no CCCS control (payment procedures). Reported separately on the summary. */
+/** Visible questions that map to neither framework (payment and shipment procedures). Reported separately on the summary. */
 export function otherPractices(profile: Profile, answers: Answers, data: Dataset = defaultDataset) {
   return data.questions
-    .filter((q) => q.cccs.length === 0 && isApplicable(q, profile, answers))
+    .filter((q) => q.cccs.length === 0 && q.cis.length === 0 && isApplicable(q, profile, answers))
     .map((q) => ({ question: q, status: statusFrom([answers[q.id]]) }));
 }
 
@@ -193,6 +218,7 @@ export function frameworkRefs(
       cioscCatalog.sections.filter((s) => s.cccs.includes(m.control)).forEach((s) => cioscRefs.add(s.id));
     }
     q.cis.forEach((m) => cisRefs.add(m.safeguard));
+    cioscCatalog.sections.filter((s) => s.questions?.includes(id)).forEach((s) => cioscRefs.add(s.id));
   }
   const byNum = (a: string, b: string) => a.localeCompare(b, undefined, { numeric: true });
   return { cccs: [...cccsRefs].sort(byNum), cis: sortCis([...cisRefs]), ciosc: [...cioscRefs].sort(byNum) };

@@ -35,10 +35,12 @@ export function isApplicable(question: Question, profile: Profile, answers: Answ
 
 /**
  * The answer the scoring uses: a question hidden by the business profile (e.g. no connected equipment)
- * does not apply, the same as an explicit "na" answer.
+ * does not apply, the same as an explicit "na" answer. A question hidden by sector (carrier vetting is a
+ * broker's job) is left out instead: other sectors lack that safeguard, not that exposure, so it earns no credit.
  */
 export function effectiveAnswer(question: Question, profile: Profile, answers: Answers): AnswerValue | undefined {
-  return isVisible(question, profile) ? answers[question.id] : 'na';
+  if (isVisible(question, profile)) return answers[question.id];
+  return question.showIf?.profile === 'sector' ? undefined : 'na';
 }
 
 export function visibleQuestions(profile: Profile, data: Dataset = defaultDataset): Question[] {

@@ -1,9 +1,10 @@
 import FrameworkTags from '../components/FrameworkTags';
 import RiskRegisterButton from '../components/RiskRegisterButton';
-import { StatusPill } from '../components/StandardsPanel';
+import { countsText, StatusPill } from '../components/StandardsPanel';
+import { TemplatePicker } from '../components/TemplatePicker';
 import { Button } from '../components/ui';
 import { countStatuses, type CioscResult } from '../engine/controls';
-import { cccs as cccsCatalog, ciosc as cioscCatalog, cis as cisCatalog, profileQuestions, ranking } from '../engine/data';
+import { cccs as cccsCatalog, ciosc as cioscCatalog, cis as cisCatalog, profileQuestions, questionById, ranking } from '../engine/data';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../store/appStore';
 import { useResults } from '../useResults';
@@ -15,14 +16,14 @@ function CioscSummary({ rows }: { rows: CioscResult[] }) {
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <h2 className="text-lg font-bold text-slate-900">CyberSecure Canada baseline (CAN/CIOSC 104:2021)</h2>
         <div className="text-sm text-slate-600">
-          {counts.Met} met · {counts['Partially met']} partly · {counts['Not yet met']} not yet · {counts['Not assessed']} not assessed
+          {countsText(counts)}
         </div>
       </div>
       <table className="mt-2 w-full text-sm">
         <thead>
           <tr className="border-b border-slate-300 text-left text-xs uppercase tracking-wide text-slate-500">
             <th className="py-1 pr-3 font-semibold">Section</th>
-            <th className="py-1 pr-3 font-semibold">Assessed through CCCS</th>
+            <th className="py-1 pr-3 font-semibold">Assessed through</th>
             <th className="py-1 font-semibold">Status</th>
           </tr>
         </thead>
@@ -33,7 +34,15 @@ function CioscSummary({ rows }: { rows: CioscResult[] }) {
                 <span className="mr-1.5 font-mono text-xs text-slate-500">{s.id}</span>
                 <span className="font-medium">{s.name}</span>
               </td>
-              <td className="py-1 pr-3 font-mono text-xs text-slate-600">{s.cccsIds.join(', ') || '—'}</td>
+              <td className="py-1 pr-3 text-xs text-slate-600">
+                {s.cccsIds.length ? (
+                  <span className="font-mono">{s.cccsIds.join(', ')}</span>
+                ) : s.questionIds.length ? (
+                  s.questionIds.map((id) => questionById[id]?.topic ?? id).join(', ')
+                ) : (
+                  '—'
+                )}
+              </td>
               <td className="py-1">
                 <StatusPill status={s.status} />
               </td>
@@ -73,6 +82,7 @@ export default function Summary() {
           <Button onClick={() => window.print()}>Print / Save as PDF</Button>
         </div>
       </div>
+      <TemplatePicker className="mb-6" />
 
       <article className="print-page rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-slate-900 pb-3">
@@ -97,7 +107,7 @@ export default function Summary() {
             <div className="flex flex-wrap items-baseline justify-between gap-2">
               <h2 className="text-lg font-bold text-slate-900">CCCS baseline security controls</h2>
               <div className="text-sm text-slate-600">
-                {cccsCounts.Met} met · {cccsCounts['Partially met']} partly · {cccsCounts['Not yet met']} not yet · {cccsCounts['Not assessed']} not assessed
+                {countsText(cccsCounts)}
               </div>
             </div>
             <table className="mt-2 w-full text-sm">

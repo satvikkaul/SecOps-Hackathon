@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 import { demoPersona, ranking, templates } from '../engine/data';
 import type { DnsResult } from '../engine/dns';
+import { withSector } from '../engine/profile';
 import type { Answers, AnswerValue, Expertise, Profile, RankingMode, TemplateId } from '../engine/types';
 
 export type Screen = 'landing' | 'template' | 'profile' | 'domain' | 'questions' | 'results' | 'summary';
@@ -142,7 +143,7 @@ export const useAppStore = create<AppStore>()(
 
       setProfile: (id, value) =>
         set((s) => ({
-          profile: { ...s.profile, [id]: value },
+          profile: id === 'sector' ? withSector(s.profile, value) : { ...s.profile, [id]: value },
           autoFilled: id === 'emailProvider' ? { ...s.autoFilled, emailProvider: false } : s.autoFilled,
         })),
 

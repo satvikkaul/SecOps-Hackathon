@@ -68,6 +68,8 @@ export interface CisMapping {
 export interface CccsControl {
   id: string;
   name: string;
+  /** The control only applies when this profile answer is one of these (e.g. websites). Unanswered = applies. */
+  appliesIf?: ShowIf;
   requirements: { id: string; summary: string }[];
 }
 
@@ -75,8 +77,10 @@ export interface CccsControl {
 export interface CioscSection {
   id: string; // e.g. "5.5"
   name: string;
-  /** CCCS controls covering the same ground. Empty = none of our questions test this section. */
+  /** CCCS controls covering the same ground. */
   cccs: string[];
+  /** Questions that give evidence for this section directly, where no CCCS control covers it (e.g. log management). */
+  questions?: string[];
   note?: string;
 }
 

@@ -29,9 +29,10 @@ export async function request<T>(path: string, { method = 'GET', body, signal }:
   if (!hasApi) throw new Error('VITE_API_URL is not set');
   // Attaches the caller's own session, when there is one, so the BE can save a "mine" assessment
   // instead of an anonymous one. Reads the session supabase-js already holds; no new plumbing.
+  // supabase is null when sign-in isn't configured (authEnabled false) — same as no session.
   const {
     data: { session },
-  } = await supabase.auth.getSession();
+  } = supabase ? await supabase.auth.getSession() : { data: { session: null } };
   const headers: Record<string, string> = {};
   if (body !== undefined) headers['content-type'] = 'application/json';
   if (session) headers.authorization = `Bearer ${session.access_token}`;

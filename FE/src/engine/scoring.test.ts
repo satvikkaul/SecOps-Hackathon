@@ -30,9 +30,9 @@ const withPayments: Profile = { ...baseProfile, payments: 'yes' };
 const allYes: Answers = Object.fromEntries(questions.map((q) => [q.id, 'yes']));
 
 describe('data integrity', () => {
-  it('has 8 scenarios and 26 questions', () => {
+  it('has 8 scenarios and 31 questions', () => {
     expect(scenarios).toHaveLength(8);
-    expect(questions).toHaveLength(26);
+    expect(questions).toHaveLength(31);
   });
   it('all weights are between 0 and 1 and reference known scenarios', () => {
     const ids = new Set<string>(scenarios.map((s) => s.id));
@@ -72,6 +72,19 @@ describe('showIf', () => {
   it('treats hasOT "unsure" as yes', () => {
     expect(isVisible(questionById.Q18, { hasOT: 'unsure' })).toBe(true);
     expect(isVisible(questionById.Q18, { hasOT: 'no' })).toBe(false);
+  });
+  it('asks only brokers about vetting carriers, and only phone users about phone locks', () => {
+    expect(isVisible(questionById.Q31, { sector: 'broker' })).toBe(true);
+    expect(isVisible(questionById.Q31, { sector: 'carrier' })).toBe(false);
+    expect(isVisible(questionById.Q16, { phones: 'personal' })).toBe(true);
+    expect(isVisible(questionById.Q16, { phones: 'none' })).toBe(false);
+  });
+  it('gives no credit for a question hidden by sector, unlike one hidden by the rest of the profile', () => {
+    const carrier = computeLikelihood('CARGO', { sector: 'carrier' }, {});
+    expect(carrier.final).toBe(carrier.base);
+    expect(carrier.factors.find((f) => f.questionId === 'Q31')).toBeUndefined();
+    const noOT = computeLikelihood('OT', { sector: 'carrier', hasOT: 'no' }, {});
+    expect(noOT.factors.find((f) => f.questionId === 'Q18')?.notApplicable).toBe('hidden');
   });
 });
 

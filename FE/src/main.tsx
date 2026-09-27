@@ -1,19 +1,15 @@
 import * as Sentry from '@sentry/react';
 import { QueryClientProvider } from '@tanstack/react-query';
-import React, { lazy, Suspense } from 'react';
+import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { catalogQuery } from './api/queries';
 import BootScreen from './components/BootScreen';
-import { setCatalog } from './engine/data';
+import { setCatalog, type Catalog } from './engine/data';
 import './index.css';
 import { queryClient } from './lib/queryClient';
 import { isSharePage, scrubShareTokens } from './lib/sentryScrub';
 import { supabase } from './lib/supabaseClient';
 import { startAuthListener } from './store/authStore';
-
-const QueryDevtools = import.meta.env.DEV
-  ? lazy(() => import('@tanstack/react-query-devtools').then((m) => ({ default: () => <m.ReactQueryDevtools buttonPosition="top-right" /> })))
-  : () => null;
 
 Sentry.init({
   dsn: 'https://9fbcc11a8b19f02d52ef68580e59f2f7@o4509746519474176.ingest.us.sentry.io/4512154703233024',
@@ -57,7 +53,9 @@ const root = ReactDOM.createRoot(document.getElementById('root')!);
 async function restorePendingSave() {
   const { takePendingSave } = await import('./store/appStore');
   const pending = takePendingSave();
-  if (!pending) return;
+  // No stash, or sign-in isn't configured (supabase is null) — Results never offers "Get started"
+  // in that case, so a stash existing here at all would only be a stale leftover from before.
+  if (!pending || !supabase) return;
   root.render(<BootScreen message="Signing you in and saving your report…" />);
   // detectSessionInUrl (supabaseClient.ts) resolves the magic link's token into a session as part
   // of the client's own init, which getSession() waits on — this reflects that, not a stale value.
@@ -80,10 +78,28 @@ async function restorePendingSave() {
 }
 
 /** The app's modules read the catalog when they are first imported, so App is imported only after it has loaded. */
+const CATALOG_TIMEOUT_MS = 6000;
+
+/** The live catalog from the BE, or the copy bundled at build time if the BE is down or slow, so the check-up
+ * itself never depends on the backend being up (sharing and personalization still do). */
+async function loadCatalog(): Promise<Catalog> {
+  try {
+    return await Promise.race([
+      queryClient.fetchQuery(catalogQuery),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('catalog timed out')), CATALOG_TIMEOUT_MS)),
+    ]);
+  } catch (err) {
+    console.warn('Catalog unavailable from the API, using the bundled copy.', err);
+    const fallback = (await import('./data/catalogFallback.json')).default as unknown as Catalog;
+    queryClient.setQueryData(catalogQuery.queryKey, fallback);
+    return fallback;
+  }
+}
+
 async function boot() {
   root.render(<BootScreen />);
   try {
-    setCatalog(await queryClient.fetchQuery(catalogQuery));
+    setCatalog(await loadCatalog());
   } catch {
     root.render(<BootScreen failed onRetry={boot} />);
     return;
@@ -94,9 +110,6 @@ async function boot() {
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
         <App />
-        <Suspense>
-          <QueryDevtools />
-        </Suspense>
       </QueryClientProvider>
     </React.StrictMode>,
   );
