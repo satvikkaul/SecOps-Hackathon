@@ -9,6 +9,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Annotated, Any, Literal
 
+import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, Response
@@ -27,6 +28,11 @@ FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://secops-hackathon-producti
 MAX_BODY = 64 * 1024
 DNS_TTL = "24 hours"
 SHARE_TTL_DAYS = 90
+
+# For verifying a signed-in user's token (see verify_user below). Same project as the FE's
+# VITE_SUPABASE_URL / VITE_SUPABASE_PUBLISHABLE_KEY — safe to reuse, neither value is secret.
+SUPABASE_URL = os.environ.get("SUPABASE_URL", "").rstrip("/")
+SUPABASE_PUBLISHABLE_KEY = os.environ.get("SUPABASE_PUBLISHABLE_KEY", "")
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
@@ -159,6 +165,28 @@ def client_ip(request: Request) -> str:
     return (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "")).split(",")[0].strip()
 
 
+def verify_user(authorization: str | None) -> str | None:
+    """The Supabase user id for a valid 'Bearer <token>' Authorization header, or None if it's
+    missing, malformed, or the token doesn't check out. Verifies through Supabase's own Auth API
+    (GET /auth/v1/user) rather than decoding the JWT ourselves, so this works whichever signing
+    algorithm the project uses (HS256 shared secret or the newer RS256/ES256 JWKS keys) and needs
+    no signing secret on our side — only the same public URL/key the FE already uses."""
+    if not authorization or not SUPABASE_URL or not SUPABASE_PUBLISHABLE_KEY:
+        return None
+    scheme, _, token = authorization.partition(" ")
+    if scheme.lower() != "bearer" or not token:
+        return None
+    try:
+        res = httpx.get(
+            f"{SUPABASE_URL}/auth/v1/user",
+            headers={"Authorization": f"Bearer {token}", "apikey": SUPABASE_PUBLISHABLE_KEY},
+            timeout=5.0,
+        )
+    except httpx.HTTPError:
+        return None
+    return res.json().get("id") if res.status_code == 200 else None
+
+
 # Each new link is a DB row plus possibly a live DNS lookup, so cap how fast anyone can make them.
 share_limit = RateLimit(per_ip_per_minute=10, total_per_hour=500)
 # Uncached calls spend the Gemini key, so cap them. Cache hits are free and unlimited.
@@ -238,11 +266,14 @@ def create_assessment(body: AssessmentIn, request: Request):
     # Only our own lookup is stored: the "verified" part must not come from the client.
     dns = dns_for(domain) if domain else None
     token = secrets.token_urlsafe(16)
+    # Optional: an Authorization header attaches this row to a signed-in user. No header, or a
+    # header that doesn't check out, saves the same anonymous share it always has (user_id null).
+    user_id = verify_user(request.headers.get("authorization"))
     with pool.connection() as conn:
         row = conn.execute(
-            """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at)
-               values (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s)) returning id, expires_at""",
-            (token, body.company, domain, Jsonb(body.profile), Jsonb(body.answers), body.rankingMode, Jsonb(body.results), Jsonb(dns) if dns else None, SHARE_TTL_DAYS),
+            """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at, user_id)
+               values (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s), %s) returning id, expires_at""",
+            (token, body.company, domain, Jsonb(body.profile), Jsonb(body.answers), body.rankingMode, Jsonb(body.results), Jsonb(dns) if dns else None, SHARE_TTL_DAYS, user_id),
         ).fetchone()
     return {
         "id": str(row["id"]),
@@ -250,6 +281,25 @@ def create_assessment(body: AssessmentIn, request: Request):
         "shareUrl": f"{FRONTEND_URL}/?share={token}",
         "expiresAt": row["expires_at"].isoformat(),
     }
+
+
+@app.get("/api/assessments/mine")
+def get_my_assessments(request: Request):
+    """The signed-in caller's own saved assessments. Requires a valid Authorization header — this
+    is the one place a scoping bug would leak another user's data, so the query filters by the
+    verified user_id and nothing else (never a client-supplied id)."""
+    user_id = verify_user(request.headers.get("authorization"))
+    if not user_id:
+        raise HTTPException(401, "Sign in required")
+    with pool.connection() as conn:
+        rows = conn.execute(
+            "select id, company, share_token, created_at from assessments where user_id = %s order by created_at desc",
+            (user_id,),
+        ).fetchall()
+    return [
+        {"id": str(r["id"]), "company": r["company"], "createdAt": r["created_at"].isoformat(), "shareUrl": f"{FRONTEND_URL}/?share={r['share_token']}"}
+        for r in rows
+    ]
 
 
 @app.get("/api/share/{token}")

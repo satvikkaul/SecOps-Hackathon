@@ -1,6 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import { Chain } from '../components/Chain';
 import { ExpertiseSwitch } from '../components/Expertise';
+import { useCreateShare } from '../api/hooks';
 import ActionCard, { CompactAction, pct } from '../components/ActionCard';
 import RiskFlow from '../components/RiskFlow';
 import RiskStory from '../components/RiskStory';
@@ -152,6 +153,37 @@ function StatChip({ value, label }: { value: number; label: string }) {
     <span className="inline-flex items-center gap-1.5 rounded-full bg-white/80 px-3 py-1 text-sm text-slate-700 ring-1 ring-slate-200">
       <b className="tabular-nums text-slate-900">{value}</b> {label}
     </span>
+  );
+}
+
+/** Shown once signed in, in place of the "Get started" prompt: an actual save, via the same
+ * createShare the "Share with a partner" button uses — the Authorization header client.ts already
+ * attaches is what ties the saved row to this account. */
+function SaveScoreCard() {
+  const share = useCreateShare();
+  if (share.isSuccess)
+    return (
+      <Card className="no-print mt-4 flex items-center gap-3 p-4">
+        <span aria-hidden className="text-xl">
+          ✅
+        </span>
+        <div>
+          <div className="font-bold text-slate-900">Saved</div>
+          <div className="text-sm text-slate-600">You can find this report in your account.</div>
+        </div>
+      </Card>
+    );
+  return (
+    <Card className="no-print mt-4 flex flex-wrap items-center justify-between gap-4 p-4">
+      <div>
+        <div className="font-bold text-slate-900">Save your score</div>
+        <div className="text-sm text-slate-600">Keep this report and come back to it later.</div>
+        {share.isError && <div className="mt-1 text-sm text-rose-700">Couldn't save right now. Try again in a moment.</div>}
+      </div>
+      <Button onClick={() => share.mutate()} disabled={share.isPending} className="shrink-0">
+        {share.isPending ? 'Saving…' : 'Save your score'}
+      </Button>
+    </Card>
   );
 }
 
@@ -372,17 +404,20 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
                 </div>
               </Card>
 
-              {!signedIn && !state.isDemo && (
-                <Card className="no-print mt-4 flex flex-wrap items-center justify-between gap-4 p-4">
-                  <div>
-                    <div className="font-bold text-slate-900">Save your score</div>
-                    <div className="text-sm text-slate-600">Sign in to keep this report and come back to it later — no password needed.</div>
-                  </div>
-                  <Button onClick={onSignIn} className="shrink-0">
-                    Get started
-                  </Button>
-                </Card>
-              )}
+              {!state.isDemo &&
+                (signedIn ? (
+                  <SaveScoreCard />
+                ) : (
+                  <Card className="no-print mt-4 flex flex-wrap items-center justify-between gap-4 p-4">
+                    <div>
+                      <div className="font-bold text-slate-900">Save your score</div>
+                      <div className="text-sm text-slate-600">Sign in to keep this report and come back to it later — no password needed.</div>
+                    </div>
+                    <Button onClick={onSignIn} className="shrink-0">
+                      Get started
+                    </Button>
+                  </Card>
+                ))}
 
               {personal && (
                 <Card className="fade-in border-violet-200 p-5">

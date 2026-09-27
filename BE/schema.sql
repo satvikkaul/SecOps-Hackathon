@@ -11,9 +11,11 @@ create table if not exists assessments (
   results      jsonb not null,                -- FE-computed snapshot: posture, scenarios, topActions, cccs
   dns          jsonb,                         -- BE-verified DNS result at creation time
   created_at   timestamptz not null default now(),
-  expires_at   timestamptz                    -- link stops working after this; null = never (demo rows)
+  expires_at   timestamptz,                   -- link stops working after this; null = never (demo rows)
+  user_id      uuid references auth.users(id) -- who saved this, if signed in; null = anonymous share
 );
 alter table assessments add column if not exists expires_at timestamptz;
+alter table assessments add column if not exists user_id uuid references auth.users(id);
 
 create table if not exists dns_checks (
   domain     text primary key,

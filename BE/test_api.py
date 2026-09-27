@@ -83,6 +83,75 @@ def test_share_creation_is_rate_limited(c, monkeypatch):
     assert c.post("/api/assessments", json=BODY).status_code == 429
 
 
+# ---------- Signed-in saves (verify_user is stubbed: no real Supabase token needed) ----------
+
+FAKE_USER_A = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa"
+FAKE_USER_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
+
+
+def _ensure_fake_user(user_id: str) -> None:
+    """A row in auth.users for user_id to satisfy assessments.user_id's foreign key. Only the
+    columns Supabase requires; real signups fill in the rest."""
+    from app.main import pool
+
+    with pool.connection() as conn:
+        conn.execute("insert into auth.users (id, email) values (%s, %s) on conflict (id) do nothing", (user_id, f"{user_id}@test.example"))
+
+
+def test_assessment_saved_anonymously_without_auth_header(c):
+    from app.main import pool
+
+    created = c.post("/api/assessments", json=BODY).json()
+    with pool.connection() as conn:
+        row = conn.execute("select user_id from assessments where share_token = %s", (created["shareToken"],)).fetchone()
+    assert row["user_id"] is None
+
+
+def test_authenticated_save_sets_user_id(c, monkeypatch):
+    from app import main
+
+    _ensure_fake_user(FAKE_USER_A)
+    monkeypatch.setattr(main, "verify_user", lambda auth: FAKE_USER_A if auth == "Bearer token-a" else None)
+
+    created = c.post("/api/assessments", json=BODY, headers={"Authorization": "Bearer token-a"}).json()
+    with main.pool.connection() as conn:
+        row = conn.execute("select user_id from assessments where share_token = %s", (created["shareToken"],)).fetchone()
+    assert str(row["user_id"]) == FAKE_USER_A
+
+    # A bad/expired token behaves exactly like no header: still saves, just anonymously.
+    anon = c.post("/api/assessments", json=BODY, headers={"Authorization": "Bearer not-a-real-token"}).json()
+    with main.pool.connection() as conn:
+        row = conn.execute("select user_id from assessments where share_token = %s", (anon["shareToken"],)).fetchone()
+    assert row["user_id"] is None
+
+
+def test_mine_requires_auth_and_only_returns_the_caller_own_rows(c, monkeypatch):
+    from app import main
+
+    assert c.get("/api/assessments/mine").status_code == 401
+    assert c.get("/api/assessments/mine", headers={"Authorization": "Bearer nope"}).status_code == 401
+
+    _ensure_fake_user(FAKE_USER_A)
+    _ensure_fake_user(FAKE_USER_B)
+    monkeypatch.setattr(main, "verify_user", lambda auth: FAKE_USER_A if auth == "Bearer token-a" else (FAKE_USER_B if auth == "Bearer token-b" else None))
+
+    import uuid
+
+    a_company, b_company = f"User A Co {uuid.uuid4()}", f"User B Co {uuid.uuid4()}"
+    c.post("/api/assessments", json={**BODY, "company": a_company}, headers={"Authorization": "Bearer token-a"})
+    c.post("/api/assessments", json={**BODY, "company": b_company}, headers={"Authorization": "Bearer token-b"})
+
+    mine_a = c.get("/api/assessments/mine", headers={"Authorization": "Bearer token-a"}).json()
+    mine_b = c.get("/api/assessments/mine", headers={"Authorization": "Bearer token-b"}).json()
+
+    # Each user sees their own new row and, importantly, never the other user's.
+    assert any(a["company"] == a_company for a in mine_a)
+    assert not any(a["company"] == b_company for a in mine_a)
+    assert any(b["company"] == b_company for b in mine_b)
+    assert not any(b["company"] == a_company for b in mine_b)
+    assert all("shareUrl" in a and "createdAt" in a for a in mine_a)
+
+
 def test_rate_limit_counts_per_ip_and_overall():
     from app.main import RateLimit
 
