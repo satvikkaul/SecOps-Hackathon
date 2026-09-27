@@ -1,6 +1,7 @@
 import FrameworkTags from '../components/FrameworkTags';
 import RiskRegisterButton from '../components/RiskRegisterButton';
 import { StatusPill } from '../components/StandardsPanel';
+import { TemplatePicker } from '../components/TemplatePicker';
 import { Button } from '../components/ui';
 import { countStatuses, type CioscResult } from '../engine/controls';
 import { cccs as cccsCatalog, ciosc as cioscCatalog, cis as cisCatalog, profileQuestions, ranking } from '../engine/data';
@@ -73,6 +74,7 @@ export default function Summary() {
           <Button onClick={() => window.print()}>Print / Save as PDF</Button>
         </div>
       </div>
+      <TemplatePicker className="mb-6" />
 
       <article className="print-page rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
         <header className="flex flex-wrap items-start justify-between gap-4 border-b-2 border-slate-900 pb-3">

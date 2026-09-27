@@ -700,7 +700,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
             </div>
             <p className="mt-3 text-xs text-slate-500">
               Reporting against <b className="text-slate-700">{templateById[state.template].name}</b>.{' '}
-              <button type="button" onClick={() => go('template')} className="font-semibold text-brand-700 underline hover:text-brand-800">
+              <button type="button" onClick={() => go('summary')} className="font-semibold text-brand-700 underline hover:text-brand-800">
                 Change
               </button>
             </p>

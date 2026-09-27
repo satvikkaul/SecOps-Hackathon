@@ -6,3 +6,4 @@ export * from './register';
 export * from './flow';
 export * from './dns';
 export * from './data';
+export * from './profile';
