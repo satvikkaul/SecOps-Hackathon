@@ -180,3 +180,50 @@ export const useAppStore = create<AppStore>()(
 
 /** The current report template, for components deep in the tree (framework tags on fix cards). */
 export const useTemplate = () => useAppStore((s) => s.template);
+
+// ---------- Surviving the magic-link redirect ----------
+// Signing in requires a full page reload back to this origin (the magic link is opened outside
+// the app), which wipes AssessmentState — it's memory-only by design. So the one caller that needs
+// the assessment to still be there afterwards (Results' "Save your score", for someone not yet
+// signed in) stashes just enough of it first; main.tsx restores it once the reload confirms a
+// session, then saves it the same way "Save your score" always has.
+
+const PENDING_SAVE_KEY = 'chain-of-custody:pendingSave';
+
+interface PendingSave {
+  company: string;
+  domain: string;
+  profile: Profile;
+  answers: Answers;
+  rankingMode: RankingMode;
+}
+
+/** Called right before opening the sign-in modal from "Save your score" — nowhere else needs this. */
+export function stashPendingSave() {
+  const s = useAppStore.getState();
+  const pending: PendingSave = { company: s.company, domain: s.domain, profile: s.profile, answers: s.answers, rankingMode: s.rankingMode };
+  try {
+    sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify(pending));
+  } catch {
+    // Storage can be unavailable (private mode); the sign-in itself still works, just without the redo.
+  }
+}
+
+/** Reads and clears the stash, if any. Sessionstorage is already scoped to this one browser
+ * session/tab, so there's never more than one pending save and nothing to key it by. */
+export function takePendingSave(): PendingSave | null {
+  try {
+    const raw = sessionStorage.getItem(PENDING_SAVE_KEY);
+    if (raw === null) return null;
+    sessionStorage.removeItem(PENDING_SAVE_KEY);
+    return JSON.parse(raw) as PendingSave;
+  } catch {
+    return null;
+  }
+}
+
+// Set once, before Results ever mounts (main.tsx's boot sequence completes before it's imported),
+// so a plain module variable is enough — no need for this to be reactive Zustand state.
+let autoSaved = false;
+export const markAssessmentAutoSaved = () => void (autoSaved = true);
+export const wasAssessmentAutoSaved = () => autoSaved;

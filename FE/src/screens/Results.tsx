@@ -33,7 +33,7 @@ import { chainFor, explainRisk } from '../engine/explain';
 import type { ScenarioResult } from '../engine/scoring';
 import type { Band, Expertise, Profile, ScenarioId } from '../engine/types';
 import { useShallow } from 'zustand/react/shallow';
-import { useAppStore } from '../store/appStore';
+import { stashPendingSave, useAppStore, wasAssessmentAutoSaved } from '../store/appStore';
 import { personalizeRequest, usePersonalized } from '../personalize';
 import { printRule, ruleFor } from '../printRule';
 import { timePhrase, useResults } from '../useResults';
@@ -187,7 +187,9 @@ function StatChip({ value, label }: { value: number; label: string }) {
  * attaches is what ties the saved row to this account. */
 function SaveScoreCard() {
   const share = useCreateShare();
-  if (share.isSuccess)
+  // Set once during boot when a stashed pending save (from before a magic-link redirect) was
+  // saved automatically — this render is the first chance to reflect that, before any click.
+  if (share.isSuccess || wasAssessmentAutoSaved())
     return (
       <Card className="no-print mt-4 flex items-center gap-3 p-4">
         <span aria-hidden className="text-xl">
@@ -447,7 +449,15 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
                       <div className="font-bold text-slate-900">Save your score</div>
                       <div className="text-sm text-slate-600">Sign in to keep this report and come back to it later — no password needed.</div>
                     </div>
-                    <Button onClick={onSignIn} className="shrink-0">
+                    <Button
+                      onClick={() => {
+                        // Only this entry point needs it: it's the one sign-in trigger with a
+                        // report worth carrying across the magic link's redirect.
+                        stashPendingSave();
+                        onSignIn();
+                      }}
+                      className="shrink-0"
+                    >
                       Get started
                     </Button>
                   </Card>

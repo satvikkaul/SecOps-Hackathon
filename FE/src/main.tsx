@@ -8,6 +8,7 @@ import { setCatalog } from './engine/data';
 import './index.css';
 import { queryClient } from './lib/queryClient';
 import { isSharePage, scrubShareTokens } from './lib/sentryScrub';
+import { supabase } from './lib/supabaseClient';
 import { startAuthListener } from './store/authStore';
 
 const QueryDevtools = import.meta.env.DEV
@@ -46,6 +47,38 @@ startAuthListener();
 
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
+/** Signing in from "Save your score" stashes the assessment (store/appStore.ts) because the
+ * magic-link redirect wipes it; this is the other half, run once on boot. No stash, no-op.
+ *
+ * Imports appStore.ts (and api/hooks.ts, which also reaches it) dynamically, not at module top
+ * level: both read engine/data.ts's catalog bindings (e.g. `ranking.defaultMode`) as soon as
+ * they're evaluated, and those are `undefined` until setCatalog() below has run. A static import
+ * here would run before that and crash — the same reason App itself is a dynamic import. */
+async function restorePendingSave() {
+  const { takePendingSave } = await import('./store/appStore');
+  const pending = takePendingSave();
+  if (!pending) return;
+  root.render(<BootScreen message="Signing you in and saving your report…" />);
+  // detectSessionInUrl (supabaseClient.ts) resolves the magic link's token into a session as part
+  // of the client's own init, which getSession() waits on — this reflects that, not a stale value.
+  const {
+    data: { session },
+  } = await supabase.auth.getSession();
+  if (!session) return; // no session to save under; they land on Landing same as before this fix
+  const [{ useAppStore, markAssessmentAutoSaved }, { createShare }, { shareRequest }] = await Promise.all([
+    import('./store/appStore'),
+    import('./api/endpoints'),
+    import('./api/hooks'),
+  ]);
+  useAppStore.setState({ ...pending, screen: 'results' });
+  try {
+    await createShare(shareRequest(useAppStore.getState()));
+    markAssessmentAutoSaved();
+  } catch {
+    // Left unsaved on purpose: Results' own "Save your score" retries with this same restored state.
+  }
+}
+
 /** The app's modules read the catalog when they are first imported, so App is imported only after it has loaded. */
 async function boot() {
   root.render(<BootScreen />);
@@ -55,6 +88,7 @@ async function boot() {
     root.render(<BootScreen failed onRetry={boot} />);
     return;
   }
+  await restorePendingSave();
   const { default: App } = await import('./App');
   root.render(
     <React.StrictMode>

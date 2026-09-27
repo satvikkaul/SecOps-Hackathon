@@ -1,7 +1,8 @@
 import { Button, Card, Logo } from './ui';
 
-/** Shown while the check-up's content loads from the server, and if it can't. */
-export default function BootScreen({ failed, onRetry }: { failed?: boolean; onRetry?: () => void }) {
+/** Shown while the check-up's content loads from the server, and if it can't. Also reused for the
+ * brief moment after a magic-link redirect while the pending save resolves (see main.tsx). */
+export default function BootScreen({ failed, onRetry, message }: { failed?: boolean; onRetry?: () => void; message?: string }) {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-6 px-4">
       <Logo />
@@ -15,7 +16,7 @@ export default function BootScreen({ failed, onRetry }: { failed?: boolean; onRe
         </Card>
       ) : (
         <p className="text-slate-500" role="status">
-          Loading the check-up…
+          {message ?? 'Loading the check-up…'}
         </p>
       )}
     </div>
