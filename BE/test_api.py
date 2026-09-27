@@ -530,6 +530,17 @@ def test_supply_chain_404s_for_an_unknown_assessment(c):
     assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": "not-a-uuid"}).status_code == 400
 
 
+def test_a_share_token_cannot_bypass_the_passphrase_via_supply_chain_or_invites(c, monkeypatch):
+    from app import main
+
+    monkeypatch.setattr(main, "share_limit", main.RateLimit(per_ip_per_minute=100, total_per_hour=100))
+    monkeypatch.setattr(main, "invite_limit", main.RateLimit(per_ip_per_minute=100, total_per_hour=100))
+    token =c.post("/api/assessments", json=BODY).json()["shareUrl"].split("share=")[1]
+    assert c.get(f"/api/share/{token}").status_code == 401
+    assert c.get(f"/api/assessments/{token}/supply-chain").status_code == 404
+    assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": token}).status_code == 400
+
+
 def test_demo_company_has_a_seeded_supplier_graph(c):
     body = c.get("/api/assessments/demo-peel-valley/supply-chain").json()
     assert body["company"] == "Peel Valley Fresh Logistics"

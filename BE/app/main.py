@@ -327,11 +327,11 @@ Uuid = Annotated[str, StringConstraints(pattern=UUID_RE)]
 
 
 def assessment_ref(conn, ref: str) -> dict | None:
-    """A saved row by uuid, or by share token (the demo company is looked up as demo-peel-valley).
+    """A saved row by uuid, or a demo by its share token (demo-peel-valley). Any other share token
+    is refused: it's in every share URL, and resolving it here would skip the passphrase.
     The uuid column is only queried when `ref` is shaped like one — otherwise Postgres raises."""
-    row = conn.execute("select id, company, results from assessments where share_token = %s", (ref,)).fetchone()
-    if row:
-        return row
+    if ref in DEMOS:
+        return conn.execute("select id, company, results from assessments where share_token = %s", (ref,)).fetchone()
     if re.fullmatch(UUID_RE, ref):
         return conn.execute("select id, company, results from assessments where id = %s", (ref,)).fetchone()
     return None
