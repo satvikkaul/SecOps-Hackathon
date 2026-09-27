@@ -1,3 +1,4 @@
+import { Check } from 'lucide-react';
 import { TechTag } from '../components/Expertise';
 import FrameworkTags from '../components/FrameworkTags';
 import { Button, Card, OptionCard, ProgressBar, WhyWeAsk } from '../components/ui';
@@ -27,11 +28,17 @@ function NotSure({ selected, onClick }: { selected: boolean; onClick: () => void
       type="button"
       onClick={onClick}
       aria-pressed={selected}
-      className={`mt-2 rounded-lg px-2.5 py-1 text-sm font-medium transition ${
+      className={`mt-2 inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-sm font-medium transition ${
         selected ? 'bg-slate-700 text-white' : 'text-slate-500 underline decoration-dotted underline-offset-4 hover:text-slate-800'
       }`}
     >
-      {selected ? "✓ Not sure, we'll add it to your list to check" : 'Not sure'}
+      {selected ? (
+        <>
+          <Check className="h-4 w-4" strokeWidth={2.5} aria-hidden /> Not sure, we'll add it to your list to check
+        </>
+      ) : (
+        'Not sure'
+      )}
     </button>
   );
 }
@@ -137,11 +144,11 @@ export default function Questionnaire() {
               key={s.id}
               type="button"
               onClick={() => go('questions', i)}
-              className={`rounded-full px-3 py-1 text-sm font-medium transition ${
+              className={`inline-flex items-center gap-1 rounded-full px-3 py-1 text-sm font-medium transition ${
                 i === idx ? 'bg-brand-600 text-white' : complete ? 'bg-brand-100 text-brand-800 hover:bg-brand-200' : 'bg-slate-200 text-slate-600 hover:bg-slate-300'
               }`}
             >
-              {complete && i !== idx ? '✓ ' : ''}
+              {complete && i !== idx && <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />}
               {s.title}
             </button>
           );

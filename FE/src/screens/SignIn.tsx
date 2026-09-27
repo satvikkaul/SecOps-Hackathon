@@ -1,3 +1,4 @@
+import { X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { Button, Card } from '../components/ui';
 import { useAuthStore } from '../store/authStore';
@@ -32,7 +33,7 @@ export default function SignIn({ onClose }: { onClose?: () => void }) {
           aria-label="Close"
           className="absolute right-3 top-3 rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
         >
-          ✕
+          <X className="h-5 w-5" aria-hidden />
         </button>
       )}
       {status === 'sent' ? (

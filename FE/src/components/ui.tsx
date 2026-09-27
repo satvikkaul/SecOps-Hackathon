@@ -1,5 +1,9 @@
+import { Check, ChevronRight, Factory, Package, Snowflake, Truck, Wheat, type LucideIcon } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import type { Band, ScenarioId } from '../engine/types';
+
+/** Icons the catalog content can name (profile option `icon`), by name. */
+const CONTENT_ICONS: Record<string, LucideIcon> = { wheat: Wheat, factory: Factory, snowflake: Snowflake, truck: Truck, package: Package };
 
 export const BAND_STYLES: Record<Band, { solid: string; soft: string; text: string; ring: string; dot: string; hex: string }> = {
   High: { solid: 'bg-rose-600 text-white', soft: 'bg-rose-50', text: 'text-rose-700', ring: 'border-rose-200', dot: 'bg-rose-500', hex: '#e11d48' },
@@ -66,12 +70,12 @@ export function Card({ children, className = '', id }: { children: ReactNode; cl
   );
 }
 
-export function SectionTitle({ children, sub, icon }: { children: ReactNode; sub?: ReactNode; icon?: string }) {
+export function SectionTitle({ children, sub, icon: Icon }: { children: ReactNode; sub?: ReactNode; icon?: LucideIcon }) {
   return (
     <div className="mb-4 flex items-start gap-3">
-      {icon && (
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-xl" aria-hidden>
-          {icon}
+      {Icon && (
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-brand-50 text-brand-700" aria-hidden>
+          <Icon className="h-5 w-5" strokeWidth={2.25} />
         </span>
       )}
       <div>
@@ -92,7 +96,7 @@ export function WhyWeAsk({ children }: { children: ReactNode }) {
         className="inline-flex items-center gap-1 text-sm font-medium text-brand-700 hover:text-brand-900"
         aria-expanded={open}
       >
-        <span className={`inline-block transition-transform ${open ? 'rotate-90' : ''}`}>›</span> Why we ask
+        <ChevronRight className={`h-4 w-4 transition-transform ${open ? 'rotate-90' : ''}`} aria-hidden /> Why we ask
       </button>
       {open && <p className="fade-in mt-1.5 max-w-3xl rounded-lg bg-brand-50 px-3 py-2 text-sm leading-relaxed text-slate-700">{children}</p>}
     </div>
@@ -112,6 +116,7 @@ export function OptionCard({
   icon?: string;
   tone?: 'neutral' | 'yes' | 'partial' | 'no' | 'unsure';
 }) {
+  const Icon = icon ? CONTENT_ICONS[icon] : undefined;
   const selectedTone: Record<string, string> = {
     neutral: 'border-brand-600 bg-brand-50 text-brand-900 ring-2 ring-brand-600',
     yes: 'border-emerald-600 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-600',
@@ -128,9 +133,9 @@ export function OptionCard({
         selected ? selectedTone[tone] : 'border-slate-200 bg-white text-slate-700 hover:border-slate-400 hover:bg-slate-50'
       }`}
     >
-      {icon && <span className="text-xl" aria-hidden>{icon}</span>}
+      {Icon && <Icon className="h-5 w-5 shrink-0 opacity-80" aria-hidden />}
       <span>{label}</span>
-      {selected && <span className="ml-auto text-lg" aria-hidden>✓</span>}
+      {selected && <Check className="ml-auto h-5 w-5 shrink-0" strokeWidth={2.5} aria-hidden />}
     </button>
   );
 }
@@ -147,7 +152,7 @@ export function ProgressBar({ value, label }: { value: number; label?: string })
 }
 
 export function Pill({ children, className = '' }: { children: ReactNode; className?: string }) {
-  return <span className={`inline-flex items-center rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 ${className}`}>{children}</span>;
+  return <span className={`inline-flex items-center gap-1 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-700 ${className}`}>{children}</span>;
 }
 
 export function Logo({ onClick }: { onClick?: () => void }) {

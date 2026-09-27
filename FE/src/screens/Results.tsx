@@ -1,3 +1,22 @@
+import {
+  CalendarDays,
+  ChartColumn,
+  ChevronDown,
+  ChevronUp,
+  CircleHelp,
+  Clock,
+  Coins,
+  Flag,
+  Link2,
+  SearchCheck,
+  Share2,
+  Sparkles,
+  Target,
+  TriangleAlert,
+  Wrench,
+  X,
+  type LucideIcon,
+} from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Chain } from '../components/Chain';
 import { ExpertiseSwitch } from '../components/Expertise';
@@ -104,7 +123,11 @@ function RiskCard({
             <ul className="space-y-1">
               {s.contributors.map((c) => (
                 <li key={c.questionId} className="flex items-start gap-2 text-sm text-slate-800">
-                  <span className={`mt-0.5 font-bold ${c.answer === 'unsure' ? 'text-slate-500' : b.text}`}>{c.answer === 'unsure' ? '?' : '✕'}</span>
+                  {c.answer === 'unsure' ? (
+                    <CircleHelp className="mt-0.5 h-4 w-4 shrink-0 text-slate-500" aria-label="Not sure" />
+                  ) : (
+                    <X className={`mt-0.5 h-4 w-4 shrink-0 ${b.text}`} strokeWidth={3} aria-label="Missing" />
+                  )}
                   <span>
                     {c.label}
                     {c.answer === 'partial' && <span className="text-slate-500"> (partly)</span>}
@@ -118,7 +141,10 @@ function RiskCard({
         </>
       )}
       <div className="no-print mt-auto pt-3 text-sm font-semibold text-slate-700 group-hover:text-slate-900">
-        {open ? 'Hide the full story ▴' : 'See the full story ▾'}
+        <span className="inline-flex items-center gap-1">
+          {open ? 'Hide the full story' : 'See the full story'}
+          {open ? <ChevronUp className="h-4 w-4" aria-hidden /> : <ChevronDown className="h-4 w-4" aria-hidden />}
+        </span>
       </div>
     </div>
   );
@@ -136,11 +162,11 @@ function Block({ children, className = '' }: { children: ReactNode; className?: 
   return <section className={className}>{children}</section>;
 }
 
-function SideCard({ title, icon, children }: { title: string; icon: string; children: ReactNode }) {
+function SideCard({ title, icon: Icon, children }: { title: string; icon: LucideIcon; children: ReactNode }) {
   return (
     <Card className="p-4">
       <h2 className="mb-3 flex items-center gap-2 text-sm font-bold uppercase tracking-wide text-slate-600">
-        <span aria-hidden>{icon}</span>
+        <Icon className="h-4 w-4 text-brand-700" strokeWidth={2.25} aria-hidden />
         {title}
       </h2>
       {children}
@@ -338,7 +364,9 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
         </div>
         <div className="no-print flex flex-wrap items-center gap-2">
           {ai.status === 'loading' && (
-            <span className="animate-pulse rounded-full bg-violet-50 px-3 py-1 text-sm font-semibold text-violet-800">✨ Personalizing for you…</span>
+            <span className="inline-flex animate-pulse items-center gap-1.5 rounded-full bg-violet-50 px-3 py-1 text-sm font-semibold text-violet-800">
+              <Sparkles className="h-4 w-4" aria-hidden /> Personalizing for you…
+            </span>
           )}
           {ai.status === 'ready' && (
             <button
@@ -346,11 +374,17 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
               onClick={() => setShowOriginal((o) => !o)}
               aria-pressed={!showOriginal}
               title="Scores come from our engine. Gemini only rewords the results for your business."
-              className={`rounded-full px-3 py-1 text-sm font-semibold transition ${
+              className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-sm font-semibold transition ${
                 showOriginal ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-violet-50 text-violet-800 hover:bg-violet-100'
               }`}
             >
-              {showOriginal ? 'Show personalized wording' : '✨ Personalized · show original'}
+              {showOriginal ? (
+                'Show personalized wording'
+              ) : (
+                <>
+                  <Sparkles className="h-4 w-4" aria-hidden /> Personalized · show original
+                </>
+              )}
             </button>
           )}
           <span className="hidden text-sm text-slate-500 sm:inline">Detail</span>
@@ -422,7 +456,9 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
               {personal && (
                 <Card className="fade-in border-violet-200 p-5">
                   <div className="flex flex-wrap items-center justify-between gap-2">
-                    <h2 className="text-sm font-bold uppercase tracking-wide text-violet-800">✨ Your business, as we understand it</h2>
+                    <h2 className="flex items-center gap-1.5 text-sm font-bold uppercase tracking-wide text-violet-800">
+                      <Sparkles className="h-4 w-4" aria-hidden /> Your business, as we understand it
+                    </h2>
                     <span className="text-xs text-slate-500">Written by Gemini from your answers. Scores come from our engine.</span>
                   </div>
                   <p className="mt-2 text-lg leading-relaxed text-slate-800">{personal.profile}</p>
@@ -430,14 +466,14 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
               )}
 
               <Block>
-                <SectionTitle icon="⚠️" sub="Here's how your biggest risk would actually play out, step by step.">
+                <SectionTitle icon={TriangleAlert} sub="Here's how your biggest risk would actually play out, step by step.">
                   {top.name}
                 </SectionTitle>
                 <Chain steps={topChain} />
               </Block>
 
               <Block>
-                <SectionTitle icon="🛠️" sub={first ? 'The three fixes that remove the most risk for the least work. Most take under a day.' : undefined}>
+                <SectionTitle icon={Wrench} sub={first ? 'The three fixes that remove the most risk for the least work. Most take under a day.' : undefined}>
                   Start here
                 </SectionTitle>
                 {plan.top.length === 0 ? (
@@ -460,8 +496,12 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
                           <div className="mt-2 font-bold leading-snug text-slate-900">{aiAction(r.action.id)?.title ?? r.action.title}</div>
                           {stops && <div className="mt-1 text-sm text-slate-600">Helps stop: {stops.name.toLowerCase()}</div>}
                           <div className="mt-auto flex flex-wrap gap-1.5 pt-3 text-xs font-semibold">
-                            <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-800">💲 {r.action.cost}</span>
-                            <span className="rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">⏱ {r.action.time}</span>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-emerald-800">
+                              <Coins className="h-3.5 w-3.5" aria-hidden /> {r.action.cost}
+                            </span>
+                            <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2 py-0.5 text-slate-700">
+                              <Clock className="h-3.5 w-3.5" aria-hidden /> {r.action.time}
+                            </span>
                           </div>
                           <span className="mt-3 text-sm font-semibold text-brand-700">Show me how →</span>
                         </button>
@@ -486,7 +526,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
             <>
               <Block>
                 <SectionTitle
-                  icon="🛠️"
+                  icon={Wrench}
                   sub={
                     basic
                       ? 'The fixes that remove the most risk for the least work. Tap “Show step-by-step” for instructions.'
@@ -527,7 +567,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
               {ranked.length > plan.top.length && (
                 <Block>
                   <SectionTitle
-                    icon="🗓️"
+                    icon={CalendarDays}
                     sub={
                       state.rankingMode === 'cost'
                         ? 'Everything else, grouped by how much work it takes (essential recovery fixes no later than 60 days). Best value first.'
@@ -566,7 +606,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
           {tab === 'risks' && (
             <Block>
               <SectionTitle
-                icon="🎯"
+                icon={Target}
                 sub={
                   basic
                     ? 'What could go wrong for a business like yours, most serious first. Click any risk to see what fixes it.'
@@ -609,9 +649,11 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
                       <span className="flex-1 font-medium text-slate-800">{s.name}</span>
                       {!basic && <span className="text-sm tabular-nums text-slate-500">{s.risk.toFixed(2)}</span>}
                       <BandBadge band={s.band} size="sm" />
-                      <span className="no-print text-slate-400" aria-hidden>
-                        {open ? '▴' : '▾'}
-                      </span>
+                      {open ? (
+                        <ChevronUp className="no-print h-4 w-4 text-slate-400" aria-hidden />
+                      ) : (
+                        <ChevronDown className="no-print h-4 w-4 text-slate-400" aria-hidden />
+                      )}
                     </button>
                   );
                 })}
@@ -622,7 +664,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
 
           {tab === 'chain' && (
             <Block>
-              <SectionTitle icon="🔗" sub="How your biggest gaps could spill over onto the customers and partners who depend on you. Hover over any box to trace its path.">
+              <SectionTitle icon={Link2} sub="How your biggest gaps could spill over onto the customers and partners who depend on you. Hover over any box to trace its path.">
                 How your gaps reach your supply chain
               </SectionTitle>
               <Card id="risk-flow" className="scroll-mt-24 p-4 md:p-6">
@@ -635,7 +677,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
 
         {/* Sidebar */}
         <aside className="no-print space-y-4 xl:sticky xl:top-32 xl:max-h-[calc(100vh-9rem)] xl:self-start xl:overflow-y-auto xl:pb-2">
-          <SideCard title="Risks at a glance" icon="📊">
+          <SideCard title="Risks at a glance" icon={ChartColumn}>
             <ul className="space-y-1">
               {assessment.scenarios.map((s) => (
                 <li key={s.id}>
@@ -659,7 +701,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
             </ul>
           </SideCard>
 
-          <SideCard title="Your next step" icon="👉">
+          <SideCard title="Your next step" icon={Flag}>
             {first ? (
               <>
                 <div className="font-semibold leading-snug text-slate-900">{aiAction(first.action.id)?.title ?? first.action.title}</div>
@@ -675,7 +717,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
             )}
           </SideCard>
 
-          <SideCard title="Share and save" icon="📄">
+          <SideCard title="Share and save" icon={Share2}>
             <div className="grid gap-2">
               <Button onClick={() => go('summary')} className="w-full py-2 text-sm">
                 Supplier Security Summary
@@ -699,7 +741,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
             </p>
           </SideCard>
 
-          <SideCard title="Worth double-checking" icon="🔍">
+          <SideCard title="Worth double-checking" icon={SearchCheck}>
             {unsure.length === 0 ? (
               <p className="text-sm text-slate-700">Nothing to check. You answered every question with confidence.</p>
             ) : (
