@@ -1,0 +1,24 @@
+{
+  "A1": {
+    "m365": [{ "label": "Microsoft: turn on security defaults (two-step login)", "url": "https://learn.microsoft.com/en-us/entra/fundamentals/security-defaults" }],
+    "google": [{ "label": "Google: turn on 2-Step Verification", "url": "https://support.google.com/a/answer/175197" }]
+  },
+  "A4": {
+    "m365": [{ "label": "Microsoft: remove a former employee", "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/add-users/remove-former-employee" }],
+    "google": [{ "label": "Google: suspend a user who has left", "url": "https://support.google.com/a/answer/33312" }]
+  },
+  "A6": {
+    "m365": [{ "label": "Microsoft: about admin roles", "url": "https://learn.microsoft.com/en-us/microsoft-365/admin/add-users/about-admin-roles" }],
+    "google": [{ "label": "Google: assign admin roles", "url": "https://support.google.com/a/answer/9807615" }]
+  },
+  "A9": {
+    "m365": [{ "label": "Microsoft: set up DMARC", "url": "https://learn.microsoft.com/en-us/defender-office-365/email-authentication-dmarc-configure" }],
+    "google": [{ "label": "Google: set up DMARC", "url": "https://support.google.com/a/answer/2466580" }]
+  },
+  "A10": {
+    "any": [
+      { "label": "Microsoft: Windows Update", "url": "https://support.microsoft.com/en-us/windows/windows-update-faq-8a903416-6f45-0718-f5c7-375e92dddeb2" },
+      { "label": "Microsoft: turn on Windows Security", "url": "https://support.microsoft.com/en-us/windows/stay-protected-with-windows-security-2ae0363d-0ada-c064-8b56-6a39afb6a963" }
+    ]
+  }
+}
