@@ -331,7 +331,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
         id="results-tabs"
         role="tablist"
         aria-label="Results sections"
-        className="no-print sticky top-16 z-10 -mx-4 mt-4 flex gap-1 overflow-x-auto border-b border-slate-200 bg-slate-50/95 px-4 backdrop-blur sm:-mx-6 sm:px-6"
+        className="no-print sticky top-16 z-10 -mx-4 mt-4 flex gap-1 overflow-x-auto overflow-y-hidden border-b border-slate-200 bg-slate-50/95 px-4 backdrop-blur [scrollbar-width:none] sm:-mx-6 sm:px-6 [&::-webkit-scrollbar]:hidden"
       >
         {TABS.map((tb) => (
           <button
