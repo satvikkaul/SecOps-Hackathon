@@ -2,10 +2,13 @@
   "source": "CIS Critical Security Controls v8.1 (safeguard titles and Implementation Groups from the CIS Controls Assessment Specification)",
   "url": "https://cas.docs.cisecurity.org/en/latest/",
   "controls": {
+    "2": "Inventory and Control of Software Assets",
+    "3": "Data Protection",
     "4": "Secure Configuration of Enterprise Assets and Software",
     "5": "Account Management",
     "6": "Access Control Management",
     "7": "Continuous Vulnerability Management",
+    "8": "Audit Log Management",
     "9": "Email and Web Browser Protections",
     "10": "Malware Defenses",
     "11": "Data Recovery",
@@ -15,6 +18,9 @@
     "17": "Incident Response Management"
   },
   "safeguards": [
+    { "id": "2.2", "title": "Ensure Authorized Software is Currently Supported", "ig": 1 },
+    { "id": "3.6", "title": "Encrypt Data on End-User Devices", "ig": 1 },
+    { "id": "3.9", "title": "Encrypt Data on Removable Media", "ig": 2 },
     { "id": "4.3", "title": "Configure Automatic Session Locking on Enterprise Assets", "ig": 1 },
     { "id": "4.7", "title": "Manage Default Accounts on Enterprise Assets and Software", "ig": 1 },
     { "id": "4.8", "title": "Uninstall or Disable Unnecessary Services on Enterprise Assets and Software", "ig": 2 },
@@ -27,6 +33,8 @@
     { "id": "6.4", "title": "Require MFA for Remote Network Access", "ig": 1 },
     { "id": "7.3", "title": "Perform Automated Operating System Patch Management", "ig": 1 },
     { "id": "7.4", "title": "Perform Automated Application Patch Management", "ig": 1 },
+    { "id": "8.2", "title": "Collect Audit Logs", "ig": 1 },
+    { "id": "8.11", "title": "Conduct Audit Log Reviews", "ig": 2 },
     { "id": "9.5", "title": "Implement DMARC", "ig": 2 },
     { "id": "10.1", "title": "Deploy and Maintain Anti-Malware Software", "ig": 1 },
     { "id": "10.2", "title": "Configure Automatic Anti-Malware Signature Updates", "ig": 1 },

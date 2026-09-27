@@ -31,12 +31,13 @@ import { useAppStore } from '../store/appStore';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
 
-const STATUS_ORDER: ControlStatus[] = ['Met', 'Partially met', 'Not yet met', 'Not assessed'];
+const STATUS_ORDER: ControlStatus[] = ['Met', 'Partially met', 'Not yet met', 'Not assessed', 'Not applicable'];
 const STATUS_STYLES: Record<ControlStatus, string> = {
   Met: 'bg-emerald-50 text-emerald-700',
   'Partially met': 'bg-amber-50 text-amber-800',
   'Not yet met': 'bg-slate-100 text-slate-600',
   'Not assessed': 'bg-slate-50 text-slate-400',
+  'Not applicable': 'bg-sky-50 text-sky-700',
 };
 
 /** The demo company's real results, from the same engine the report uses. */
@@ -47,7 +48,7 @@ function useDemoPreview() {
     const top = buildPlan(prioritizeActions(profile, answers)).top;
     const after = assess(profile, top.reduce((a, r) => applyFix(a, r.action.questionIds), answers));
     const controls = cccsStatuses(profile, answers)
-      .filter((c) => c.status !== 'Not assessed')
+      .filter((c) => c.status !== 'Not assessed' && c.status !== 'Not applicable')
       .sort((a, b) => STATUS_ORDER.indexOf(a.status) - STATUS_ORDER.indexOf(b.status));
     return { before, after, top, controls, cut: (before.totalRisk - after.totalRisk) / before.totalRisk };
   }, []);

@@ -422,5 +422,86 @@
     "time": "Under 1 hour",
     "effort": 1,
     "questionIds": ["Q26"]
+  },
+  {
+    "id": "A20",
+    "title": "Replace or wall off computers that no longer get updates",
+    "whatToDo": "Find every computer on an operating system that no longer gets security updates, replace it, or take it off the network until you can.",
+    "why": "An unsupported computer keeps every security hole found after its last update, and attackers scan for exactly those. One old PC on the office network can be the way into everything else.",
+    "steps": [
+      "List every computer, including PCs that run refrigeration, grain, or plant equipment. On Windows, open Settings, then System, then About to see the version. On a Mac, open the Apple menu, then About This Mac.",
+      "Flag anything on Windows 10 or older, or on a macOS version Apple no longer updates (Apple generally updates the three newest versions).",
+      "Replace office computers first. Windows 11 needs newer hardware, so many older PCs have to be replaced rather than upgraded.",
+      "For a PC that runs equipment and can't be replaced yet, ask the equipment vendor for a supported version. In the meantime, move it to a separate network with no internet access and never use it for email or browsing.",
+      "If you need more time, Microsoft sells Extended Security Updates for Windows 10 to businesses as a stopgap. Treat it as a deadline, not a fix."
+    ],
+    "cost": "$ to $$",
+    "time": "A few days",
+    "effort": 3,
+    "questionIds": ["Q27"]
+  },
+  {
+    "id": "A21",
+    "title": "Encrypt laptops and use only company USB drives",
+    "whatToDo": "Turn on the encryption built into Windows and macOS on every laptop, and keep business files on company-owned, encrypted USB drives only.",
+    "why": "Lost and stolen laptops and USB drives are the most common way small businesses leak customer and banking data. With encryption on, a lost device is a hardware cost, not a data breach.",
+    "steps": [
+      "On each Windows laptop, open Settings and search for 'Device encryption' or 'BitLocker', and turn it on. It is included with Windows 11 Pro and on most newer laptops.",
+      "Save the recovery key somewhere other than the laptop. If the laptop signs in with a work Microsoft account, the key is saved to that account automatically; otherwise print it and lock it away.",
+      "On each Mac, open System Settings, then Privacy & Security, then FileVault, and choose Turn On.",
+      "Buy a few company USB drives and label them. On Windows Pro, right-click each drive and choose 'Turn on BitLocker' (BitLocker To Go) and set a password.",
+      "Tell staff that personal USB drives are not for business files, and wipe or physically destroy old drives before throwing them out."
+    ],
+    "cost": "Free",
+    "time": "Half a day",
+    "effort": 2,
+    "questionIds": ["Q28", "Q29"]
+  },
+  {
+    "id": "A22",
+    "title": "Turn on sign-in alerts and name someone to check them",
+    "whatToDo": "Send alerts about suspicious sign-ins and new email forwarding rules to a named person, block automatic forwarding outside the company, and agree what to do when an alert arrives.",
+    "why": "Most payment and load fraud starts with a stolen email password, and criminals often watch a mailbox for weeks first. An alert that someone actually reads turns weeks into hours.",
+    "steps": [
+      "Pick who receives security alerts (the owner or office manager, plus your IT company if you have one) and a backup for when they are away.",
+      "In your email provider's admin settings, turn on alerts for suspicious sign-ins and for new forwarding rules, and send them to that person.",
+      "Turn off automatic forwarding of email to addresses outside the company.",
+      "When an alert arrives, phone the person it is about (don't email them). If it wasn't them, reset their password, sign them out everywhere, and check their mailbox rules."
+    ],
+    "stepsByProvider": {
+      "m365": [
+        "Go to security.microsoft.com and sign in with your Microsoft 365 admin account.",
+        "Open Email & collaboration, then Policies & rules, then Alert policy. Check that the built-in alerts 'Creation of forwarding/redirect rule', 'Suspicious email forwarding activity', and 'User restricted from sending email' are on, and add your named person as a recipient on each.",
+        "Still under Policies & rules, open Threat policies, then Anti-spam, and edit the outbound spam filter policy. Set 'Automatic forwarding rules' to Off.",
+        "When an alert arrives, phone the person it is about. If it wasn't them, reset their password, choose 'Sign out of all sessions' on their account in the Microsoft 365 admin center, and delete any inbox rules they didn't create."
+      ],
+      "google": [
+        "Go to admin.google.com and sign in with your Google Workspace admin account.",
+        "Open Rules. Edit the system-defined 'Suspicious login' and 'Leaked password' rules and turn on email notifications to your named person.",
+        "Open Apps, then Google Workspace, then Gmail, then End User Access. Under Automatic forwarding, uncheck 'Allow users to automatically forward incoming email to another address'.",
+        "Check Security, then Alert center once a week. When an alert arrives, phone the person it is about. If it wasn't them, reset their password and sign them out of all sessions from their user page."
+      ]
+    },
+    "cost": "Free",
+    "time": "Under 1 hour",
+    "effort": 1,
+    "questionIds": ["Q30"]
+  },
+  {
+    "id": "A23",
+    "title": "Verify every new carrier before you tender a load",
+    "whatToDo": "Before a load goes to a carrier you haven't used, check their registration and call them on a number from the official record, not the one they gave you.",
+    "why": "Fake and hijacked carrier identities let criminals book a load, pick it up, and disappear. A registration check and one phone call to a number you found yourself stops most of them.",
+    "steps": [
+      "Write the rule down in one sentence: 'No load goes to a new carrier until we've checked their registration and called them on a number we looked up ourselves.'",
+      "Check registration: for Canadian carriers, their National Safety Code (NSC) number with the provincial registry; for US carriers, their USDOT and MC numbers on the FMCSA SAFER website. Confirm the name, address, and how long they've held authority.",
+      "Call the phone number on the official record or the carrier's long-standing website, not the one in the email or load board message, and confirm they really booked this load.",
+      "Treat these as red flags: brand-new authority, a free email address, contact details that don't match the registration, pressure to move fast, or a request to pay a different company.",
+      "Keep a list of vetted carriers so repeat loads don't need the full check, and check again whenever a carrier's contact or payment details change."
+    ],
+    "cost": "Free",
+    "time": "Under 1 hour",
+    "effort": 1,
+    "questionIds": ["Q31"]
   }
 ]

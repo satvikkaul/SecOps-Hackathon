@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   checkDomain,
   describeFindings,
-  dmarcToAnswer,
+  emailAuthToAnswer,
   isValidDomain,
   normalizeDomain,
   parseDmarcPolicy,
@@ -40,10 +40,18 @@ describe('dns helpers', () => {
   it('parses DMARC policy and maps it to an answer', () => {
     expect(parseDmarcPolicy('v=DMARC1; p=reject; rua=mailto:x')).toBe('reject');
     expect(parseDmarcPolicy('v=DMARC1; sp=none; p=quarantine')).toBe('quarantine');
-    expect(dmarcToAnswer({ status: 'ok', record: 'x', policy: 'quarantine' })).toBe('yes');
-    expect(dmarcToAnswer({ status: 'ok', record: 'x', policy: 'none' })).toBe('partial');
-    expect(dmarcToAnswer({ status: 'missing', record: null, policy: null })).toBe('no');
-    expect(dmarcToAnswer({ status: 'error', record: null, policy: null })).toBeUndefined();
+    const spf = { status: 'ok' as const, record: 'v=spf1 -all' };
+    expect(emailAuthToAnswer({ spf, dmarc: { status: 'ok', record: 'x', policy: 'quarantine' } })).toBe('yes');
+    expect(emailAuthToAnswer({ spf, dmarc: { status: 'ok', record: 'x', policy: 'none' } })).toBe('partial');
+    expect(emailAuthToAnswer({ spf, dmarc: { status: 'missing', record: null, policy: null } })).toBe('no');
+    expect(emailAuthToAnswer({ spf, dmarc: { status: 'error', record: null, policy: null } })).toBeUndefined();
+  });
+  it('caps enforced DMARC at partial when SPF is missing, but not when the SPF lookup failed', () => {
+    const dmarc = { status: 'ok' as const, record: 'x', policy: 'reject' };
+    expect(emailAuthToAnswer({ spf: { status: 'missing', record: null }, dmarc })).toBe('partial');
+    expect(emailAuthToAnswer({ spf: { status: 'error', record: null }, dmarc })).toBe('yes');
+    const f = describeFindings({ domain: 'x.ca', mx: { status: 'ok', records: [], provider: 'm365' }, spf: { status: 'missing', record: null }, dmarc });
+    expect(f.find((x) => x.key === 'dmarc')!.indicator).toBe('amber');
   });
 });
 

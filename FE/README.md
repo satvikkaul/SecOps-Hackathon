@@ -34,14 +34,14 @@ The questions, fixes, standards and other content live in the database. The back
 BE/app/catalog/         All tunable content. Edit these, not the code or the database rows.
     scenarios.json      8 threat scenarios, base likelihood per sector, and a plain-language consequence chain per sector
     profile.json        Business profile questions
-    questions.json      26 underlying security questions: weights, help text, technical label, CCCS + CIS mappings, showIf
-    prompts.json        The questionnaire people see: 10 cards that fill in those 26 questions
+    questions.json      31 underlying security questions: weights, help text, technical label, CCCS + CIS mappings, showIf
+    prompts.json        The questionnaire people see: 11 cards that fill in those 31 questions
     impactRules.json    How the profile raises or lowers impact
-    actions.json        19 fixes: steps (with Microsoft 365 / Google variants), cost, time, effort
+    actions.json        23 fixes: steps (with Microsoft 365 / Google variants), cost, time, effort
     ranking.json        The two prioritization modes, cost points, and the essential-fix rule
     supplyChain.json    Right-hand column of the risk flow diagram
     cccs.json           CCCS Baseline Controls v1.2: 13 controls and their 42 sub-requirements
-    cis.json            The 27 CIS Controls v8.1 safeguards the questions map to, with Implementation Group
+    cis.json            The 32 CIS Controls v8.1 safeguards the questions map to, with Implementation Group
     …                   plus ciosc.json, frameworks.json, templates.json, rules.json
 src/
   data/demoPersona.json Peel Valley Fresh Logistics, including stored DNS results (bundled with the app)
@@ -60,7 +60,8 @@ src/
 For each scenario:
 
 - **Likelihood** = base likelihood for the sector × the product of `(1 − weight × answer)` over every answered question. Yes = 1, Partly = 0.5, No and Not sure = 0. The minimum is 0.05.
-- **"Does not apply"** (an explicit answer, or a question hidden by the business profile) also counts as 1 for likelihood: if a route into the business does not exist, there is no exposure through it. It never counts toward a control status, a fix, or "worth checking", and it never earns the incident-plan or insurance impact discount.
+- **"Does not apply"** (an explicit answer, or a question hidden by the business profile) also counts as 1 for likelihood: if a route into the business does not exist, there is no exposure through it. It never counts toward a control status, a fix, or "worth checking", and it never earns the incident-plan or insurance impact discount. The exception is a question hidden by **sector** (carrier vetting, Q31, is for brokers only): other sectors lack that safeguard rather than the exposure, so it is left out of their score entirely.
+- **Email authentication (Q11)** is filled in from the domain check: Yes needs a DMARC policy of quarantine or reject **and** an SPF record. Enforced DMARC without SPF, or DMARC in watch mode (`p=none`), is Partly; no DMARC is No.
 - **Impact** starts at 2, and `impactRules.json` modifiers are added based on the profile. The result is kept between 1 and 5. After that, Q24 (incident plan) takes off 15% and Q25 (insurance) takes off 10% from ransomware and payment fraud.
 - **Risk** = likelihood × impact. Bands: 3.0+ High, 2.0 to 2.99 Elevated, 1.0 to 1.99 Moderate, under 1.0 Low.
 - **Overall posture** is the band of the single highest scenario risk. See "Changes from the original spec" below.
@@ -78,15 +79,16 @@ Top 5 → "Do these first". The rest go into the 30 / 60 / 90 day plan by effort
 
 ## The questionnaire
 
-People answer **10 cards** (`prompts.json`), not 26 separate questions. Each card fills in the underlying questions (`questions.json`) that the scoring and the CCCS/CIS mappings use, so none of that changes.
+People answer **11 cards** (`prompts.json`), not 31 separate questions. Each card fills in the underlying questions (`questions.json`) that the scoring and the CCCS/CIS mappings use, so none of that changes.
 
 - **Grouped rows.** Related questions share a card, e.g. "Accounts and passwords" has 4 short rows. Each row has answers written for that question ("The same day / Within a few days / It can take longer or get missed") instead of Yes / Partly / No, and each option maps to yes, partial, or no.
 - **Ladders for nested questions.** Backups are one choice that sets both Q14 (regular backups) and Q15 (offline, tested copy). You cannot have a tested offline copy without backing up, so one answer is clearer and still exact. Unrelated pairs, like the call-back rule and dual payment approval, stay as separate rows so no combination is lost.
-- **"Does not apply" where a route can genuinely be absent:** no online business tools (Q2), no work phones or tablets (Q16), nobody connects from outside (Q17), no guest Wi-Fi (Q21). Questions hidden by the profile (Q7 without weekly payments; Q18 and Q19 without connected equipment) are never asked.
+- **"Does not apply" where a route can genuinely be absent:** no online business tools (Q2), nobody connects from outside (Q17), no guest Wi-Fi (Q21), no laptops (Q28), no USB drives (Q29). Questions hidden by the profile (Q7 without weekly payments; Q18 and Q19 without connected equipment; Q16 when nobody uses a phone for work; Q31 unless you are a broker) are never asked.
+- **Profile wording**, e.g. the phone row asks about people's own phones when the profile says staff use them for work (`labelWhen` in `prompts.json`).
 - **"Not sure"** is a smaller link under every row and ladder. It still scores as No and appears in "Things worth checking".
 - **Sector wording**, e.g. the portals row mentions load boards for carriers and brokers, and co-op or grain marketing accounts for farms.
 
-`prompts.test.ts` checks that every one of the 26 questions is asked exactly once, in the right section, with valid answers; that "does not apply" is only offered on those four questions and never on impact reducers; that the backup ladder runs from least to most protected; and that every demo company answer is still selectable.
+`prompts.test.ts` checks that every question is asked exactly once, in the right section, with valid answers; that "does not apply" is only offered on those five questions and never on impact reducers; that the backup ladder runs from least to most protected; and that every demo company answer is still selectable.
 
 ## Tuning weights (JSON only)
 
@@ -185,7 +187,7 @@ It pre-fills Q11 and the email provider. The user can override both. Network fai
    | Q14 regular backups | Yes | Partly | Files go to a USB drive "when someone remembers" |
    | Q17 secure remote access | Partly | No | |
 
-   Result (since the load-redirect risk and Q26 were added, 2026-09-26): **Load redirected to bad actors is #1 at 3.50 (High)**, payment fraud #2 at 3.20 (High), stolen logins #3 at 2.80, posture High. Actions: A1 (two-step login on email), **A19 (call back and a second OK on load changes)**, A7, A8, A4. A13 is #7.
+   Result (since the load-redirect risk and Q26 were added, 2026-09-26): **Load redirected to bad actors is #1 at 3.50 (High)**, payment fraud #2 at 3.20 (High), stolen logins #3 at 2.80, posture High. Actions: A1 (two-step login on email), **A19 (call back and a second OK on load changes)**, A7, A8, A4. A13 is #8. The top three risks kept the same scores when the device, sign-in alert, and profile questions (Q27–Q31) were added; the new sign-in alerts fix (A22) comes in at #7, just ahead of A13.
 3. The summary footer says "Self-assessed using Chain of Custody". The spec text said "FieldGuard", which looked like an earlier product name.
 4. Added a short `topic`, `gapLabel`, and scenario `phrase`/`short` fields to the JSON to drive the UI copy.
 5. **CCCS mapping corrected against the source text.** The spec mapped Q7 to awareness training and Q8 to access control. Neither fits: they are payment procedures and are now reported separately. The spec also mapped Q19 (equipment segmentation) to "Securely configure devices"; it is now a partial fit under Perimeter defences (BC.9). Q17 and Q18 gained secondary mappings (BC.5.1 and BC.4.1).

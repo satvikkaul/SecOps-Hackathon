@@ -101,10 +101,16 @@ describe('key mappings checked against the source text', () => {
     expect(cisIds('Q10')).toEqual([]);
     expect(cisIds('Q25')).toEqual([]);
   });
-  it('BC.11 (websites) and BC.13 (portable media) have no questions', () => {
+  it('BC.11 (websites) has no questions and applies only to businesses with a website', () => {
     const used = new Set(questions.flatMap((q) => q.cccs.map((m) => m.control)));
     expect(used.has('BC.11')).toBe(false);
-    expect(used.has('BC.13')).toBe(false);
+    expect(cccs.controls.find((c) => c.id === 'BC.11')!.appliesIf).toEqual({ profile: 'website', in: ['info', 'ordering'] });
+  });
+  it('USB drives map to BC.13.1 and CIS 3.9; out-of-date computers to BC.2.2 and CIS 2.2', () => {
+    expect(questionById.Q29.cccs).toEqual([{ control: 'BC.13', reqs: ['BC.13.1'], strength: 'direct' }]);
+    expect(questionById.Q29.cis.map((m) => m.safeguard)).toEqual(['3.9']);
+    expect(questionById.Q27.cccs.map((m) => m.reqs).flat()).toContain('BC.2.2');
+    expect(questionById.Q27.cis.map((m) => m.safeguard)).toEqual(['2.2']);
   });
 });
 

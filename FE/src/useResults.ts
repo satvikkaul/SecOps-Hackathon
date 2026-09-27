@@ -16,7 +16,7 @@ export function useResults(profile: Profile, answers: Answers, mode: RankingMode
       plan: buildPlan(ranked),
       unsure: unsureQuestions(profile, answers),
       cccs,
-      ciosc: cioscStatuses(cccs),
+      ciosc: cioscStatuses(cccs, profile, answers),
       cis: cisStatuses(profile, answers),
       otherPractices: otherPractices(profile, answers),
       flow: buildFlow(profile, answers, assessment),

@@ -23,7 +23,7 @@ const ladders = prompts.filter((p): p is LadderPrompt => p.type === 'ladder');
 const allRows = rowsPrompts.flatMap((p) => p.rows);
 
 describe('coverage: every underlying question is asked exactly once', () => {
-  it('covers all 26 questions with no gaps or duplicates', () => {
+  it('covers every question exactly once', () => {
     const asked = prompts.flatMap(promptQuestionIds);
     expect(new Set(asked).size).toBe(asked.length);
     expect([...asked].sort()).toEqual(questions.map((q) => q.id).sort());
@@ -58,7 +58,7 @@ describe('answer options', () => {
     }
   });
   it('offers "does not apply" only where a route can genuinely be absent', () => {
-    expect(allRows.filter((r) => r.na).map((r) => r.question)).toEqual(['Q2', 'Q16', 'Q17', 'Q21']);
+    expect(allRows.filter((r) => r.na).map((r) => r.question).sort()).toEqual(['Q17', 'Q2', 'Q21', 'Q28', 'Q29']);
     // Impact reducers must never be skippable: "no plan" is not "not applicable"
     for (const r of allRows) if (questionById[r.question].impactReduction) expect(r.na, r.question).toBeUndefined();
   });
@@ -100,6 +100,16 @@ describe('visibility', () => {
     expect(rowLabel(row, { sector: 'carrier' })).toMatch(/load boards/);
     expect(rowLabel(row, { sector: 'farm' })).toMatch(/co-op/);
     expect(rowLabel(row, { sector: 'processor' })).toBe(row.label);
+  });
+  it('mentions personal phones when staff use their own for work', () => {
+    const row = allRows.find((r) => r.question === 'Q16')!;
+    expect(rowLabel(row, { phones: 'both' })).toMatch(/people's own/);
+    expect(rowLabel(row, { phones: 'company' })).toBe(row.label);
+  });
+  it('shows the carrier vetting row to brokers only', () => {
+    const qs = (p: Profile) => visiblePrompts(p).flatMap(promptQuestionIds);
+    expect(qs({ sector: 'broker', payments: 'yes' })).toContain('Q31');
+    expect(qs({ sector: 'carrier', payments: 'yes' })).not.toContain('Q31');
   });
 });
 

@@ -28,21 +28,21 @@
     "implementationGroup": "CIS Implementation Group: 1 = essential cyber hygiene, 2 and 3 = progressively larger or more mature organizations."
   },
   "summary": {
-    "questions": 26,
+    "questions": 31,
     "cccsControls": 13,
-    "cccsControlsAssessed": 11,
+    "cccsControlsAssessed": 12,
     "cccsRequirements": 42,
-    "cccsRequirementsAssessed": 20,
-    "cisSafeguardsMapped": 27,
+    "cccsRequirementsAssessed": 22,
+    "cisSafeguardsMapped": 32,
     "cisSafeguardsByImplementationGroup": {
-      "ig1": 19,
-      "ig2": 8,
+      "ig1": 22,
+      "ig2": 10,
       "ig3": 0
     },
     "mappings": {
-      "total": 55,
-      "direct": 31,
-      "partial": 24
+      "total": 63,
+      "direct": 36,
+      "partial": 27
     }
   },
   "byQuestion": [
@@ -863,7 +863,7 @@
       "shownOnlyIf": null,
       "askedIn": {
         "card": "P5",
-        "cardTitle": "Computers, phones, and tablets",
+        "cardTitle": "Computers",
         "label": "Do computers install security updates automatically?",
         "labelBySector": null,
         "answers": [
@@ -943,7 +943,7 @@
       "shownOnlyIf": null,
       "askedIn": {
         "card": "P5",
-        "cardTitle": "Computers, phones, and tablets",
+        "cardTitle": "Computers",
         "label": "Is antivirus (like Microsoft Defender) turned on?",
         "labelBySector": null,
         "answers": [
@@ -1200,10 +1200,10 @@
       "section": "Computers and backups",
       "topic": "PIN and remote wipe on phones",
       "question": "Are phones and tablets used for work locked with a PIN, and can you wipe them remotely if lost?",
-      "shownOnlyIf": null,
+      "shownOnlyIf": "phones is company or personal or both",
       "askedIn": {
-        "card": "P5",
-        "cardTitle": "Computers, phones, and tablets",
+        "card": "P11",
+        "cardTitle": "Lost or stolen devices",
         "label": "Are work phones and tablets locked with a PIN, and can you wipe them remotely if they're lost?",
         "labelBySector": null,
         "answers": [
@@ -1218,10 +1218,6 @@
           {
             "value": "no",
             "label": "Neither"
-          },
-          {
-            "value": "na",
-            "label": "We don't use phones or tablets for work"
           },
           {
             "value": "unsure",
@@ -2061,6 +2057,357 @@
           "title": "Lock down load changes: call back and get a second OK"
         }
       ]
+    },
+    {
+      "id": "Q27",
+      "section": "Computers and backups",
+      "topic": "Computers still get updates",
+      "question": "Does every computer, including any PC that runs equipment, still get security updates from Microsoft or Apple?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P5",
+        "cardTitle": "Computers",
+        "label": "Does every computer still get security updates, including any PC that runs equipment?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, every one is on a supported version"
+          },
+          {
+            "value": "partial",
+            "label": "One or two older ones are still in use"
+          },
+          {
+            "value": "no",
+            "label": "Several are, or we don't know"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "RANSOM",
+          "riskName": "Ransomware shuts down operations",
+          "effect": "likelihood",
+          "weight": 0.2
+        },
+        {
+          "risk": "OT",
+          "riskName": "Tampering with connected equipment",
+          "effect": "likelihood",
+          "weight": 0.15
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.2",
+          "controlName": "Automatic patching",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.2.2",
+              "summary": "Assess replacing anything that cannot update automatically, or patch it manually"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "2.2",
+          "title": "Ensure Authorized Software is Currently Supported",
+          "implementationGroup": 1,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": null,
+      "fixedByActions": [
+        {
+          "id": "A20",
+          "title": "Replace or wall off computers that no longer get updates"
+        }
+      ]
+    },
+    {
+      "id": "Q28",
+      "section": "Computers and backups",
+      "topic": "Encrypted laptops",
+      "question": "Are laptops encrypted (BitLocker on Windows, FileVault on Mac), so a lost or stolen one can't be read?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P11",
+        "cardTitle": "Lost or stolen devices",
+        "label": "Are laptops encrypted (BitLocker on Windows, FileVault on Mac)?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Every laptop"
+          },
+          {
+            "value": "partial",
+            "label": "Some laptops"
+          },
+          {
+            "value": "no",
+            "label": "No, or we don't know"
+          },
+          {
+            "value": "na",
+            "label": "We don't use laptops"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "DATALOSS",
+          "riskName": "Losing data you cannot get back",
+          "effect": "likelihood",
+          "weight": 0.15
+        },
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.8",
+          "controlName": "Secure mobility",
+          "strength": "partial",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.8.4",
+              "summary": "Store sensitive information on mobile devices in an encrypted state"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "3.6",
+          "title": "Encrypt Data on End-User Devices",
+          "implementationGroup": 1,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "CCCS BC.8.4 asks for sensitive information on mobile devices to be stored encrypted; a laptop that leaves the office is one. Desktops that never leave the building are not asked about.",
+      "fixedByActions": [
+        {
+          "id": "A21",
+          "title": "Encrypt laptops and use only company USB drives"
+        }
+      ]
+    },
+    {
+      "id": "Q29",
+      "section": "Computers and backups",
+      "topic": "Company USB drives only",
+      "question": "Is business data only copied to company-owned, encrypted USB drives, never personal ones?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P11",
+        "cardTitle": "Lost or stolen devices",
+        "label": "Is business data only copied to company-owned, encrypted USB drives?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, company drives with encryption"
+          },
+          {
+            "value": "partial",
+            "label": "Company drives, but not encrypted"
+          },
+          {
+            "value": "no",
+            "label": "Any USB drive, including personal ones"
+          },
+          {
+            "value": "na",
+            "label": "We never use USB drives"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "DATALOSS",
+          "riskName": "Losing data you cannot get back",
+          "effect": "likelihood",
+          "weight": 0.15
+        }
+      ],
+      "cccs": [
+        {
+          "control": "BC.13",
+          "controlName": "Secure portable media",
+          "strength": "direct",
+          "primary": true,
+          "requirements": [
+            {
+              "id": "BC.13.1",
+              "summary": "Only organization-owned, encrypted portable media under asset control"
+            }
+          ]
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "3.9",
+          "title": "Encrypt Data on Removable Media",
+          "implementationGroup": 2,
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "BC.13.2 (wiping or destroying drives before disposal) is not asked.",
+      "fixedByActions": [
+        {
+          "id": "A21",
+          "title": "Encrypt laptops and use only company USB drives"
+        }
+      ]
+    },
+    {
+      "id": "Q30",
+      "section": "Logins and accounts",
+      "topic": "Sign-in alerts",
+      "question": "Does someone get alerts about suspicious sign-ins or new email forwarding rules, and check them?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P2",
+        "cardTitle": "Accounts and passwords",
+        "label": "Does someone get alerts about suspicious sign-ins or new email forwarding rules, and check them?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Yes, alerts go to someone who checks them"
+          },
+          {
+            "value": "partial",
+            "label": "Alerts are on, but nobody really reads them"
+          },
+          {
+            "value": "no",
+            "label": "No alerts that we know of"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "ATO",
+          "riskName": "Stolen logins to online business tools",
+          "effect": "likelihood",
+          "weight": 0.2
+        },
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.15
+        },
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [],
+      "cis": [
+        {
+          "safeguard": "8.2",
+          "title": "Collect Audit Logs",
+          "implementationGroup": 1,
+          "strength": "partial"
+        },
+        {
+          "safeguard": "8.11",
+          "title": "Conduct Audit Log Reviews",
+          "implementationGroup": 2,
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "The CCCS baseline has no logging or monitoring control, so this is reported under CAN/CIOSC 104 section 6.6 (security log management). Your email provider collects the sign-in logs (CIS 8.2), and reading its alerts is a lightweight form of log review (CIS 8.11).",
+      "fixedByActions": [
+        {
+          "id": "A22",
+          "title": "Turn on sign-in alerts and name someone to check them"
+        }
+      ]
+    },
+    {
+      "id": "Q31",
+      "section": "Payments, loads, and email",
+      "topic": "New carriers verified",
+      "question": "Before giving a load to a carrier you haven't used before, do you verify them using contact details you looked up yourself?",
+      "shownOnlyIf": "sector is broker",
+      "askedIn": {
+        "card": "P3",
+        "cardTitle": "Payments and load changes",
+        "label": "Before giving a load to a new carrier, do you check their registration and call them on a number you looked up yourself?",
+        "labelBySector": null,
+        "answers": [
+          {
+            "value": "yes",
+            "label": "Always, using contact details we found ourselves"
+          },
+          {
+            "value": "partial",
+            "label": "We check registration, but use the contact details they gave us"
+          },
+          {
+            "value": "no",
+            "label": "No, we go with what they send us"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.5
+        },
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [],
+      "cis": [],
+      "mappingNote": "Vetting carriers is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary.",
+      "fixedByActions": [
+        {
+          "id": "A23",
+          "title": "Verify every new carrier before you tender a load"
+        }
+      ]
     }
   ],
   "byCccsControl": [
@@ -2129,7 +2476,7 @@
       "id": "BC.2",
       "name": "Automatic patching",
       "requirementsTotal": 2,
-      "requirementsAssessed": 1,
+      "requirementsAssessed": 2,
       "requirements": [
         {
           "id": "BC.2.1",
@@ -2146,8 +2493,14 @@
         {
           "id": "BC.2.2",
           "summary": "Assess replacing anything that cannot update automatically, or patch it manually",
-          "assessed": false,
-          "questions": []
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q27",
+              "topic": "Computers still get updates",
+              "strength": "direct"
+            }
+          ]
         }
       ],
       "questionsCountingTowardStatus": [
@@ -2155,9 +2508,15 @@
           "questionId": "Q12",
           "topic": "Automatic updates",
           "strength": "direct"
+        },
+        {
+          "questionId": "Q27",
+          "topic": "Computers still get updates",
+          "strength": "direct"
         }
       ],
       "relatedCisSafeguards": [
+        "2.2",
         "7.3",
         "7.4"
       ]
@@ -2432,6 +2791,11 @@
               "questionId": "Q16",
               "topic": "PIN and remote wipe on phones",
               "strength": "partial"
+            },
+            {
+              "questionId": "Q28",
+              "topic": "Encrypted laptops",
+              "strength": "partial"
             }
           ]
         },
@@ -2465,9 +2829,15 @@
           "questionId": "Q16",
           "topic": "PIN and remote wipe on phones",
           "strength": "partial"
+        },
+        {
+          "questionId": "Q28",
+          "topic": "Encrypted laptops",
+          "strength": "partial"
         }
       ],
       "relatedCisSafeguards": [
+        "3.6",
         "4.3",
         "4.11"
       ]
@@ -2762,13 +3132,19 @@
       "id": "BC.13",
       "name": "Secure portable media",
       "requirementsTotal": 2,
-      "requirementsAssessed": 0,
+      "requirementsAssessed": 1,
       "requirements": [
         {
           "id": "BC.13.1",
           "summary": "Only organization-owned, encrypted portable media under asset control",
-          "assessed": false,
-          "questions": []
+          "assessed": true,
+          "questions": [
+            {
+              "questionId": "Q29",
+              "topic": "Company USB drives only",
+              "strength": "direct"
+            }
+          ]
         },
         {
           "id": "BC.13.2",
@@ -2777,11 +3153,61 @@
           "questions": []
         }
       ],
-      "questionsCountingTowardStatus": [],
-      "relatedCisSafeguards": []
+      "questionsCountingTowardStatus": [
+        {
+          "questionId": "Q29",
+          "topic": "Company USB drives only",
+          "strength": "direct"
+        }
+      ],
+      "relatedCisSafeguards": [
+        "3.9"
+      ]
     }
   ],
   "byCisSafeguard": [
+    {
+      "id": "2.2",
+      "title": "Ensure Authorized Software is Currently Supported",
+      "control": 2,
+      "controlName": "Inventory and Control of Software Assets",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q27",
+          "topic": "Computers still get updates",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "3.6",
+      "title": "Encrypt Data on End-User Devices",
+      "control": 3,
+      "controlName": "Data Protection",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q28",
+          "topic": "Encrypted laptops",
+          "strength": "direct"
+        }
+      ]
+    },
+    {
+      "id": "3.9",
+      "title": "Encrypt Data on Removable Media",
+      "control": 3,
+      "controlName": "Data Protection",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q29",
+          "topic": "Company USB drives only",
+          "strength": "direct"
+        }
+      ]
+    },
     {
       "id": "4.3",
       "title": "Configure Automatic Session Locking on Enterprise Assets",
@@ -2951,6 +3377,34 @@
         {
           "questionId": "Q12",
           "topic": "Automatic updates",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "8.2",
+      "title": "Collect Audit Logs",
+      "control": 8,
+      "controlName": "Audit Log Management",
+      "implementationGroup": 1,
+      "questions": [
+        {
+          "questionId": "Q30",
+          "topic": "Sign-in alerts",
+          "strength": "partial"
+        }
+      ]
+    },
+    {
+      "id": "8.11",
+      "title": "Conduct Audit Log Reviews",
+      "control": 8,
+      "controlName": "Audit Log Management",
+      "implementationGroup": 2,
+      "questions": [
+        {
+          "questionId": "Q30",
+          "topic": "Sign-in alerts",
           "strength": "partial"
         }
       ]
@@ -3173,11 +3627,9 @@
   ],
   "gaps": {
     "cccsControlsNotAssessed": [
-      "BC.11 Secure websites",
-      "BC.13 Secure portable media"
+      "BC.11 Secure websites"
     ],
     "cccsRequirementsNotAssessed": [
-      "BC.2.2 Assess replacing anything that cannot update automatically, or patch it manually",
       "BC.3.2 Turn on built-in software firewalls on devices",
       "BC.5.2 Only force password changes on suspicion or evidence of compromise",
       "BC.8.1 Choose and document a mobile device ownership model",
@@ -3197,7 +3649,6 @@
       "BC.11.2 Know the ASVS level each website needs to meet",
       "BC.12.2 Use admin accounts only for admin tasks, not email or web browsing",
       "BC.12.4 Consider centralized authorization control",
-      "BC.13.1 Only organization-owned, encrypted portable media under asset control",
       "BC.13.2 Sanitize or destroy portable media before disposal"
     ],
     "questionsWithNoCccsMapping": [
@@ -3215,6 +3666,16 @@
         "id": "Q26",
         "topic": "Second check on load changes",
         "reason": "Confirming shipment changes is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary."
+      },
+      {
+        "id": "Q30",
+        "topic": "Sign-in alerts",
+        "reason": "The CCCS baseline has no logging or monitoring control, so this is reported under CAN/CIOSC 104 section 6.6 (security log management). Your email provider collects the sign-in logs (CIS 8.2), and reading its alerts is a lightweight form of log review (CIS 8.11)."
+      },
+      {
+        "id": "Q31",
+        "topic": "New carriers verified",
+        "reason": "Vetting carriers is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary."
       }
     ],
     "questionsWithNoCisMapping": [
@@ -3242,6 +3703,11 @@
         "id": "Q26",
         "topic": "Second check on load changes",
         "reason": "Confirming shipment changes is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary."
+      },
+      {
+        "id": "Q31",
+        "topic": "New carriers verified",
+        "reason": "Vetting carriers is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary."
       }
     ]
   }

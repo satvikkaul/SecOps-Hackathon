@@ -65,12 +65,16 @@ export function parseDmarcPolicy(record: string): string | null {
   return m ? m[1].toLowerCase() : null;
 }
 
-/** Map a DMARC result to an answer for Q11. Returns undefined when the check failed. */
-export function dmarcToAnswer(dmarc: DnsResult['dmarc']): AnswerValue | undefined {
+/**
+ * Map the SPF and DMARC results to an answer for Q11. Returns undefined when the DMARC check failed.
+ * Yes needs an enforcing DMARC policy and an SPF record; a missing SPF record caps it at partial.
+ */
+export function emailAuthToAnswer(r: Pick<DnsResult, 'spf' | 'dmarc'>): AnswerValue | undefined {
+  const { dmarc, spf } = r;
   if (dmarc.status === 'error') return undefined;
   if (dmarc.status === 'missing') return 'no';
-  if (dmarc.policy === 'reject' || dmarc.policy === 'quarantine') return 'yes';
-  return 'partial';
+  const enforced = dmarc.policy === 'reject' || dmarc.policy === 'quarantine';
+  return enforced && spf.status !== 'missing' ? 'yes' : 'partial';
 }
 
 async function query(name: string, type: 'MX' | 'TXT', fetchFn: FetchLike): Promise<string[] | null> {
@@ -139,6 +143,8 @@ export function describeFindings(r: DnsResult): Finding[] {
   if (r.dmarc.status === 'error') findings.push({ key: 'dmarc', title: dmarcTitle, indicator: 'grey', message: couldNot });
   else if (r.dmarc.status === 'missing')
     findings.push({ key: 'dmarc', title: dmarcTitle, indicator: 'red', message: 'Anyone can send email pretending to be from your company. This makes fake invoice scams much easier.' });
+  else if ((r.dmarc.policy === 'reject' || r.dmarc.policy === 'quarantine') && r.spf.status === 'missing')
+    findings.push({ key: 'dmarc', title: dmarcTitle, indicator: 'amber', message: 'DMARC is set to block fakes, but without an approved senders list (SPF) some of your own email may be blocked too, and protection is weaker. Add an SPF record to finish the job.' });
   else if (r.dmarc.policy === 'reject' || r.dmarc.policy === 'quarantine')
     findings.push({ key: 'dmarc', title: dmarcTitle, indicator: 'green', message: 'Fake emails using your company name are blocked or sent to spam. Well done.' });
   else

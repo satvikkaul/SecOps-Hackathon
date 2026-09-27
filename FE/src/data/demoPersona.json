@@ -6,12 +6,15 @@
   "profile": {
     "sector": "carrier",
     "employees": "11-50",
+    "itSupport": "nobody",
     "downtime": "lt4h",
     "perishable": "yes",
     "concentration": "yes",
     "payments": "yes",
     "sensitiveData": "yes",
+    "website": "info",
     "hasOT": "yes",
+    "phones": "both",
     "emailProvider": "m365"
   },
   "answers": {
@@ -40,7 +43,11 @@
     "Q23": "unsure",
     "Q24": "no",
     "Q25": "no",
-    "Q26": "no"
+    "Q26": "no",
+    "Q27": "partial",
+    "Q28": "no",
+    "Q29": "no",
+    "Q30": "no"
   },
   "notes": {
     "Q3": "Dispatchers share one load board login.",
@@ -48,7 +55,9 @@
     "Q14": "Someone copies files to a USB drive when they remember.",
     "Q15": "The only backup is that USB drive, kept in the office.",
     "Q18": "Refrigeration vendor has always-on TeamViewer.",
-    "Q26": "Any dispatcher can change a delivery address from an email, with no call-back."
+    "Q26": "Any dispatcher can change a delivery address from an email, with no call-back.",
+    "Q27": "The PC that runs the reefer monitoring software is still on Windows 10.",
+    "Q29": "The backup USB drive is a personal one, and it isn't encrypted."
   },
   "dnsResult": {
     "domain": "peelvalleyfresh.ca",

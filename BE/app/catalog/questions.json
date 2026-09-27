@@ -472,6 +472,14 @@
         "SHARED": 0.2,
         "DATALOSS": 0.1
       },
+      "showIf": {
+        "profile": "phones",
+        "in": [
+          "company",
+          "personal",
+          "both"
+        ]
+      },
       "cccs": [
         {
           "control": "BC.8",
@@ -809,6 +817,139 @@
       "cis": [],
       "mappingNote": "Confirming shipment changes is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary.",
       "tech": "Out-of-band verification and dual control on shipment changes"
+    },
+    {
+      "id": "Q27",
+      "section": "computers",
+      "topic": "Computers still get updates",
+      "text": "Does every computer, including any PC that runs equipment, still get security updates from Microsoft or Apple?",
+      "why": "Windows 10 stopped getting regular security updates in October 2025. A computer that no longer gets updates keeps every hole attackers find, and the PCs that run refrigeration or plant equipment are often the oldest ones in the building.",
+      "gapLabel": "Computers that no longer get security updates",
+      "weights": {
+        "RANSOM": 0.2,
+        "OT": 0.15
+      },
+      "cccs": [
+        {
+          "control": "BC.2",
+          "reqs": [
+            "BC.2.2"
+          ],
+          "strength": "direct"
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "2.2",
+          "strength": "direct"
+        }
+      ],
+      "tech": "Supported operating systems; end-of-life systems replaced or isolated"
+    },
+    {
+      "id": "Q28",
+      "section": "computers",
+      "topic": "Encrypted laptops",
+      "text": "Are laptops encrypted (BitLocker on Windows, FileVault on Mac), so a lost or stolen one can't be read?",
+      "why": "A laptop left in a truck or taken from the office can hold customer lists, banking details, and saved passwords. Encryption is built into Windows and macOS at no cost, and turns a stolen laptop into just a hardware loss.",
+      "gapLabel": "Laptops not encrypted",
+      "weights": {
+        "DATALOSS": 0.15,
+        "ATO": 0.1
+      },
+      "cccs": [
+        {
+          "control": "BC.8",
+          "reqs": [
+            "BC.8.4"
+          ],
+          "strength": "partial"
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "3.6",
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "CCCS BC.8.4 asks for sensitive information on mobile devices to be stored encrypted; a laptop that leaves the office is one. Desktops that never leave the building are not asked about.",
+      "tech": "Full-disk encryption (BitLocker / FileVault)"
+    },
+    {
+      "id": "Q29",
+      "section": "computers",
+      "topic": "Company USB drives only",
+      "text": "Is business data only copied to company-owned, encrypted USB drives, never personal ones?",
+      "why": "USB drives get lost, lent out, and thrown away with files still on them. Using only company drives with encryption turned on (BitLocker To Go on Windows) means a lost drive gives nothing away.",
+      "gapLabel": "Business data on unencrypted USB drives",
+      "weights": {
+        "DATALOSS": 0.15
+      },
+      "cccs": [
+        {
+          "control": "BC.13",
+          "reqs": [
+            "BC.13.1"
+          ],
+          "strength": "direct"
+        }
+      ],
+      "cis": [
+        {
+          "safeguard": "3.9",
+          "strength": "direct"
+        }
+      ],
+      "mappingNote": "BC.13.2 (wiping or destroying drives before disposal) is not asked.",
+      "tech": "Encrypted, organization-owned removable media"
+    },
+    {
+      "id": "Q30",
+      "section": "logins",
+      "topic": "Sign-in alerts",
+      "text": "Does someone get alerts about suspicious sign-ins or new email forwarding rules, and check them?",
+      "why": "Criminals who steal a password often sit in the mailbox for weeks, reading invoices and load details, and add a rule that quietly forwards mail to themselves. Microsoft 365 and Google Workspace can alert you to both at no extra cost, if someone is set up to receive and read the alerts.",
+      "gapLabel": "Nobody watches for suspicious sign-ins",
+      "weights": {
+        "ATO": 0.2,
+        "BEC": 0.15,
+        "CARGO": 0.1
+      },
+      "cccs": [],
+      "cis": [
+        {
+          "safeguard": "8.2",
+          "strength": "partial"
+        },
+        {
+          "safeguard": "8.11",
+          "strength": "partial"
+        }
+      ],
+      "mappingNote": "The CCCS baseline has no logging or monitoring control, so this is reported under CAN/CIOSC 104 section 6.6 (security log management). Your email provider collects the sign-in logs (CIS 8.2), and reading its alerts is a lightweight form of log review (CIS 8.11).",
+      "tech": "Identity and mailbox alerting (risky sign-ins, forwarding rules) with a named reviewer"
+    },
+    {
+      "id": "Q31",
+      "section": "payments",
+      "topic": "New carriers verified",
+      "text": "Before giving a load to a carrier you haven't used before, do you verify them using contact details you looked up yourself?",
+      "why": "Fake and hijacked carrier identities are one of the most common ways brokered loads get stolen. Criminals copy a real carrier's name and operating authority, then give you their own phone number and email. Checking the carrier's registration and calling the number on the official record, not the one they gave you, catches most of them.",
+      "gapLabel": "New carriers not independently verified",
+      "weights": {
+        "CARGO": 0.5,
+        "BEC": 0.1
+      },
+      "showIf": {
+        "profile": "sector",
+        "in": [
+          "broker"
+        ]
+      },
+      "cccs": [],
+      "cis": [],
+      "mappingNote": "Vetting carriers is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary.",
+      "tech": "Carrier identity verification (registration check and out-of-band contact)"
     }
   ]
 }

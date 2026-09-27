@@ -39,7 +39,7 @@
       "section": "logins",
       "type": "rows",
       "title": "Accounts and passwords",
-      "why": "Shared logins hide who did what and can't be switched off for one person. Old accounts of people who left are an easy way in. Reused passwords turn one website's breach into many. Admin rights on everyday accounts let one bad click take over a computer.",
+      "why": "Shared logins hide who did what and can't be switched off for one person. Old accounts of people who left are an easy way in. Reused passwords turn one website's breach into many. Admin rights on everyday accounts let one bad click take over a computer. And when a password is stolen anyway, sign-in alerts are how you find out in hours instead of weeks.",
       "rows": [
         {
           "question": "Q3",
@@ -75,6 +75,16 @@
             { "value": "yes", "label": "Only one or two trusted people" },
             { "value": "partial", "label": "A few people" },
             { "value": "no", "label": "Most people, or everyone" }
+          ]
+        },
+        {
+          "question": "Q30",
+          "label": "Does someone get alerts about suspicious sign-ins or new email forwarding rules, and check them?",
+          "labelBasic": "If someone logs in to a work account from somewhere strange, does anyone get told and look into it?",
+          "options": [
+            { "value": "yes", "label": "Yes, alerts go to someone who checks them" },
+            { "value": "partial", "label": "Alerts are on, but nobody really reads them" },
+            { "value": "no", "label": "No alerts that we know of" }
           ]
         }
       ]
@@ -115,6 +125,15 @@
             { "value": "yes", "label": "No, we call back on a known number and a second person OKs it" },
             { "value": "partial", "label": "We call back, but one person can still change it" },
             { "value": "no", "label": "Yes, one person can change it from the email" }
+          ]
+        },
+        {
+          "question": "Q31",
+          "label": "Before giving a load to a new carrier, do you check their registration and call them on a number you looked up yourself?",
+          "options": [
+            { "value": "yes", "label": "Always, using contact details we found ourselves" },
+            { "value": "partial", "label": "We check registration, but use the contact details they gave us" },
+            { "value": "no", "label": "No, we go with what they send us" }
           ]
         }
       ]
@@ -160,8 +179,8 @@
       "id": "P5",
       "section": "computers",
       "type": "rows",
-      "title": "Computers, phones, and tablets",
-      "why": "Attackers use known holes in old software, and automatic updates close them. Built-in antivirus like Microsoft Defender blocks most common malware, but only if it's on. A lost phone or truck tablet can hold email and saved passwords.",
+      "title": "Computers",
+      "why": "Attackers use known holes in old software, and automatic updates close them, but only on computers that still get updates. Built-in antivirus like Microsoft Defender blocks most common malware, but only if it's on.",
       "rows": [
         {
           "question": "Q12",
@@ -182,14 +201,60 @@
           ]
         },
         {
+          "question": "Q27",
+          "label": "Does every computer still get security updates, including any PC that runs equipment?",
+          "labelBasic": "Are any of your computers so old they no longer get updates (for example, still on Windows 10 or older)?",
+          "options": [
+            { "value": "yes", "label": "Yes, every one is on a supported version" },
+            { "value": "partial", "label": "One or two older ones are still in use" },
+            { "value": "no", "label": "Several are, or we don't know" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "P11",
+      "section": "computers",
+      "type": "rows",
+      "title": "Lost or stolen devices",
+      "why": "Phones, laptops, and USB drives leave the office every day, and some never come back. A PIN, remote wipe, and the encryption built into Windows and macOS mean a lost device costs you the hardware, not your customer list or your passwords.",
+      "rows": [
+        {
           "question": "Q16",
           "label": "Are work phones and tablets locked with a PIN, and can you wipe them remotely if they're lost?",
+          "labelWhen": [
+            {
+              "profile": "phones",
+              "in": ["personal", "both"],
+              "label": "Do phones used for work, including people's own, have a PIN, and can you remove work email and files from one remotely if it's lost?"
+            }
+          ],
           "options": [
             { "value": "yes", "label": "Both, on every device" },
             { "value": "partial", "label": "Only one of these, or only some devices" },
             { "value": "no", "label": "Neither" }
+          ]
+        },
+        {
+          "question": "Q28",
+          "label": "Are laptops encrypted (BitLocker on Windows, FileVault on Mac)?",
+          "labelBasic": "If a work laptop were stolen, would the thief need a password to see the files?",
+          "options": [
+            { "value": "yes", "label": "Every laptop" },
+            { "value": "partial", "label": "Some laptops" },
+            { "value": "no", "label": "No, or we don't know" }
           ],
-          "na": "We don't use phones or tablets for work"
+          "na": "We don't use laptops"
+        },
+        {
+          "question": "Q29",
+          "label": "Is business data only copied to company-owned, encrypted USB drives?",
+          "options": [
+            { "value": "yes", "label": "Yes, company drives with encryption" },
+            { "value": "partial", "label": "Company drives, but not encrypted" },
+            { "value": "no", "label": "Any USB drive, including personal ones" }
+          ],
+          "na": "We never use USB drives"
         }
       ]
     },
