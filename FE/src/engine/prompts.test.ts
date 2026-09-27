@@ -4,12 +4,17 @@ import { cccsStatuses } from './controls';
 import { demoPersona, questionById, questions, sections } from './data';
 import { buildFlow } from './flow';
 import {
+  firstOpenSection,
   ladderAnswers,
   ladderSelection,
+  minutesFor,
   promptComplete,
   promptQuestionIds,
   prompts,
+  quickCheck,
+  quickPrompts,
   rowLabel,
+  tierPrompts,
   visiblePrompts,
   type LadderPrompt,
   type RowsPrompt,
@@ -163,5 +168,44 @@ describe('"does not apply" is scored as no exposure, and nothing else', () => {
     const explicit = computeLikelihood('OT', { ...profile }, { ...base, Q18: 'na', Q19: 'na' });
     expect(hidden.final).toBeCloseTo(explicit.final, 10);
     expect(hidden.factors.find((f) => f.questionId === 'Q18')!.notApplicable).toBe('hidden');
+  });
+});
+
+describe('quick tier', () => {
+  const { profile, answers } = demoPersona;
+  const quickIds = quickPrompts(profile).flatMap(promptQuestionIds);
+  const quickAnswers: Answers = Object.fromEntries(quickIds.map((id) => [id, answers[id]!]));
+
+  it('asks only the configured questions that apply, keeping card order', () => {
+    expect(quickIds).toEqual(['Q1', 'Q2', 'Q3', 'Q7', 'Q26', 'Q9', 'Q14', 'Q15', 'Q18']);
+    for (const id of quickCheck.questions) expect(questionById[id], id).toBeDefined();
+    // Without weekly payments or connected equipment, the call-back rule and vendor access are not asked
+    expect(quickPrompts({ sector: 'farm', payments: 'no', hasOT: 'no' }).flatMap(promptQuestionIds)).not.toContain('Q7');
+    expect(quickPrompts({ sector: 'farm', payments: 'no', hasOT: 'no' }).flatMap(promptQuestionIds)).not.toContain('Q18');
+    expect(tierPrompts('full', profile)).toEqual(visiblePrompts(profile));
+  });
+  it('recommends fixes only for questions that were asked', () => {
+    const asked = new Set(quickIds);
+    const ranked = prioritizeActions(profile, quickAnswers);
+    expect(ranked.length).toBeGreaterThan(0);
+    for (const r of ranked) for (const id of r.openQuestionIds) expect(asked.has(id), `${r.action.id}/${id}`).toBe(true);
+    // The demo's top two fixes are found from the quick check alone
+    expect(ranked.slice(0, 2).map((r) => r.action.id)).toEqual(['A1', 'A19']);
+  });
+  it('estimates the same top risk as the full check-up for the demo company', () => {
+    expect(assess(profile, quickAnswers).scenarios[0].id).toBe(assess(profile, answers).scenarios[0].id);
+  });
+  it('reports the rest as not assessed rather than not met', () => {
+    const bc13 = cccsStatuses(profile, quickAnswers).find((c) => c.id === 'BC.13')!;
+    expect(bc13.status).toBe('Not assessed');
+  });
+  it('sends "answer the rest" to the first section with a card left', () => {
+    expect(firstOpenSection(profile, quickAnswers)).toBe(0);
+    const loginsDone: Answers = { ...quickAnswers, Q4: 'no', Q5: 'no', Q6: 'no', Q30: 'no' };
+    expect(firstOpenSection(profile, loginsDone)).toBe(1);
+    expect(firstOpenSection(profile, answers)).toBe(0);
+  });
+  it('estimates about 3 minutes for the quick questions', () => {
+    expect(minutesFor(quickIds.length)).toBe(3);
   });
 });

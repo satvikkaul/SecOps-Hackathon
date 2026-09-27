@@ -166,6 +166,7 @@ def _insert(conn: Connection, f: dict[str, Any]) -> None:
         ("impact", Jsonb({k: impact[k] for k in ("start", "min", "max")})),
         ("ranking", Jsonb(f["ranking"])),
         ("promptIntro", Jsonb(f["prompts"]["intro"])),
+        ("quickCheck", Jsonb(f["prompts"]["quick"])),
     ])
 
 
@@ -310,7 +311,7 @@ def load(conn: Connection) -> dict[str, Any]:
         "ciosc": ciosc,
         "impactRules": impact_rules,
         "profile": profile,
-        "prompts": {"intro": settings["promptIntro"], "prompts": prompts},
+        "prompts": {"intro": settings["promptIntro"], "quick": settings["quickCheck"], "prompts": prompts},
         "questions": {"sections": sections, "questions": questions},
         "ranking": settings["ranking"],
         "rules": rules,

@@ -1,4 +1,5 @@
 import FrameworkTags from '../components/FrameworkTags';
+import CoverageBanner from '../components/CoverageBanner';
 import RiskRegisterButton from '../components/RiskRegisterButton';
 import { countsText, StatusPill } from '../components/StandardsPanel';
 import { TemplatePicker } from '../components/TemplatePicker';
@@ -62,7 +63,7 @@ export default function Summary() {
     useShallow((s) => ({ company: s.company, domain: s.domain, profile: s.profile, answers: s.answers, rankingMode: s.rankingMode, template: s.template })),
   );
   const go = useAppStore((s) => s.go);
-  const { assessment, ranked, cccs, cis, ciosc, otherPractices, plan } = useResults(state.profile, state.answers, state.rankingMode);
+  const { assessment, ranked, cccs, cis, ciosc, otherPractices, plan, coverage } = useResults(state.profile, state.answers, state.rankingMode);
   const sector = profileQuestions.find((q) => q.id === 'sector')?.options.find((o) => o.value === state.profile.sector)?.label ?? '—';
   const date = new Date().toLocaleDateString('en-CA', { year: 'numeric', month: 'long', day: 'numeric' });
   const cccsCounts = countStatuses(cccs);
@@ -82,6 +83,11 @@ export default function Summary() {
           <Button onClick={() => window.print()}>Print / Save as PDF</Button>
         </div>
       </div>
+      {!coverage.complete && (
+        <div className="mb-6">
+          <CoverageBanner coverage={coverage} />
+        </div>
+      )}
       <TemplatePicker className="mb-6" />
 
       <article className="print-page rounded-2xl border border-slate-200 bg-white p-8 shadow-sm md:p-10">
@@ -97,6 +103,11 @@ export default function Summary() {
           <div className="text-right text-sm text-slate-600">
             <div className="font-semibold text-slate-800">{date}</div>
             <div>Self-assessed using Chain of Custody</div>
+            {!coverage.complete && (
+              <div className="mt-1 inline-flex rounded-md bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-800">
+                Quick check · {coverage.answered} of {coverage.total} questions answered
+              </div>
+            )}
           </div>
         </header>
 

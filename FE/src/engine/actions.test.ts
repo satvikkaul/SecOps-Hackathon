@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { applyFix, buildPlan, prioritizeActions, simulateAction, stepsFor, timeframeFor } from './actions';
-import { actionById, actions, questionById } from './data';
+import { actionById, actions, questionById, questions } from './data';
 import { assess } from './scoring';
 import type { Answers, Profile } from './types';
 
@@ -69,7 +69,7 @@ describe('plan', () => {
     expect(timeframeFor(5)).toBe(90);
   });
   it('puts top 5 first and groups the rest', () => {
-    const ranked = prioritizeActions(profile, {});
+    const ranked = prioritizeActions(profile, Object.fromEntries(questions.map((q) => [q.id, 'no' as const])));
     const plan = buildPlan(ranked);
     expect(plan.top).toHaveLength(5);
     expect(plan.days30.length + plan.days60.length + plan.days90.length).toBe(ranked.length - 5);

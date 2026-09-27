@@ -105,11 +105,12 @@ export function simulateAction(
   mode: RankingMode = defaultRanking.defaultMode,
   config: RankingConfig = defaultRanking,
 ): RankedAction {
+  // A question not asked yet is not a known gap, so a fix for it waits until it is answered.
   const openQuestionIds = action.questionIds.filter((id) => {
     const q = data.questions.find((qq) => qq.id === id);
-    return q && isApplicable(q, profile, answers) && answers[id] !== 'yes';
+    return q && isApplicable(q, profile, answers) && !!answers[id] && answers[id] !== 'yes';
   });
-  const after = assess(profile, applyFix(answers, action.questionIds), data);
+  const after = assess(profile, applyFix(answers, openQuestionIds), data);
   const riskReduction = before.totalRisk - after.totalRisk;
   const afterById = Object.fromEntries(after.scenarios.map((s) => [s.id, s]));
   const scenarioDeltas: ScenarioDelta[] = before.scenarios
@@ -155,7 +156,7 @@ export function simulateAction(
  * Rank actions by priority in the chosen mode:
  * - "effort": risk reduction ÷ effort (the original spec formula)
  * - "cost":   risk reduction ÷ (effort + cost weight × cost points), with essential fixes exempt from the cost term
- * Only actions that would change at least one visible question not already "yes" are included.
+ * Only actions that would change at least one answered, visible question not already "yes" are included.
  */
 export function prioritizeActions(
   profile: Profile,

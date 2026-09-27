@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { Chain } from '../components/Chain';
+import CoverageBanner from '../components/CoverageBanner';
 import { ExpertiseSwitch } from '../components/Expertise';
 import { useCreateShare } from '../api/hooks';
 import ActionCard, { CompactAction, pct } from '../components/ActionCard';
@@ -31,12 +32,13 @@ import { BAND_STYLES, BandBadge, Button, Card, SCENARIO_COLORS, SectionTitle } f
 import { profileQuestions, scenarioById, templateById } from '../engine/data';
 import { chainFor, explainRisk } from '../engine/explain';
 import type { ScenarioResult } from '../engine/scoring';
-import type { Band, Expertise, Profile, ScenarioId } from '../engine/types';
+import type { AnswerValue, Band, Expertise, Profile, ScenarioId } from '../engine/types';
 import { useShallow } from 'zustand/react/shallow';
 import { stashPendingSave, useAppStore, wasAssessmentAutoSaved } from '../store/appStore';
 import { authEnabled } from '../lib/supabaseClient';
 import { personalizeRequest, usePersonalized } from '../personalize';
 import { printRule, ruleFor } from '../printRule';
+import { helpLinksFor } from '../helpLinks';
 import { timePhrase, useResults } from '../useResults';
 
 const POSTURE_TEXT: Record<string, string> = {
@@ -233,7 +235,12 @@ function RiskGauge({ score, band, showScore = true }: { score: number; band: Ban
           strokeLinecap="round"
           strokeDasharray={`${arc * frac} ${arc}`}
         />
-        <text x="100" y="84" textAnchor="middle" className="fill-slate-900 text-[30px] font-extrabold">
+        <text
+          x="100"
+          y={showScore ? 84 : 92}
+          textAnchor="middle"
+          className={`fill-slate-900 font-extrabold ${band.length > 4 ? 'text-[23px]' : 'text-[30px]'}`}
+        >
           {band}
         </text>
         {showScore && (
@@ -263,7 +270,10 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
   const go = useAppStore((s) => s.go);
   const update = useAppStore((s) => s.update);
   const loadDemo = useAppStore((s) => s.loadDemo);
+  const setAnswers = useAppStore((s) => s.setAnswers);
   const { profile, answers } = state;
+  /** The last fix marked done, so its effect can be shown and undone. */
+  const [lastDone, setLastDone] = useState<{ title: string; prev: Record<string, AnswerValue>; before: { score: number; band: Band } } | null>(null);
   const results = useResults(profile, answers, state.rankingMode);
   const { assessment, plan, ranked, unsure, flow } = results;
   // Gemini rewords the engine's results for this business and level. It never changes a score or the order.
@@ -309,6 +319,14 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
   const stopsFor = (r: (typeof ranked)[number]) => {
     const id = r.scenarioDeltas[0]?.id;
     return id ? { name: scenarioById[id].name, chain: chainFor(id, profile) } : undefined;
+  };
+
+  /** "Mark as done": the fix's questions become Yes and the engine re-scores everything; the fix leaves the list. */
+  const markDone = (r: (typeof ranked)[number]) => {
+    const prev = Object.fromEntries(r.action.questionIds.flatMap((q) => (answers[q] ? [[q, answers[q]!]] : [])));
+    setLastDone({ title: aiAction(r.action.id)?.title ?? r.action.title, prev, before: assessment.posture });
+    setAnswers(Object.fromEntries(r.action.questionIds.map((q) => [q, 'yes' as AnswerValue])));
+    goTo('fixes');
   };
 
   const toggleRisk = (id: ScenarioId) => setOpenRisk((o) => (o === id ? null : id));
@@ -394,6 +412,12 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
           <ExpertiseSwitch value={expertise} onChange={(e) => update({ expertise: e })} />
         </div>
       </div>
+
+      {!results.coverage.complete && (
+        <div className="mt-4">
+          <CoverageBanner coverage={results.coverage} />
+        </div>
+      )}
 
       {/* Tabs: one screen at a time instead of one long page */}
       <nav
@@ -535,12 +559,40 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
 
           {tab === 'fixes' && (
             <>
+              {lastDone && (
+                <div role="status" className="fade-in flex flex-wrap items-center gap-x-3 gap-y-2 rounded-2xl border border-emerald-200 bg-emerald-50 px-5 py-3 text-emerald-900">
+                  <span className="font-semibold">✓ {lastDone.title}: done.</span>
+                  <span className="flex items-center gap-1.5">
+                    Overall risk <BandBadge band={lastDone.before.band} size="sm" /> → <BandBadge band={assessment.posture.band} size="sm" />
+                    {!basic && (
+                      <span className="tabular-nums text-emerald-800">
+                        ({lastDone.before.score.toFixed(2)} → {assessment.posture.score.toFixed(2)})
+                      </span>
+                    )}
+                  </span>
+                  <span className="ml-auto flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setAnswers(lastDone.prev);
+                        setLastDone(null);
+                      }}
+                      className="rounded-lg px-2.5 py-1 text-sm font-semibold hover:bg-emerald-100"
+                    >
+                      Undo
+                    </button>
+                    <button type="button" onClick={() => setLastDone(null)} aria-label="Dismiss" className="rounded-lg px-2 py-1 text-sm hover:bg-emerald-100">
+                      ✕
+                    </button>
+                  </span>
+                </div>
+              )}
               <Block>
                 <SectionTitle
                   icon={Wrench}
                   sub={
                     basic
-                      ? 'The fixes that remove the most risk for the least work. Tap “Show step-by-step” for instructions.'
+                      ? 'The fixes that remove the most risk for the least work. Tap “Walk me through it” to go one step at a time, then mark it done.'
                       : state.rankingMode === 'cost'
                         ? 'Ranked by how much risk each fix removes for the effort and money it takes. Tap “See the effect” to preview the change.'
                         : 'Ranked by how much risk each fix removes for the effort it takes. Tap “See the effect” to preview the change.'
@@ -568,6 +620,8 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
                           stops={stopsFor(r)}
                           text={aiAction(r.action.id)}
                           onPrintRule={rule && (() => printRule(rule, state.company))}
+                          onMarkDone={() => markDone(r)}
+                          links={helpLinksFor(r.action.id, profile.emailProvider)}
                         />
                       );
                     })}

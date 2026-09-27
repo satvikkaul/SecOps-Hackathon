@@ -1,21 +1,27 @@
-import { Check } from 'lucide-react';
+import { Check, Zap } from 'lucide-react';
 import { TechTag } from '../components/Expertise';
 import FrameworkTags from '../components/FrameworkTags';
 import { Button, Card, OptionCard, ProgressBar, WhyWeAsk } from '../components/ui';
 import { questionById, sections } from '../engine/data';
 import {
+  firstOpenSection,
   ladderAnswers,
   ladderSelection,
   ladderUnsure,
+  minutesFor,
   promptComplete,
   promptIntro,
   promptQuestionIds,
+  quickCheck,
+  quickPrompts,
   rowLabel,
   visiblePrompts,
   type LadderPrompt,
+  type Prompt,
   type PromptRow,
   type RowsPrompt,
 } from '../engine/prompts';
+import { coverage } from '../engine/scoring';
 import type { AnswerValue } from '../engine/types';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../store/appStore';
@@ -113,10 +119,100 @@ function LadderCard({ p }: { p: LadderPrompt }) {
   );
 }
 
-export default function Questionnaire() {
-  const state = useAppStore(
-    useShallow((s) => ({ sectionIndex: s.sectionIndex, profile: s.profile, answers: s.answers, expertise: s.expertise, autoFilled: s.autoFilled })),
+function PromptCard({ p, number }: { p: Prompt; number: number }) {
+  const expertise = useAppStore((s) => s.expertise);
+  const q11AutoFilled = useAppStore((s) => !!s.autoFilled.Q11);
+  return (
+    <Card className="p-6">
+      <div className="flex gap-3">
+        <span className="mt-0.5 text-sm font-bold text-slate-400">{number}</span>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-semibold leading-snug text-slate-900">
+            {p.title}
+            {p.type === 'rows' && p.rows.length === 1 && p.rows[0].question === 'Q11' && q11AutoFilled && <AutoTag />}
+          </h2>
+          <WhyWeAsk>
+            {p.why}
+            {expertise !== 'basic' && (
+              <span className="mt-2 flex">
+                <FrameworkTags questionIds={promptQuestionIds(p)} />
+              </span>
+            )}
+          </WhyWeAsk>
+          {p.type === 'rows' ? <RowsCard p={p} /> : <LadderCard p={p} />}
+        </div>
+      </div>
+    </Card>
   );
+}
+
+/** Quick tier: the few questions that matter most, on one page. */
+function QuickQuestionnaire() {
+  const state = useAppStore(useShallow((s) => ({ profile: s.profile, answers: s.answers })));
+  const go = useAppStore((s) => s.go);
+  const update = useAppStore((s) => s.update);
+  const quick = quickPrompts(state.profile);
+  const done = quick.filter((p) => promptComplete(p, state.answers)).length;
+  const left = quick.length - done;
+  const quickCount = quick.flatMap(promptQuestionIds).length;
+  const cov = coverage(state.profile, state.answers);
+  const rest = cov.notAsked.filter((id) => !quick.some((p) => promptQuestionIds(p).includes(id))).length;
+
+  const switchToFull = () => {
+    update({ tier: 'full' });
+    go('questions', firstOpenSection(state.profile, state.answers));
+  };
+
+  return (
+    <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
+      <ProgressBar value={quick.length ? done / quick.length : 0} label={`Step 3 of 3 · Quick check · ${done} of ${quick.length} cards done`} />
+      <div className="mt-6 flex flex-wrap items-center gap-3">
+        <h1 className="text-3xl font-extrabold tracking-tight text-slate-900">Quick check</h1>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-800">
+          <Zap className="h-4 w-4" aria-hidden /> {quickCount} questions · about {minutesFor(quickCount)} min
+        </span>
+      </div>
+      <p className="mt-1 text-lg text-slate-600">{quickCheck.intro}</p>
+      <p className="mt-3 rounded-xl bg-brand-50 px-4 py-3 text-slate-700">{promptIntro}</p>
+
+      <div className="fade-in mt-6 space-y-5">
+        {quick.map((p, i) => (
+          <PromptCard key={p.id} p={p} number={i + 1} />
+        ))}
+      </div>
+
+      <div className="mt-8 flex items-center justify-between gap-3">
+        <Button variant="ghost" onClick={() => go('domain')}>
+          ← Back
+        </Button>
+        <div className="flex items-center gap-3">
+          {left > 0 && <span className="text-sm text-slate-500">Finish {left === 1 ? '1 more card' : `${left} more cards`} to continue</span>}
+          <Button disabled={left > 0} onClick={() => go('results')} className="px-6 py-3">
+            See my results →
+          </Button>
+        </div>
+      </div>
+      {rest > 0 && (
+        <p className="mt-6 text-center text-sm text-slate-500">
+          Rather answer everything now?{' '}
+          <button type="button" onClick={switchToFull} className="font-semibold text-brand-700 underline hover:text-brand-800">
+            Switch to the full check-up
+          </button>{' '}
+          ({rest} more questions, about {minutesFor(rest)} min). Your answers carry over.
+        </p>
+      )}
+    </div>
+  );
+}
+
+export default function Questionnaire() {
+  const tier = useAppStore((s) => s.tier);
+  return tier === 'quick' ? <QuickQuestionnaire /> : <FullQuestionnaire />;
+}
+
+/** Full tier: every card, section by section. Cards can be skipped and answered later from the results. */
+function FullQuestionnaire() {
+  const state = useAppStore(useShallow((s) => ({ sectionIndex: s.sectionIndex, profile: s.profile, answers: s.answers })));
   const go = useAppStore((s) => s.go);
   const idx = Math.min(state.sectionIndex, sections.length - 1);
   const section = sections[idx];
@@ -127,6 +223,7 @@ export default function Questionnaire() {
   const leftHere = here.filter((p) => !promptComplete(p, state.answers)).length;
   const last = idx === sections.length - 1;
   const numberOf = (id: string) => all.findIndex((p) => p.id === id) + 1;
+  const anyAnswered = Object.keys(state.answers).length > 0;
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
@@ -161,37 +258,31 @@ export default function Questionnaire() {
 
       <div key={section.id} className="fade-in mt-6 space-y-5">
         {here.map((p) => (
-          <Card key={p.id} className="p-6">
-            <div className="flex gap-3">
-              <span className="mt-0.5 text-sm font-bold text-slate-400">{numberOf(p.id)}</span>
-              <div className="min-w-0 flex-1">
-                <h2 className="text-lg font-semibold leading-snug text-slate-900">
-                  {p.title}
-                  {p.type === 'rows' && p.rows.length === 1 && p.rows[0].question === 'Q11' && state.autoFilled.Q11 && <AutoTag />}
-                </h2>
-                <WhyWeAsk>
-                  {p.why}
-                  {state.expertise !== 'basic' && (
-                    <span className="mt-2 flex">
-                      <FrameworkTags questionIds={promptQuestionIds(p)} />
-                    </span>
-                  )}
-                </WhyWeAsk>
-                {p.type === 'rows' ? <RowsCard p={p} /> : <LadderCard p={p} />}
-              </div>
-            </div>
-          </Card>
+          <PromptCard key={p.id} p={p} number={numberOf(p.id)} />
         ))}
       </div>
 
-      <div className="mt-8 flex items-center justify-between gap-3">
+      <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
         <Button variant="ghost" onClick={() => (idx === 0 ? go('domain') : go('questions', idx - 1))}>
           ← Back
         </Button>
-        <div className="flex items-center gap-3">
-          {leftHere > 0 && <span className="text-sm text-slate-500">Finish {leftHere === 1 ? '1 more card' : `${leftHere} more cards`} to continue</span>}
-          <Button disabled={leftHere > 0} onClick={() => (last ? go('results') : go('questions', idx + 1))} className="px-6 py-3">
-            {last ? 'See my results →' : 'Next section →'}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {leftHere > 0 && (
+            <span className="text-sm text-slate-500">
+              {leftHere === 1 ? '1 card' : `${leftHere} cards`} left here. You can skip and come back later.
+            </span>
+          )}
+          {!last && anyAnswered && (
+            <Button variant="ghost" onClick={() => go('results')}>
+              Results so far
+            </Button>
+          )}
+          <Button
+            variant={leftHere > 0 ? 'secondary' : 'primary'}
+            onClick={() => (last ? go('results') : go('questions', idx + 1))}
+            className="px-6 py-3"
+          >
+            {last ? 'See my results →' : leftHere > 0 ? 'Skip for now →' : 'Next section →'}
           </Button>
         </div>
       </div>

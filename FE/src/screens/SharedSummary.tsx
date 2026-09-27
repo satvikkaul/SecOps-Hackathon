@@ -37,6 +37,11 @@ export default function SharedSummary({ token }: { token: string }) {
             <div className="mt-1 flex items-center justify-end gap-2">
               Overall risk <BandBadge band={r.posture.band} />
             </div>
+            {r.coverage && r.coverage.answered < r.coverage.total && (
+              <div className="mt-1 inline-flex rounded-md bg-sky-50 px-2 py-0.5 text-xs font-semibold text-sky-800">
+                Quick check · {r.coverage.answered} of {r.coverage.total} questions answered
+              </div>
+            )}
           </div>
         </header>
 

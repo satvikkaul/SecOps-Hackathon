@@ -47,6 +47,27 @@ export function visibleQuestions(profile: Profile, data: Dataset = defaultDatase
   return data.questions.filter((q) => isVisible(q, profile));
 }
 
+/**
+ * A visible question with no answer has not been asked yet (the quick check skips most of them).
+ * Until it is answered, likelihood assumes it is partly in place: halfway between No and Yes, so a short
+ * check is neither falsely alarming nor falsely reassuring. It never counts toward a control, a fix, or a gap.
+ */
+export const NOT_ASKED_VALUE = 0.5;
+
+export interface Coverage {
+  answered: number;
+  total: number;
+  /** Visible questions with no answer yet, in catalog order */
+  notAsked: string[];
+  complete: boolean;
+}
+
+export function coverage(profile: Profile, answers: Answers, data: Dataset = defaultDataset): Coverage {
+  const visible = visibleQuestions(profile, data);
+  const notAsked = visible.filter((q) => !answers[q.id]).map((q) => q.id);
+  return { answered: visible.length - notAsked.length, total: visible.length, notAsked, complete: notAsked.length === 0 };
+}
+
 export function bandFor(risk: number): Band {
   if (risk >= 3) return 'High';
   if (risk >= 2) return 'Elevated';
@@ -70,6 +91,8 @@ export interface LikelihoodFactor {
 export interface LikelihoodBreakdown {
   base: number;
   factors: LikelihoodFactor[];
+  /** Questions not asked yet, each assumed partly in place (NOT_ASKED_VALUE) */
+  notAsked: string[];
   raw: number;
   final: number;
   clamped: boolean;
@@ -87,12 +110,19 @@ export function computeLikelihood(
   const base = scenario.base[sector] ?? 0.5;
 
   const factors: LikelihoodFactor[] = [];
+  const notAsked: string[] = [];
   let raw = base;
   for (const q of data.questions) {
     const weight = q.weights[scenarioId];
     if (!weight) continue;
     const answer = effectiveAnswer(q, profile, answers);
-    if (!answer) continue;
+    if (!answer) {
+      if (isVisible(q, profile)) {
+        raw *= 1 - weight * NOT_ASKED_VALUE;
+        notAsked.push(q.id);
+      }
+      continue;
+    }
     const value = answerValue(answer);
     const factor = 1 - weight * value;
     raw *= factor;
@@ -100,7 +130,7 @@ export function computeLikelihood(
     factors.push({ questionId: q.id, answer, value, weight, factor, ...(notApplicable && { notApplicable }) });
   }
   const final = Math.max(MIN_LIKELIHOOD, raw);
-  return { base, factors, raw, final, clamped: raw < MIN_LIKELIHOOD };
+  return { base, factors, notAsked, raw, final, clamped: raw < MIN_LIKELIHOOD };
 }
 
 // ---------- Impact ----------
@@ -204,6 +234,7 @@ export function topContributors(
     const w = q.weights[scenarioId] ?? 0;
     if (!w) continue;
     const answer = answers[q.id];
+    if (!answer) continue;
     const gap = w * (1 - answerValue(answer));
     if (gap > 0) out.push({ questionId: q.id, label: q.gapLabel, answer, gap });
   }

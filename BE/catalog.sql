@@ -246,9 +246,11 @@ create table if not exists catalog.rule_signs (
 -- Singletons -------------------------------------------------------------------------------------
 
 create table if not exists catalog.settings (
-  key    text primary key check (key in ('impact', 'ranking', 'promptIntro')),
+  key    text primary key,
   value  jsonb not null
 );
+alter table catalog.settings drop constraint if exists settings_key_check;
+alter table catalog.settings add constraint settings_key_check check (key in ('impact', 'ranking', 'promptIntro', 'quickCheck'));
 
 do $$
 declare t text;
