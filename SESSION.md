@@ -2,6 +2,12 @@
 
 _Append one entry per session, newest first. Keep each entry short: what changed, what we decided, and what's blocked._
 
+## 2026-09-26 (Sat, night) — personalize 503 fixed
+
+**Cause:** the Gemini key worked, but Google rejected the call in 0.7 s. Personalize read the shared `GEMINI_MODEL` variable, which the chatbot also uses, and the chatbot's default `gemini-3.8-flash-lite` doesn't exist (404). The chatbot hid it by falling back to Claude.
+**Fix:** personalize reads its own `PERSONALIZE_MODEL` (default `gemini-3.5-flash-lite`), errors now log Google's status and message, and the chatbot's default model is corrected to `gemini-3.5-flash-lite`. The demo cache stays valid (same model name in the cache key).
+**Also noted:** Hala's commit 7dd47d9 deleted CLAUDE.md (probably on purpose). Keys were pasted in the team chat, so rotate them after judging.
+
 ## 2026-09-26 (Sat) — "Print the rule" signs
 
 **Done**
