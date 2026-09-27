@@ -10,7 +10,7 @@ import re
 
 import httpx
 
-PROMPT_VERSION = "v2"
+PROMPT_VERSION = "v3"
 # Own variable, not GEMINI_MODEL: the chatbot uses that one, and a model that suits chat (or a typo) broke this.
 # Flash-Lite answers in ~1.5 s; gemini-3.8-flash took 10-30 s and allows 5 requests/min on the free tier.
 MODEL = os.environ.get("PERSONALIZE_MODEL", "gemini-3.5-flash-lite")
@@ -21,7 +21,12 @@ LEVEL_STYLE = {
     "basic": (
         "The reader runs the business and is not technical. Write at about a grade 6 reading level: short sentences, "
         "everyday words, no acronyms or product jargon (say 'a code from your phone' not 'MFA', 'fake emails that look like "
-        "they came from you' not 'spoofing'). Tie everything to their trucks, loads, customers, and money."
+        "they came from you' not 'spoofing'). Tie everything to their trucks, loads, customers, and money. "
+        "They have no IT person and will do these steps themselves, so for steps: one short action per step, starting with a "
+        "verb; say where to click in plain words; keep the exact names of buttons, menus, and websites they must find, but "
+        "explain any technical term in a few words the first time (e.g. 'a spare admin login kept somewhere safe' instead of "
+        "'break glass account', 'your company's Microsoft account' instead of 'tenant', 'security settings' instead of "
+        "'security defaults policy'). Tell them what they will see when a step worked."
     ),
     "medium": (
         "The reader is comfortable setting up email, Wi-Fi, and accounts. Use plain language; common terms like "

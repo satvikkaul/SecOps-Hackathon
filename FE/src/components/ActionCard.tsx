@@ -5,6 +5,8 @@ import { scenarioById, scenarios } from '../engine/data';
 import type { Expertise } from '../engine/types';
 import { ChainLine } from './Chain';
 import FrameworkTags from './FrameworkTags';
+import Walkthrough from './Walkthrough';
+import type { HelpLink } from '../helpLinks';
 import { BandBadge, Pill, SCENARIO_COLORS } from './ui';
 
 export function pct(x: number) {
@@ -123,6 +125,8 @@ export default function ActionCard({
   stops,
   text,
   onPrintRule,
+  onMarkDone,
+  links = [],
 }: {
   r: RankedAction;
   rank: number;
@@ -133,8 +137,13 @@ export default function ActionCard({
   stops?: { name: string; chain: string[] };
   /** Only for fixes that are rules people follow: prints a one-page sign for the desk */
   onPrintRule?: () => void;
+  /** Sets this fix's questions to Yes, so the engine re-scores everything */
+  onMarkDone?: () => void;
+  /** Official vendor help pages for this fix (real screenshots, kept current by the vendor) */
+  links?: HelpLink[];
 }) {
   const basic = expertise === 'basic';
+  const steps = text?.steps ?? r.steps;
   const [showSteps, setShowSteps] = useState(false);
   const [showEffect, setShowEffect] = useState(false);
   return (
@@ -183,7 +192,7 @@ export default function ActionCard({
               className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
               aria-expanded={showSteps}
             >
-              {showSteps ? 'Hide steps' : 'Show step-by-step'}
+              {showSteps ? 'Hide steps' : basic ? 'Walk me through it' : 'Show step-by-step'}
             </button>
             <button
               type="button"
@@ -206,7 +215,36 @@ export default function ActionCard({
               </button>
             )}
           </div>
-          {showSteps && <Steps steps={text?.steps ?? r.steps} />}
+          {showSteps &&
+            (basic ? (
+              <Walkthrough steps={steps} onMarkDone={onMarkDone} onClose={() => setShowSteps(false)} />
+            ) : (
+              <>
+                <Steps steps={steps} />
+                {onMarkDone && (
+                  <button
+                    type="button"
+                    onClick={onMarkDone}
+                    className="mt-3 rounded-lg border border-brand-300 px-3 py-1.5 text-sm font-semibold text-brand-800 hover:bg-brand-50"
+                  >
+                    Mark as done
+                  </button>
+                )}
+              </>
+            ))}
+          {showSteps && links.length > 0 && (
+            <p className="mt-3 text-sm text-slate-600">
+              <span className="font-semibold text-slate-700">Official guide with screenshots: </span>
+              {links.map((l, i) => (
+                <span key={l.url}>
+                  {i > 0 && ' · '}
+                  <a href={l.url} target="_blank" rel="noopener noreferrer" className="font-semibold text-brand-700 underline hover:text-brand-900">
+                    {l.label} ↗
+                  </a>
+                </span>
+              ))}
+            </p>
+          )}
           {showEffect && <WhatIf r={r} />}
         </div>
       </div>
