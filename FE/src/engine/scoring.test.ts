@@ -9,6 +9,7 @@ import {
   coverage,
   MIN_LIKELIHOOD,
   NOT_ASKED_VALUE,
+  riskFraction,
   topContributors,
   unsureQuestions,
 } from './scoring';
@@ -59,12 +60,29 @@ describe('answerValue and bands', () => {
     expect(answerValue(undefined)).toBe(0);
   });
   it('bands risk correctly at boundaries', () => {
-    expect(bandFor(3)).toBe('High');
-    expect(bandFor(2.99)).toBe('Elevated');
-    expect(bandFor(2)).toBe('Elevated');
-    expect(bandFor(1.99)).toBe('Moderate');
-    expect(bandFor(1)).toBe('Moderate');
-    expect(bandFor(0.99)).toBe('Low');
+    expect(bandFor(2)).toBe('High');
+    expect(bandFor(1.99)).toBe('Elevated');
+    expect(bandFor(1.2)).toBe('Elevated');
+    expect(bandFor(1.19)).toBe('Moderate');
+    expect(bandFor(0.6)).toBe('Moderate');
+    expect(bandFor(0.59)).toBe('Low');
+  });
+
+  it('fills the meter a quarter per band, so the fill agrees with the label', () => {
+    expect([0, 0.6, 1.2, 2, 5, 9].map(riskFraction)).toEqual([0, 0.25, 0.5, 0.75, 1, 1]);
+    expect(riskFraction(0.3)).toBeCloseTo(0.125);
+    expect(riskFraction(3.5)).toBeCloseTo(0.875);
+  });
+
+  it('moves a typical business from Low to Moderate to High as answers go Yes, Partial, No', () => {
+    const typical: Profile = {
+      employees: '11-50', itSupport: 'msp', downtime: '1-3d', perishable: 'yes', concentration: 'no', payments: 'yes',
+      sensitiveData: 'no', website: 'info', hasOT: 'yes', phones: 'both', emailProvider: 'm365',
+    };
+    for (const sector of ['farm', 'processor', 'coldstorage', 'carrier', 'broker'] as const) {
+      const band = (a: Answers) => assess({ ...typical, sector }, a).posture.band;
+      expect([band(allYes), band(Object.fromEntries(questions.map((q) => [q.id, 'partial']))), band(allNo)]).toEqual(['Low', 'Moderate', 'High']);
+    }
   });
 });
 

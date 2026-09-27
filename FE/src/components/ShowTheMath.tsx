@@ -145,7 +145,7 @@ export default function ShowTheMath({
         </div>
         <div>
           <b>Impact</b> starts at 2 and goes up or down based on your business profile, kept between 1 and 5. A written incident plan and cyber insurance
-          then take a percentage off. <b>Risk</b> = likelihood × impact. Bands: 3.0+ High, 2.0 to 2.99 Elevated, 1.0 to 1.99 Moderate, under 1.0 Low.
+          then take a percentage off. <b>Risk</b> = likelihood × impact. Bands: 2.0+ High, 1.2 to 1.99 Elevated, 0.6 to 1.19 Moderate, under 0.6 Low.
         </div>
         <div className="md:col-span-2">
           <b>Overall posture</b> is the band of your single highest risk ({assessment.scenarios[0].name}, {f2(assessment.posture.score)}). You are only as safe

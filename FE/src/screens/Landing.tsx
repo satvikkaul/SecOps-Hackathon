@@ -27,7 +27,7 @@ import { applyFix, buildPlan, prioritizeActions } from '../engine/actions';
 import { cccsStatuses, type ControlStatus } from '../engine/controls';
 import { actions, demoPersona, profileQuestions, questions, quickCheck, scenarios, templates } from '../engine/data';
 import { minutesFor } from '../engine/prompts';
-import { assess } from '../engine/scoring';
+import { assess, riskFraction } from '../engine/scoring';
 import { useAppStore } from '../store/appStore';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -121,7 +121,7 @@ function ReportPreview({ preview }: { preview: ReturnType<typeof useDemoPreview>
                   <span className={`shrink-0 text-xs font-semibold ${BAND_STYLES[s.band].text}`}>{s.band}</span>
                 </div>
                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, (s.risk / 5) * 100)}%`, background: BAND_STYLES[s.band].hex }} />
+                  <div className="h-full rounded-full" style={{ width: `${riskFraction(s.risk) * 100}%`, background: BAND_STYLES[s.band].hex }} />
                 </div>
               </div>
             ))}
