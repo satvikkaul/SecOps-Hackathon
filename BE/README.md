@@ -80,7 +80,9 @@ Without an AI key everything else still works: rewording answers 503 and the fro
 | GET | `/api/catalog/questions/{id}` | One question, e.g. `Q26`. 404 if unknown. |
 | GET | `/api/catalog/actions/{id}` | One fix, e.g. `A19`. 404 if unknown. |
 | GET | `/api/dns/{domain}` | SPF, DMARC, and mail-provider check. Cached for 24 hours; falls back to the last good result if a live lookup fails. |
-| POST | `/api/assessments` | Saves a results snapshot and returns `{id, shareToken, shareUrl, expiresAt}`. Requires a `password` (8–128 characters); only a salted scrypt hash is stored. Links expire after 90 days. The DNS result stored with it is always the server's own lookup. Limited to 10 per IP per minute and 500 per hour overall. |
+| POST | `/api/assessments` | Saves a results snapshot and returns `{id, shareToken, shareUrl, expiresAt}`. A `password` (8–128 characters) protects a partner link; without one the row is locked. A valid `Authorization` header attaches the row to that account. Links expire after 90 days. The DNS result stored with it is always the server's own lookup. Limited to 10 per IP per minute and 500 per hour overall. |
+| GET | `/api/assessments/mine` | The signed-in caller's saved check-ups: company, domain, date, and overall band. 401 without a valid token. |
+| GET | `/api/assessments/mine/{id}` | One saved check-up, including answers, for its owner only. 401 signed out, 404 for anyone else. |
 | GET | `/api/share/{token}` | The read-only summary behind a share link: 404 if unknown, 410 once expired, 401 if password-protected (with no company details). Only the demo link is open. Raw answers are never returned. Sent with `X-Robots-Tag: noindex`. |
 | POST | `/api/share/{token}/unlock` | `{password}` in the body, so it never appears in a URL. Returns the summary, or 401 for a wrong password. Limited to 10 attempts per minute per IP and per link (429). |
 | POST | `/api/personalize` | Gemini's rewording of the results. Cached; uncached calls are limited to 6 per IP per minute and 300 per hour overall. |

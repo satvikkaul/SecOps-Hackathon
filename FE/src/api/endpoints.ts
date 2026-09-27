@@ -2,7 +2,7 @@ import type { ChatContext } from '../chatContext';
 import type { Catalog } from '../engine/data';
 import type { DnsResult } from '../engine/dns';
 import type { Snapshot } from '../engine/snapshot';
-import type { Answers, Profile, RankingMode } from '../engine/types';
+import type { Answers, Band, Profile, RankingMode } from '../engine/types';
 import type { PersonalizeRequest } from '../personalize';
 import { ApiError, request } from './client';
 
@@ -98,6 +98,34 @@ export const getDomainCheck = (domain: string, signal?: AbortSignal) =>
   request<ServerDnsResult>(`/api/dns/${encodeURIComponent(domain)}`, { signal });
 
 export const createShare = (body: CreateShareRequest) => request<CreatedShare>('/api/assessments', { method: 'POST', body });
+
+/** One row of GET /api/assessments/mine. Band comes from the saved snapshot. */
+export interface SavedReportSummary {
+  id: string;
+  company: string;
+  domain: string | null;
+  createdAt: string;
+  band: Band | null;
+  score: number | null;
+}
+
+/** The owner's own check-up, enough to open it again. Answers are included only on this call. */
+export interface SavedReport {
+  id: string;
+  company: string;
+  domain: string | null;
+  profile: Profile;
+  answers: Answers;
+  rankingMode: RankingMode;
+  dns: DnsResult | null;
+  coverage?: { answered: number; total: number };
+  createdAt: string;
+}
+
+export const getMyReports = (signal?: AbortSignal) => request<SavedReportSummary[]>('/api/assessments/mine', { signal });
+
+export const getSavedReport = (id: string, signal?: AbortSignal) =>
+  request<SavedReport>(`/api/assessments/mine/${encodeURIComponent(id)}`, { signal });
 
 /** A wrong or expired link is an answer, not a failure. */
 export async function getShare(token: string, signal?: AbortSignal): Promise<ShareLookup> {

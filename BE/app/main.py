@@ -403,13 +403,54 @@ def get_my_assessments(request: Request):
         raise HTTPException(401, "Sign in required")
     with pool.connection() as conn:
         rows = conn.execute(
-            "select id, company, share_token, created_at from assessments where user_id = %s order by created_at desc",
+            """select id, company, domain, share_token, created_at,
+                      results #>> '{posture,band}' as band,
+                      results #>> '{posture,score}' as score
+               from assessments where user_id = %s order by created_at desc""",
             (user_id,),
         ).fetchall()
     return [
-        {"id": str(r["id"]), "company": r["company"], "createdAt": r["created_at"].isoformat(), "shareUrl": f"{FRONTEND_URL}/?share={r['share_token']}"}
+        {
+            "id": str(r["id"]),
+            "company": r["company"],
+            "domain": r["domain"],
+            "createdAt": r["created_at"].isoformat(),
+            "band": r["band"],
+            "score": float(r["score"]) if r["score"] is not None else None,
+            "shareUrl": f"{FRONTEND_URL}/?share={r['share_token']}",
+        }
         for r in rows
     ]
+
+
+@app.get("/api/assessments/mine/{assessment_id}")
+def get_my_assessment(assessment_id: Uuid, request: Request):
+    """One saved check-up, for its owner only. 404 for anyone else, including a signed-in stranger,
+    so a guessed id never confirms the row exists. Answers come back here because the owner is
+    reopening their own check-up; a share link still never returns them."""
+    user_id = verify_user(request.headers.get("authorization"))
+    if not user_id:
+        raise HTTPException(401, "Sign in required")
+    with pool.connection() as conn:
+        row = conn.execute(
+            """select id, company, domain, profile, answers, ranking_mode, results, dns, created_at
+               from assessments where id = %s and user_id = %s""",
+            (assessment_id, user_id),
+        ).fetchone()
+    if not row:
+        raise HTTPException(404, "Not found")
+    coverage = (row["results"] or {}).get("coverage")
+    return {
+        "id": str(row["id"]),
+        "company": row["company"],
+        "domain": row["domain"],
+        "profile": row["profile"],
+        "answers": row["answers"],
+        "rankingMode": row["ranking_mode"],
+        "dns": row["dns"],
+        "coverage": coverage,
+        "createdAt": row["created_at"].isoformat(),
+    }
 
 
 def shared_row(token: str) -> dict:

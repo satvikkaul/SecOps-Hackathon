@@ -3,13 +3,14 @@ import { checkDomain } from '../engine/dns';
 import { reportApiError } from '../lib/queryClient';
 import type { PersonalizeRequest } from '../personalize';
 import { hasApi } from './client';
-import { getCatalog, getDomainCheck, getInvite, getShare, getSupplyChain, personalize } from './endpoints';
+import { getCatalog, getDomainCheck, getInvite, getMyReports, getShare, getSupplyChain, personalize } from './endpoints';
 
 export const queryKeys = {
   catalog: ['catalog'] as const,
   share: (token: string) => ['share', token] as const,
   invite: (token: string) => ['invite', token] as const,
   supplyChain: (assessmentId: string) => ['supplyChain', assessmentId] as const,
+  mine: ['mine'] as const,
   domainCheck: (domain: string) => ['domainCheck', domain] as const,
   personalize: (request: PersonalizeRequest) => ['personalize', request] as const,
 };
@@ -38,6 +39,14 @@ export const inviteQuery = (token: string) =>
     queryFn: ({ signal }) => getInvite(token, undefined, signal),
     staleTime: Infinity,
     retry: false,
+  });
+
+/** Saved check-ups for the signed-in caller. Refetched when they save another one. */
+export const myReportsQuery = () =>
+  queryOptions({
+    queryKey: queryKeys.mine,
+    queryFn: ({ signal }) => getMyReports(signal),
+    staleTime: 15_000,
   });
 
 /** The buyer's view down their chain. Suppliers answer on their own schedule, so unlike the two

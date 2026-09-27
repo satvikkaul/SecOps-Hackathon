@@ -98,11 +98,13 @@ FAKE_USER_B = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb"
 
 
 def _ensure_fake_user(user_id: str) -> None:
-    """A row in auth.users for user_id to satisfy assessments.user_id's foreign key. Only the
-    columns Supabase requires; real signups fill in the rest."""
+    """A row in auth.users for user_id to satisfy assessments.user_id's foreign key. Local Postgres
+    has no Supabase auth schema, so the stub table is created there; production already has the real one."""
     from app.main import pool
 
     with pool.connection() as conn:
+        conn.execute("create schema if not exists auth")
+        conn.execute("create table if not exists auth.users (id uuid primary key, email text)")
         conn.execute("insert into auth.users (id, email) values (%s, %s) on conflict (id) do nothing", (user_id, f"{user_id}@test.example"))
 
 
@@ -157,7 +159,25 @@ def test_mine_requires_auth_and_only_returns_the_caller_own_rows(c, monkeypatch)
     assert not any(a["company"] == b_company for a in mine_a)
     assert any(b["company"] == b_company for b in mine_b)
     assert not any(b["company"] == a_company for b in mine_b)
-    assert all("shareUrl" in a and "createdAt" in a for a in mine_a)
+    assert all("shareUrl" in a and "createdAt" in a and a["band"] == "Elevated" for a in mine_a)
+
+
+def test_opening_a_saved_report_returns_answers_only_to_its_owner(c, monkeypatch):
+    from app import main
+
+    _ensure_fake_user(FAKE_USER_A)
+    _ensure_fake_user(FAKE_USER_B)
+    monkeypatch.setattr(main, "verify_user", lambda auth: FAKE_USER_A if auth == "Bearer token-a" else (FAKE_USER_B if auth == "Bearer token-b" else None))
+
+    created = c.post("/api/assessments", json=BODY, headers={"Authorization": "Bearer token-a"}).json()
+    own = c.get(f"/api/assessments/mine/{created['id']}", headers={"Authorization": "Bearer token-a"})
+    assert own.status_code == 200, own.text
+    assert own.json()["answers"] == BODY["answers"]
+    assert own.json()["company"] == BODY["company"]
+    assert own.json()["rankingMode"] == "effort"
+    # A different signed-in user, and a signed-out caller, learn nothing.
+    assert c.get(f"/api/assessments/mine/{created['id']}", headers={"Authorization": "Bearer token-b"}).status_code == 404
+    assert c.get(f"/api/assessments/mine/{created['id']}").status_code == 401
 
 
 def test_passwords_are_stored_as_salted_scrypt_hashes(c):

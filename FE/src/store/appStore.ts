@@ -6,7 +6,7 @@ import type { Tier } from '../engine/prompts';
 import { withSector } from '../engine/profile';
 import type { Answers, AnswerValue, Expertise, Profile, RankingMode, TemplateId } from '../engine/types';
 
-export type Screen = 'landing' | 'template' | 'profile' | 'domain' | 'questions' | 'results' | 'summary';
+export type Screen = 'landing' | 'template' | 'profile' | 'domain' | 'questions' | 'results' | 'summary' | 'reports';
 
 export const DEFAULT_TEMPLATE: TemplateId = 'cccs-cis';
 

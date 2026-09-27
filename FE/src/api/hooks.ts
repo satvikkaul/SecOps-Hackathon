@@ -8,6 +8,7 @@ import {
   createInvite,
   createShare,
   getInvite,
+  getSavedReport,
   sendChatMessage,
   submitInvite,
   unlockShare,
@@ -15,7 +16,7 @@ import {
   type CreatedShare,
   type ShareChoice,
 } from './endpoints';
-import { domainCheckQuery, inviteQuery, queryKeys, shareQuery, supplyChainQuery } from './queries';
+import { domainCheckQuery, inviteQuery, myReportsQuery, queryKeys, shareQuery, supplyChainQuery } from './queries';
 
 export function useSharedAssessment(token: string) {
   return useQuery(shareQuery(token));
@@ -70,7 +71,40 @@ export function shareRequest(
  * auto-save behind a supplier invite, and the BE makes the link a dead end. Either way the new
  * row's id is remembered, so a later supplier invite hangs off this same assessment. */
 export function useCreateShare() {
-  return useMutation({ mutationFn: saveAssessment });
+  const client = useQueryClient();
+  return useMutation({
+    mutationFn: saveAssessment,
+    onSuccess: () => client.invalidateQueries({ queryKey: queryKeys.mine }),
+  });
+}
+
+/** The signed-in caller's saved check-ups. Idle until they are signed in. */
+export function useMyReports(enabled = true) {
+  return useQuery({ ...myReportsQuery(), enabled });
+}
+
+/** Loads one saved check-up back into the results screen. */
+export function useOpenReport() {
+  return useMutation({
+    mutationFn: (id: string) => getSavedReport(id),
+    onSuccess: (saved) => {
+      const incomplete = saved.coverage != null && saved.coverage.answered < saved.coverage.total;
+      useAppStore.getState().update({
+        company: saved.company,
+        domain: saved.domain ?? '',
+        profile: saved.profile,
+        answers: saved.answers,
+        rankingMode: saved.rankingMode,
+        dns: saved.dns,
+        assessmentId: saved.id,
+        isDemo: false,
+        tier: incomplete ? 'quick' : 'full',
+        autoFilled: {},
+        sectionIndex: 0,
+      });
+      useAppStore.getState().go('results');
+    },
+  });
 }
 
 async function saveAssessment(password?: string): Promise<CreatedShare> {

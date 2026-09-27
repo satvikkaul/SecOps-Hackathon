@@ -14,6 +14,7 @@ import Summary from "./screens/Summary";
 import SharedSummary from "./screens/SharedSummary";
 import InviteFlow from "./screens/InviteFlow";
 import SignIn from "./screens/SignIn";
+import Reports from "./screens/Reports";
 
 // ?share=<token> opens a partner's read-only view instead of the app.
 const shareToken = new URLSearchParams(window.location.search).get("share");
@@ -70,7 +71,7 @@ export default function App() {
                                 Demo company
                             </span>
                         )}
-                        {screen !== "landing" && (
+                        {screen !== "landing" && screen !== "reports" && (
                             <Button
                                 variant="ghost"
                                 onClick={confirmReset}
@@ -81,13 +82,22 @@ export default function App() {
                         )}
                         {!authLoading && authEnabled &&
                             (user ? (
-                                <Button
-                                    variant="ghost"
-                                    onClick={() => signOut()}
-                                    className="px-3 py-1.5 text-sm"
-                                >
-                                    Sign out
-                                </Button>
+                                <>
+                                    <Button
+                                        variant={screen === "reports" ? "secondary" : "ghost"}
+                                        onClick={() => go("reports")}
+                                        className="px-3 py-1.5 text-sm"
+                                    >
+                                        Your reports
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        onClick={() => signOut()}
+                                        className="px-3 py-1.5 text-sm"
+                                    >
+                                        Sign out
+                                    </Button>
+                                </>
                             ) : (
                                 <Button
                                     variant="secondary"
@@ -115,6 +125,7 @@ export default function App() {
                     />
                 )}
                 {screen === "summary" && <Summary />}
+                {screen === "reports" && <Reports signedIn={!!user} onSignIn={() => setShowSignIn(true)} />}
             </main>
 
             <footer className="no-print mx-auto max-w-6xl px-6 py-10 text-center text-sm text-slate-500">

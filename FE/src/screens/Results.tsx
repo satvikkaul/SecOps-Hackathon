@@ -201,7 +201,13 @@ function SaveScoreCard() {
         </span>
         <div>
           <div className="font-bold text-slate-900">Saved</div>
-          <div className="text-sm text-slate-600">You can find this report in your account.</div>
+          <div className="text-sm text-slate-600">
+            You can find this report in{' '}
+            <button type="button" onClick={() => useAppStore.getState().go('reports')} className="font-semibold text-brand-700 underline">
+              Your reports
+            </button>
+            .
+          </div>
         </div>
       </Card>
     );
