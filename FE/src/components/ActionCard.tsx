@@ -1,3 +1,4 @@
+import { Clock, Coins, Printer } from 'lucide-react';
 import { useState } from 'react';
 import type { RankedAction } from '../engine/actions';
 import { scenarioById, scenarios } from '../engine/data';
@@ -14,8 +15,12 @@ export function pct(x: number) {
 function CostTime({ r, showEffort = true }: { r: RankedAction; showEffort?: boolean }) {
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <Pill className="bg-emerald-50 text-emerald-800">💲 {r.action.cost}</Pill>
-      <Pill>⏱ {r.action.time}</Pill>
+      <Pill className="bg-emerald-50 text-emerald-800">
+        <Coins className="h-3.5 w-3.5" aria-hidden /> {r.action.cost}
+      </Pill>
+      <Pill>
+        <Clock className="h-3.5 w-3.5" aria-hidden /> {r.action.time}
+      </Pill>
       {showEffort && <Pill>Effort {r.action.effort}/5</Pill>}
     </div>
   );
@@ -195,9 +200,9 @@ export default function ActionCard({
                 type="button"
                 onClick={onPrintRule}
                 title="A one-page sign to post by the desk, with a log to fill in"
-                className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-slate-300 px-3 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
               >
-                🖨 Print the rule
+                <Printer className="h-4 w-4" aria-hidden /> Print the rule
               </button>
             )}
           </div>
@@ -220,8 +225,12 @@ export function CompactAction({ r, onPrintRule }: { r: RankedAction; onPrintRule
         </div>
         <div className="mt-2 flex flex-wrap gap-1.5">
           {r.essential && <EssentialBadge />}
-          <Pill className="bg-emerald-50 text-emerald-800">💲 {r.action.cost}</Pill>
-          <Pill>⏱ {r.action.time}</Pill>
+          <Pill className="bg-emerald-50 text-emerald-800">
+            <Coins className="h-3.5 w-3.5" aria-hidden /> {r.action.cost}
+          </Pill>
+          <Pill>
+            <Clock className="h-3.5 w-3.5" aria-hidden /> {r.action.time}
+          </Pill>
         </div>
       </button>
       {open && (
@@ -229,8 +238,8 @@ export function CompactAction({ r, onPrintRule }: { r: RankedAction; onPrintRule
           <p className="mt-3 text-slate-700">{r.action.whatToDo}</p>
           <Steps steps={r.steps} />
           {onPrintRule && (
-            <button type="button" onClick={onPrintRule} className="mt-3 text-sm font-semibold text-brand-700 hover:text-brand-900">
-              🖨 Print the rule
+            <button type="button" onClick={onPrintRule} className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-brand-700 hover:text-brand-900">
+              <Printer className="h-4 w-4" aria-hidden /> Print the rule
             </button>
           )}
         </div>

@@ -1,3 +1,4 @@
+import { MessageCircle, X } from 'lucide-react';
 import { useState, type FormEvent } from 'react';
 import { useSendChatMessage } from '../api/hooks';
 import { useAppStore } from '../store/appStore';
@@ -44,7 +45,7 @@ export default function ReportChat() {
         onClick={() => setOpen(true)}
         className="no-print fixed bottom-5 left-5 z-30 flex items-center gap-2 rounded-full bg-brand-600 px-5 py-3 font-semibold text-white shadow-lg transition hover:bg-brand-700 focus:outline-none focus-visible:ring-4 focus-visible:ring-brand-200"
       >
-        <span aria-hidden>💬</span> Ask a question
+        <MessageCircle className="h-5 w-5" aria-hidden /> Ask a question
       </button>
     );
 
@@ -59,7 +60,7 @@ export default function ReportChat() {
             aria-label="Close chat"
             className="rounded-lg px-2 py-1 text-slate-500 hover:bg-slate-100 hover:text-slate-800"
           >
-            ✕
+            <X className="h-5 w-5" aria-hidden />
           </button>
         </div>
 

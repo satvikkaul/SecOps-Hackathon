@@ -1,3 +1,4 @@
+import { Check, X } from 'lucide-react';
 import { useEffect, useRef, type ReactNode } from 'react';
 import { questionById, scenarioById } from '../engine/data';
 import type { RiskStory as Story } from '../engine/explain';
@@ -95,10 +96,10 @@ export default function RiskStory({
         <button
           type="button"
           onClick={onClose}
-          className="ml-auto rounded-lg px-2.5 py-1 text-sm font-semibold text-slate-600 hover:bg-white/70 hover:text-slate-900"
+          className="ml-auto inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-sm font-semibold text-slate-600 hover:bg-white/70 hover:text-slate-900"
           aria-label="Close the full story"
         >
-          Close ✕
+          Close <X className="h-4 w-4" aria-hidden />
         </button>
       </div>
 
@@ -150,8 +151,8 @@ export default function RiskStory({
               <div className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-slate-500">Already helping</div>
               <div className="flex flex-wrap gap-1.5">
                 {story.protections.map((p) => (
-                  <span key={p.questionId} className="rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
-                    ✓ {p.topic}
+                  <span key={p.questionId} className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-xs font-semibold text-emerald-800">
+                    <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden /> {p.topic}
                     {p.answer === 'partial' && ' (partly)'} · −{pct(p.cut)}
                   </span>
                 ))}

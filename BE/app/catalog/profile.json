@@ -4,11 +4,11 @@
     "text": "Which best describes your business?",
     "why": "Different kinds of businesses get targeted in different ways. Freight brokers see far more payment fraud; cold storage sites rely more on connected equipment.",
     "options": [
-      { "value": "farm", "label": "Farm or producer", "icon": "🌾" },
-      { "value": "processor", "label": "Food processor", "icon": "🏭" },
-      { "value": "coldstorage", "label": "Cold storage or warehouse", "icon": "❄️" },
-      { "value": "carrier", "label": "Trucking or freight carrier", "icon": "🚚" },
-      { "value": "broker", "label": "Freight broker or 3PL", "icon": "📦" }
+      { "value": "farm", "label": "Farm or producer", "icon": "wheat" },
+      { "value": "processor", "label": "Food processor", "icon": "factory" },
+      { "value": "coldstorage", "label": "Cold storage or warehouse", "icon": "snowflake" },
+      { "value": "carrier", "label": "Trucking or freight carrier", "icon": "truck" },
+      { "value": "broker", "label": "Freight broker or 3PL", "icon": "package" }
     ]
   },
   {

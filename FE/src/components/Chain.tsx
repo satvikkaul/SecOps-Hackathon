@@ -1,3 +1,5 @@
+import { ChevronRight } from 'lucide-react';
+
 /** How a risk plays out, step by step. The last step (the loss) is highlighted. */
 export function Chain({ steps, className = '' }: { steps: string[]; className?: string }) {
   return (
@@ -19,9 +21,11 @@ export function Chain({ steps, className = '' }: { steps: string[]; className?: 
               <span>{s}</span>
             </div>
             {!last && (
-              <span aria-hidden className="absolute -right-2 top-1/2 z-10 hidden -translate-y-1/2 text-lg font-bold text-slate-400 md:block">
-                ›
-              </span>
+              <ChevronRight
+                aria-hidden
+                className="absolute -right-2.5 top-1/2 z-10 hidden h-5 w-5 -translate-y-1/2 text-slate-400 md:block"
+                strokeWidth={2.5}
+              />
             )}
           </li>
         );
