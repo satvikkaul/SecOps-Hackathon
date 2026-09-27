@@ -22,6 +22,7 @@ from app import catalog
 from app import personalize as ai
 from app.chat import handle_chat
 from app.dns_check import all_failed, check_domain, is_valid_domain, normalize_domain
+from app.email import send_invite_email
 
 HERE = Path(__file__).parent
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://secops-hackathon-production.up.railway.app").rstrip("/")
@@ -191,6 +192,8 @@ def verify_user(authorization: str | None) -> str | None:
 share_limit = RateLimit(per_ip_per_minute=10, total_per_hour=500)
 # Uncached calls spend the Gemini key, so cap them. Cache hits are free and unlimited.
 personalize_limit = RateLimit(per_ip_per_minute=6, total_per_hour=300)
+# Each invite is a DB row plus an outbound email, so cap how fast anyone can send them.
+invite_limit = RateLimit(per_ip_per_minute=5, total_per_hour=100)
 
 
 def valid_domain_or_400(value: str) -> str:
@@ -326,6 +329,56 @@ def get_share(token: str, response: Response):
         "dns": row["dns"],
         "createdAt": row["created_at"].isoformat(),
         "expiresAt": row["expires_at"].isoformat() if row["expires_at"] else None,
+    }
+
+
+# ---------- Supplier Invites (MVP, step 1: no supplier-facing screen yet) ----------
+
+MAX_INVITE_LEVEL = 4
+EmailAddress = Annotated[str, StringConstraints(strip_whitespace=True, min_length=3, max_length=254, pattern=r"^[^@\s]+@[^@\s]+\.[^@\s]+$")]
+
+
+class InviteIn(BaseModel):
+    parentAssessmentId: Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F-]{36}$")]
+    supplierName: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
+    supplierEmail: EmailAddress
+    deadlineDays: Annotated[int, Field(ge=1, le=90)] = 7
+
+
+@app.post("/api/invites", status_code=201)
+def create_invite(body: InviteIn, request: Request):
+    if not invite_limit.allow(client_ip(request)):
+        raise HTTPException(429, "Too many invites, try again in a minute")
+    with pool.connection() as conn:
+        parent = conn.execute("select id from assessments where id = %s", (body.parentAssessmentId,)).fetchone()
+        if not parent:
+            raise HTTPException(400, "Unknown parentAssessmentId")
+        # A hop down the chain: level = the invite that produced the parent assessment, +1. No such
+        # invite means the parent is a top-level (self-initiated) assessment, so this is level 1.
+        ancestor = conn.execute(
+            "select level from supplier_invites where child_assessment_id = %s",
+            (body.parentAssessmentId,),
+        ).fetchone()
+        level = (ancestor["level"] + 1) if ancestor else 1
+        if level > MAX_INVITE_LEVEL:
+            raise HTTPException(400, f"This chain is already {MAX_INVITE_LEVEL} suppliers deep, which is as far as invites go")
+
+        token = secrets.token_urlsafe(16)
+        pin = f"{secrets.randbelow(1_000_000):06d}"
+        pin_hash = hashlib.sha256(pin.encode()).hexdigest()
+        row = conn.execute(
+            """insert into supplier_invites (token, pin_hash, parent_assessment_id, supplier_name, supplier_email, level, deadline)
+               values (%s, %s, %s, %s, %s, %s, now() + make_interval(days => %s)) returning id""",
+            (token, pin_hash, body.parentAssessmentId, body.supplierName, body.supplierEmail, level, body.deadlineDays),
+        ).fetchone()
+
+    invite_url = f"{FRONTEND_URL}/?invite={token}"
+    email = send_invite_email(body.supplierName, body.supplierEmail, invite_url, pin)
+    return {
+        "inviteId": str(row["id"]),
+        "inviteUrl": invite_url,
+        "emailSent": email.sent,
+        "stubbed": email.stubbed,
     }
 
 

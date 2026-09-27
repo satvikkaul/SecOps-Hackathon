@@ -163,6 +163,67 @@ def test_rate_limit_counts_per_ip_and_overall():
     assert [overall.allow(ip) for ip in "abc"] == [True, True, False]
 
 
+# ---------- Supplier Invites (MVP step 1: no supplier-facing screen, PIN verification, or report yet) ----------
+
+INVITE_BODY = {"supplierName": "Acme Supplier", "supplierEmail": "supplier@example.com", "deadlineDays": 5}
+
+
+def _new_assessment_id(c) -> str:
+    return c.post("/api/assessments", json=BODY).json()["id"]
+
+
+def test_invite_creation_is_level_1_with_a_hashed_pin(c):
+    from app.main import pool
+
+    parent_id = _new_assessment_id(c)
+    res = c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": parent_id})
+    assert res.status_code == 201, res.text
+    body = res.json()
+    assert set(body.keys()) == {"inviteId", "inviteUrl", "emailSent", "stubbed"}
+    assert "?invite=" in body["inviteUrl"]
+    # No BREVO_API_KEY in the test environment: send is stubbed, never silently claimed as sent.
+    assert body["emailSent"] is False
+    assert body["stubbed"] is True
+
+    with pool.connection() as conn:
+        row = conn.execute(
+            "select level, pin_hash, status, parent_assessment_id from supplier_invites where id = %s", (body["inviteId"],)
+        ).fetchone()
+    assert row["level"] == 1
+    assert row["status"] == "pending"
+    assert str(row["parent_assessment_id"]) == parent_id
+    assert len(row["pin_hash"]) == 64 and not row["pin_hash"].isdigit()  # sha256 hex, not a plain 6-digit PIN
+
+
+def test_invite_rejects_an_unknown_parent(c):
+    import uuid
+
+    assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": str(uuid.uuid4())}).status_code == 400
+    assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": "not-a-uuid"}).status_code == 422
+
+
+def test_invite_level_climbs_one_hop_at_a_time_and_stops_at_the_max(c):
+    from app.main import MAX_INVITE_LEVEL, pool
+
+    assessment_id = _new_assessment_id(c)
+    for expected_level in range(1, MAX_INVITE_LEVEL + 1):
+        res = c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": assessment_id})
+        assert res.status_code == 201, res.text
+        invite_id = res.json()["inviteId"]
+        with pool.connection() as conn:
+            level = conn.execute("select level from supplier_invites where id = %s", (invite_id,)).fetchone()["level"]
+        assert level == expected_level
+        # Simulate the not-yet-built supplier submission: a new assessment becomes this invite's
+        # child, so the *next* invite computes its level from this one instead of starting at 1.
+        assessment_id = _new_assessment_id(c)
+        with pool.connection() as conn:
+            conn.execute("update supplier_invites set child_assessment_id = %s, status = 'submitted' where id = %s", (assessment_id, invite_id))
+
+    # assessment_id is now the child of a level-MAX_INVITE_LEVEL invite; one more hop is rejected.
+    rejected = c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": assessment_id})
+    assert rejected.status_code == 400, rejected.text
+
+
 # ---------- Gemini guardrails (no network: Gemini is stubbed) ----------
 import copy
 import uuid

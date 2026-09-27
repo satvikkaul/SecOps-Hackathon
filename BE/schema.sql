@@ -31,8 +31,28 @@ create table if not exists ai_texts (
   created_at timestamptz not null default now()
 );
 
+-- Supplier Invites (MVP, step 1): a buyer invites a supplier to run their own check-up. No
+-- supplier-facing screen or PIN verification yet — this is just the table, the create endpoint,
+-- and the (stubbed) invite email. A submitted assessment reuses `assessments`, keyed by
+-- child_assessment_id, so there is deliberately no second results table.
+create table if not exists supplier_invites (
+  id                   uuid primary key default gen_random_uuid(),
+  token                text unique not null,          -- unguessable, secrets.token_urlsafe(16), same as share_token
+  pin_hash             text not null,                 -- sha256 of a random 6-digit code; the code itself is never stored
+  parent_assessment_id uuid not null references assessments(id),
+  supplier_name        text not null,
+  supplier_email       text not null,
+  level                int not null check (level between 1 and 4),  -- 1 = direct supplier, +1 per hop down the chain
+  status               text not null check (status in ('pending', 'submitted', 'filled_by_buyer', 'timed_out')) default 'pending',
+  share_choice         text check (share_choice in ('score', 'report', 'both')),
+  child_assessment_id  uuid references assessments(id),  -- set once the supplier submits
+  deadline             timestamptz not null,
+  created_at           timestamptz not null default now()
+);
+
 -- Supabase exposes the public schema over its REST API with the public anon key.
 -- RLS on + no policies = that API sees nothing. The BE connects as the table owner, which bypasses RLS.
 alter table assessments enable row level security;
 alter table dns_checks enable row level security;
 alter table ai_texts enable row level security;
+alter table supplier_invites enable row level security;
