@@ -26,7 +26,7 @@ def test_personalize_preflight_allows_sentry_headers(c):
         headers={
             "Origin": origin,
             "Access-Control-Request-Method": "POST",
-            "Access-Control-Request-Headers": "content-type,sentry-trace,baggage",
+            "Access-Control-Request-Headers": "authorization,content-type,sentry-trace,baggage",
         },
     )
     assert res.status_code == 200, res.text
