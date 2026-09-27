@@ -4,7 +4,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { catalogQuery } from './api/queries';
 import BootScreen from './components/BootScreen';
-import { setCatalog } from './engine/data';
+import { setCatalog, type Catalog } from './engine/data';
 import './index.css';
 import { queryClient } from './lib/queryClient';
 import { isSharePage, scrubShareTokens } from './lib/sentryScrub';
@@ -43,10 +43,28 @@ startAuthListener();
 const root = ReactDOM.createRoot(document.getElementById('root')!);
 
 /** The app's modules read the catalog when they are first imported, so App is imported only after it has loaded. */
+const CATALOG_TIMEOUT_MS = 6000;
+
+/** The live catalog from the BE, or the copy bundled at build time if the BE is down or slow, so the check-up
+ * itself never depends on the backend being up (sharing and personalization still do). */
+async function loadCatalog(): Promise<Catalog> {
+  try {
+    return await Promise.race([
+      queryClient.fetchQuery(catalogQuery),
+      new Promise<never>((_, reject) => setTimeout(() => reject(new Error('catalog timed out')), CATALOG_TIMEOUT_MS)),
+    ]);
+  } catch (err) {
+    console.warn('Catalog unavailable from the API, using the bundled copy.', err);
+    const fallback = (await import('./data/catalogFallback.json')).default as unknown as Catalog;
+    queryClient.setQueryData(catalogQuery.queryKey, fallback);
+    return fallback;
+  }
+}
+
 async function boot() {
   root.render(<BootScreen />);
   try {
-    setCatalog(await queryClient.fetchQuery(catalogQuery));
+    setCatalog(await loadCatalog());
   } catch {
     root.render(<BootScreen failed onRetry={boot} />);
     return;

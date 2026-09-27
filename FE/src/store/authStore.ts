@@ -16,6 +16,7 @@ export const useAuthStore = create<AuthStore>()(() => ({
   loading: true,
 
   signInWithEmail: async (email) => {
+    if (!supabase) throw new Error('Sign-in is not available right now.');
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: { emailRedirectTo: window.location.origin },
@@ -27,7 +28,7 @@ export const useAuthStore = create<AuthStore>()(() => ({
   },
 
   signOut: async () => {
-    await supabase.auth.signOut();
+    await supabase?.auth.signOut();
   },
 }));
 
@@ -37,6 +38,10 @@ let listening = false;
 export function startAuthListener() {
   if (listening) return;
   listening = true;
+  if (!supabase) {
+    useAuthStore.setState({ user: null, loading: false });
+    return;
+  }
   supabase.auth.getSession().then(({ data: { session } }) => {
     useAuthStore.setState({ user: session?.user ?? null, loading: false });
   });

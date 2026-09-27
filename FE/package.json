@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "export:mappings": "node scripts/export-mappings.mjs"
+    "export:mappings": "node scripts/export-mappings.mjs",
+    "sync:catalog": "node scripts/sync-catalog.mjs"
   },
   "dependencies": {
     "@sentry/react": "^11.0.0",

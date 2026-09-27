@@ -3,6 +3,7 @@ import { Logo, Button } from "./components/ui";
 import ReportChat from "./components/ReportChat";
 import { useAppStore } from "./store/appStore";
 import { useAuthStore } from "./store/authStore";
+import { authEnabled } from "./lib/supabaseClient";
 import Landing from "./screens/Landing";
 import TemplateScreen from "./screens/TemplateScreen";
 import ProfileScreen from "./screens/ProfileScreen";
@@ -63,7 +64,7 @@ export default function App() {
                                 Start over
                             </Button>
                         )}
-                        {!authLoading &&
+                        {!authLoading && authEnabled &&
                             (user ? (
                                 <Button
                                     variant="ghost"
