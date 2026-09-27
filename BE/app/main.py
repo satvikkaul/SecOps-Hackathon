@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -190,6 +192,26 @@ def verify_user(authorization: str | None) -> str | None:
 
 # Each new link is a DB row plus possibly a live DNS lookup, so cap how fast anyone can make them.
 share_limit = RateLimit(per_ip_per_minute=10, total_per_hour=500)
+# Password guesses: capped per client IP, and per link so spreading guesses over many IPs doesn't help.
+unlock_ip_limit = RateLimit(per_ip_per_minute=10, total_per_hour=2000)
+unlock_token_limit = RateLimit(per_ip_per_minute=10, total_per_hour=2000)
+
+SCRYPT_N, SCRYPT_R, SCRYPT_P = 2**14, 8, 1
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(password.encode(), salt=salt, n=SCRYPT_N, r=SCRYPT_R, p=SCRYPT_P, dklen=32)
+    return f"scrypt${SCRYPT_N}${SCRYPT_R}${SCRYPT_P}${base64.b64encode(salt).decode()}${base64.b64encode(digest).decode()}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    try:
+        _, n, r, p, salt, digest = stored.split("$")
+        actual = hashlib.scrypt(password.encode(), salt=base64.b64decode(salt), n=int(n), r=int(r), p=int(p), dklen=32)
+    except ValueError:
+        return False
+    return hmac.compare_digest(actual, base64.b64decode(digest))
 # Uncached calls spend the Gemini key, so cap them. Cache hits are free and unlimited.
 personalize_limit = RateLimit(per_ip_per_minute=6, total_per_hour=300)
 # Each invite is a DB row plus an outbound email, so cap how fast anyone can send them.
@@ -252,6 +274,9 @@ def get_dns(domain: str):
 
 Key = Annotated[str, StringConstraints(pattern=r"^[A-Za-z][A-Za-z0-9_]{0,49}$")]
 QuestionId = Annotated[str, StringConstraints(pattern=r"^Q\d{1,3}$")]
+# Anything reaching a `where id = %s` on a uuid column: Postgres raises on a malformed literal,
+# which would surface as a 500 rather than the 422 a bad request deserves.
+Uuid = Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
 
 
 class AssessmentPayload(BaseModel):
@@ -263,21 +288,33 @@ class AssessmentPayload(BaseModel):
     results: dict[str, Any]
 
 
+class UnlockIn(BaseModel):
+    password: Annotated[str, StringConstraints(min_length=1, max_length=128)]
+
+
 class AssessmentIn(AssessmentPayload):
-    pass
+    # Set when the caller wants a link to hand to someone: whoever opens it must enter this, and
+    # only a salted scrypt hash is stored. Omitted when no link is being handed out — an account
+    # save, or the auto-save behind a supplier invite — and the row is then locked with a password
+    # nobody holds, so /api/share/{token} is a dead end rather than an open door.
+    password: Annotated[str, StringConstraints(min_length=8, max_length=128)] | None = None
 
 
-def create_assessment_row(conn, payload: AssessmentPayload, *, user_id: str | None = None) -> dict:
+def create_assessment_row(conn, payload: AssessmentPayload, *, user_id: str | None = None, password: str | None = None) -> dict:
     """The one place an `assessments` row gets created — used by both POST /api/assessments and the
     supplier-invite submit endpoint. Normalizes/validates the domain, attaches the BE's own DNS
     result (never the client's), and generates a share token. Returns id, share_token, expires_at."""
     domain = valid_domain_or_400(payload.domain) if payload.domain else None
     dns = dns_for(domain) if domain else None
     token = secrets.token_urlsafe(16)
+    # No password means nobody is meant to open this by link, so lock it with one nobody holds.
+    # password_hash is never null on a row we write: /api/share then 401s for it, by construction.
+    password = password or secrets.token_urlsafe(32)
     return conn.execute(
-        """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at, user_id)
-           values (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s), %s) returning id, share_token, expires_at""",
-        (token, payload.company, domain, Jsonb(payload.profile), Jsonb(payload.answers), payload.rankingMode, Jsonb(payload.results), Jsonb(dns) if dns else None, SHARE_TTL_DAYS, user_id),
+        """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, password_hash, expires_at, user_id)
+           values (%s, %s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s), %s) returning id, share_token, expires_at""",
+        (token, payload.company, domain, Jsonb(payload.profile), Jsonb(payload.answers), payload.rankingMode, Jsonb(payload.results), Jsonb(dns) if dns else None,
+         hash_password(password), SHARE_TTL_DAYS, user_id),
     ).fetchone()
 
 
@@ -289,7 +326,7 @@ def create_assessment(body: AssessmentIn, request: Request):
     # header that doesn't check out, saves the same anonymous share it always has (user_id null).
     user_id = verify_user(request.headers.get("authorization"))
     with pool.connection() as conn:
-        row = create_assessment_row(conn, body, user_id=user_id)
+        row = create_assessment_row(conn, body, user_id=user_id, password=body.password)
     return {
         "id": str(row["id"]),
         "shareToken": row["share_token"],
@@ -317,13 +354,10 @@ def get_my_assessments(request: Request):
     ]
 
 
-@app.get("/api/share/{token}")
-def get_share(token: str, response: Response):
-    # A share link is a bearer secret: keep it (and the company's summary) out of search results.
-    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+def shared_row(token: str) -> dict:
     with pool.connection() as conn:
         row = conn.execute(
-            """select company, domain, ranking_mode, results, dns, created_at, expires_at,
+            """select company, domain, ranking_mode, results, dns, created_at, expires_at, password_hash,
                       expires_at is not null and expires_at <= now() as expired
                from assessments where share_token = %s""",
             (token,),
@@ -332,6 +366,33 @@ def get_share(token: str, response: Response):
         raise HTTPException(404, "Not found")
     if row["expired"]:
         raise HTTPException(410, "This link has expired")
+    return row
+
+
+@app.get("/api/share/{token}")
+def get_share(token: str, response: Response):
+    # A share link is a bearer secret: keep it (and the company's summary) out of search results.
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    row = shared_row(token)
+    if row["password_hash"]:
+        # Says nothing about the company until the password is given.
+        raise HTTPException(401, "Password required", headers={"X-Robots-Tag": "noindex, nofollow"})
+    return shared_view(row)
+
+
+@app.post("/api/share/{token}/unlock")
+def unlock_share(token: str, body: UnlockIn, request: Request, response: Response):
+    """The password travels in the body, never the URL, so it stays out of logs and browser history."""
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    if not unlock_ip_limit.allow(client_ip(request)) or not unlock_token_limit.allow(token):
+        raise HTTPException(429, "Too many attempts, try again in a minute")
+    row = shared_row(token)
+    if row["password_hash"] and not verify_password(body.password, row["password_hash"]):
+        raise HTTPException(401, "Wrong password")
+    return shared_view(row)
+
+
+def shared_view(row: dict) -> dict:
     # Raw answers are deliberately not returned: partners see the summary, not the questionnaire.
     return {
         "company": row["company"],
@@ -351,7 +412,7 @@ EmailAddress = Annotated[str, StringConstraints(strip_whitespace=True, min_lengt
 
 
 class InviteIn(BaseModel):
-    parentAssessmentId: Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F-]{36}$")]
+    parentAssessmentId: Uuid
     supplierName: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
     supplierEmail: EmailAddress
     deadlineDays: Annotated[int, Field(ge=1, le=90)] = 7
@@ -459,7 +520,9 @@ def submit_invite(token: str, body: InviteSubmitIn, request: Request):
         if row["status"] in ("submitted", "filled_by_buyer"):
             raise HTTPException(409, "This invite has already been completed")
 
-        # Not signed in: a supplier fills this in on their own link, not their (possibly nonexistent) account.
+        # Not signed in: a supplier fills this in on their own link, not their (possibly nonexistent)
+        # account. No password either — nobody asked for a shareable link here; the buyer reads this
+        # through /supply-chain, filtered by share_choice.
         assessment = create_assessment_row(conn, body)
         status = "filled_by_buyer" if body.filledByBuyer else "submitted"
         conn.execute(
@@ -481,7 +544,7 @@ BAND_ORDER = ("Low", "Moderate", "Elevated", "High")
 
 
 @app.get("/api/assessments/{assessment_id}/supply-chain")
-def get_supply_chain(assessment_id: str):
+def get_supply_chain(assessment_id: Uuid):
     """The buyer's view down their own supply chain: every invite descending from this assessment,
     carrying only what each supplier chose to share.
 

@@ -27,7 +27,7 @@ import { applyFix, buildPlan, prioritizeActions } from '../engine/actions';
 import { cccsStatuses, type ControlStatus } from '../engine/controls';
 import { actions, demoPersona, profileQuestions, questions, quickCheck, scenarios, templates } from '../engine/data';
 import { minutesFor } from '../engine/prompts';
-import { assess } from '../engine/scoring';
+import { assess, riskFraction } from '../engine/scoring';
 import { useAppStore } from '../store/appStore';
 
 const pct = (x: number) => `${Math.round(x * 100)}%`;
@@ -121,7 +121,7 @@ function ReportPreview({ preview }: { preview: ReturnType<typeof useDemoPreview>
                   <span className={`shrink-0 text-xs font-semibold ${BAND_STYLES[s.band].text}`}>{s.band}</span>
                 </div>
                 <div className="mt-1.5 h-2 overflow-hidden rounded-full bg-slate-100">
-                  <div className="h-full rounded-full" style={{ width: `${Math.min(100, (s.risk / 5) * 100)}%`, background: BAND_STYLES[s.band].hex }} />
+                  <div className="h-full rounded-full" style={{ width: `${riskFraction(s.risk) * 100}%`, background: BAND_STYLES[s.band].hex }} />
                 </div>
               </div>
             ))}
@@ -432,7 +432,7 @@ export default function Landing() {
                   [Lock, 'Scored in your browser', 'Your scores are calculated on your computer, not on our servers.'],
                   [EyeOff, 'Gone when you close the tab', 'Answers live in memory only. Nothing about your business is saved on your device.'],
                   [Sparkles, 'AI never sees who you are', 'Tailored wording uses your answers, never your company name or domain.'],
-                  [Link2, 'Sharing is your call', 'Links are only made when you ask, expire after 90 days, and stay out of search engines.'],
+                  [Link2, 'Sharing is your call', 'Links are only made when you ask, need a password you choose, expire after 90 days, and stay out of search engines.'],
                 ] as const
               ).map(([Icon, title, body]) => (
                 <li key={title} className="rounded-xl border border-slate-200 p-4">

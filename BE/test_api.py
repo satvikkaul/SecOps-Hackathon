@@ -8,6 +8,7 @@ BODY = {
     "answers": {"Q1": "no", "Q7": "partial"},
     "rankingMode": "effort",
     "results": {"posture": {"score": 2.1, "band": "Elevated"}},
+    "password": "grocer-2026",
 }
 
 
@@ -40,14 +41,21 @@ def test_api(c):
     token = created.json()["shareToken"]
     assert created.json()["shareUrl"].endswith(f"/?share={token}")
 
-    res = c.get(f"/api/share/{token}")
+    locked = c.get(f"/api/share/{token}")
+    assert locked.status_code == 401 and "Test Carrier" not in locked.text
+    assert c.post(f"/api/share/{token}/unlock", json={"password": "wrong-guess"}).status_code == 401
+
+    res = c.post(f"/api/share/{token}/unlock", json={"password": BODY["password"]})
     shared = res.json()
     assert shared["company"] == "Test Carrier" and shared["results"] == BODY["results"]
-    assert "answers" not in shared
+    assert "answers" not in shared and "password_hash" not in shared
     assert shared["expiresAt"] == created.json()["expiresAt"]
     assert res.headers["x-robots-tag"] == "noindex, nofollow"
 
     assert c.get("/api/share/nope").status_code == 404
+    assert c.post("/api/share/nope/unlock", json={"password": "x"}).status_code == 404
+    assert c.post("/api/assessments", json={k: v for k, v in BODY.items() if k != "password"}).status_code == 422
+    assert c.post("/api/assessments", json={**BODY, "password": "short"}).status_code == 422
     assert c.post("/api/assessments", json={**BODY, "answers": {"Q1": "maybe"}}).status_code == 422
     assert c.post("/api/assessments", json={**BODY, "domain": "not a domain"}).status_code == 400
     assert c.post("/api/assessments", json={**BODY, "company": "x" * 70000}).status_code == 413
@@ -152,6 +160,28 @@ def test_mine_requires_auth_and_only_returns_the_caller_own_rows(c, monkeypatch)
     assert all("shareUrl" in a and "createdAt" in a for a in mine_a)
 
 
+def test_passwords_are_stored_as_salted_scrypt_hashes(c):
+    from app.main import hash_password, pool, verify_password
+
+    first, second = hash_password("grocer-2026"), hash_password("grocer-2026")
+    assert first.startswith("scrypt$") and first != second  # fresh salt each time
+    assert verify_password("grocer-2026", first) and not verify_password("grocer-2027", first)
+    assert not verify_password("anything", "garbage")
+
+    token = c.post("/api/assessments", json=BODY).json()["shareToken"]
+    with pool.connection() as conn:
+        stored = conn.execute("select password_hash from assessments where share_token = %s", (token,)).fetchone()["password_hash"]
+    assert BODY["password"] not in stored and verify_password(BODY["password"], stored)
+
+
+def test_password_guesses_are_rate_limited_per_link(c, monkeypatch):
+    from app import main
+
+    token = c.post("/api/assessments", json=BODY).json()["shareToken"]
+    monkeypatch.setattr(main, "unlock_token_limit", main.RateLimit(per_ip_per_minute=2, total_per_hour=100))
+    assert [c.post(f"/api/share/{token}/unlock", json={"password": f"guess-{i}"}).status_code for i in range(3)] == [401, 401, 429]
+
+
 def test_rate_limit_counts_per_ip_and_overall():
     from app.main import RateLimit
 
@@ -243,8 +273,13 @@ def _new_invite(c, monkeypatch, parent_id: str) -> tuple[str, str]:
     return token, captured["pin"]
 
 
+# A supplier submitting through an invite isn't creating a share link, so it sends no password —
+# the BE locks the row with one nobody holds instead (see test_a_supplier_row_is_not_openable...).
+SUBMIT_BASE = {k: v for k, v in BODY.items() if k != "password"}
+
+
 def _submit_body(pin: str, share_choice: str = "score", filled_by_buyer: bool = False) -> dict:
-    return {**BODY, "pin": pin, "shareChoice": share_choice, "filledByBuyer": filled_by_buyer}
+    return {**SUBMIT_BASE, "pin": pin, "shareChoice": share_choice, "filledByBuyer": filled_by_buyer}
 
 
 def test_get_invite_hides_everything_without_the_correct_pin(c, monkeypatch):
@@ -384,7 +419,7 @@ def _submit_supplier(c, monkeypatch, parent_id: str, share_choice: str, results:
     token, pin = _new_invite(c, monkeypatch, parent_id)
     res = c.post(
         f"/api/invites/{token}/submit",
-        json={**BODY, "results": results or CHAIN_RESULTS, "pin": pin, "shareChoice": share_choice, "filledByBuyer": False},
+        json={**SUBMIT_BASE, "results": results or CHAIN_RESULTS, "pin": pin, "shareChoice": share_choice, "filledByBuyer": False},
     )
     assert res.status_code == 201, res.text
     return res.json()["assessmentId"]
@@ -451,10 +486,28 @@ def test_supply_chain_walks_deeper_levels_and_computes_timed_out_without_writing
     assert stored == "pending"
 
 
+def test_a_supplier_row_is_not_openable_as_a_share_link(c, monkeypatch):
+    """A supplier submits without a password (they aren't making a share link). The row still has a
+    share_token, so it must not be left open — the buyer reads it through /supply-chain instead."""
+    from app.main import pool
+
+    token, pin = _new_invite(c, monkeypatch, _new_assessment_id(c))
+    assessment_id = c.post(f"/api/invites/{token}/submit", json=_submit_body(pin)).json()["assessmentId"]
+
+    with pool.connection() as conn:
+        row = conn.execute("select share_token, password_hash from assessments where id = %s", (assessment_id,)).fetchone()
+    assert row["password_hash"] and row["password_hash"].startswith("scrypt$")
+    assert c.get(f"/api/share/{row['share_token']}").status_code == 401
+
+
 def test_supply_chain_404s_for_an_unknown_assessment(c):
     import uuid
 
     assert c.get(f"/api/assessments/{uuid.uuid4()}/supply-chain").status_code == 404
+    # A malformed id used to reach Postgres and blow up as a 500: a uuid column rejects the literal.
+    for bad in ("not-a-uuid", "1234", "------------------------------------"):
+        assert c.get(f"/api/assessments/{bad}/supply-chain").status_code == 422, bad
+    assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": "not-a-uuid"}).status_code == 422
 
 
 # ---------- Gemini guardrails (no network: Gemini is stubbed) ----------

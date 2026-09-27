@@ -10,6 +10,7 @@ import {
   getInvite,
   sendChatMessage,
   submitInvite,
+  unlockShare,
   type CreateShareRequest,
   type CreatedShare,
   type ShareChoice,
@@ -49,7 +50,10 @@ export function useDomainCheck() {
   });
 }
 
-export function shareRequest(state: Pick<AppState, 'company' | 'domain' | 'profile' | 'answers' | 'rankingMode'>): CreateShareRequest {
+export function shareRequest(
+  state: Pick<AppState, 'company' | 'domain' | 'profile' | 'answers' | 'rankingMode'>,
+  password?: string,
+): CreateShareRequest {
   return {
     company: state.company.trim() || 'Unnamed business',
     domain: state.domain || null,
@@ -57,19 +61,27 @@ export function shareRequest(state: Pick<AppState, 'company' | 'domain' | 'profi
     answers: state.answers,
     rankingMode: state.rankingMode,
     results: buildSnapshot(state.profile, state.answers, state.rankingMode),
+    ...(password ? { password } : {}),
   };
 }
 
 /** Saves a snapshot of the current assessment; resolves to the read-only link and when it expires.
- * Remembers the new row's id so a later supplier invite hangs off this same assessment. */
+ * With a password it's a link to hand to a partner; without one it's an account save or the
+ * auto-save behind a supplier invite, and the BE makes the link a dead end. Either way the new
+ * row's id is remembered, so a later supplier invite hangs off this same assessment. */
 export function useCreateShare() {
   return useMutation({ mutationFn: saveAssessment });
 }
 
-async function saveAssessment(): Promise<CreatedShare> {
-  const created = await createShare(shareRequest(useAppStore.getState()));
+async function saveAssessment(password?: string): Promise<CreatedShare> {
+  const created = await createShare(shareRequest(useAppStore.getState(), password));
   useAppStore.getState().update({ assessmentId: created.id });
   return created;
+}
+
+/** Wrong passwords and too many guesses are expected, so they aren't reported as errors. */
+export function useUnlockShare(token: string) {
+  return useMutation({ mutationFn: (password: string) => unlockShare(token, password), meta: { silent: true } });
 }
 
 /** Invites a supplier to complete their own check-up. The invite has to hang off a saved row, so

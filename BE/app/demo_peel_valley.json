@@ -4,12 +4,15 @@
   "profile": {
     "sector": "carrier",
     "employees": "11-50",
+    "itSupport": "nobody",
     "downtime": "lt4h",
     "perishable": "yes",
     "concentration": "yes",
     "payments": "yes",
     "sensitiveData": "yes",
+    "website": "info",
     "hasOT": "yes",
+    "phones": "both",
     "emailProvider": "m365"
   },
   "answers": {
@@ -38,7 +41,11 @@
     "Q23": "unsure",
     "Q24": "no",
     "Q25": "no",
-    "Q26": "no"
+    "Q26": "no",
+    "Q27": "partial",
+    "Q28": "no",
+    "Q29": "no",
+    "Q30": "no"
   },
   "rankingMode": "effort",
   "results": {
@@ -64,37 +71,37 @@
         "id": "ATO",
         "name": "Stolen logins to online business tools",
         "risk": 2.8,
-        "band": "Elevated"
+        "band": "High"
       },
       {
         "id": "RANSOM",
         "name": "Ransomware shuts down operations",
-        "risk": 2.17,
-        "band": "Elevated"
-      },
-      {
-        "id": "OT",
-        "name": "Tampering with connected equipment",
-        "risk": 2,
+        "risk": 1.95,
         "band": "Elevated"
       },
       {
         "id": "DATALOSS",
         "name": "Losing data you cannot get back",
         "risk": 1.88,
-        "band": "Moderate"
+        "band": "Elevated"
+      },
+      {
+        "id": "OT",
+        "name": "Tampering with connected equipment",
+        "risk": 1.85,
+        "band": "Elevated"
       },
       {
         "id": "THIRD",
         "name": "A vendor or IT provider gets breached",
         "risk": 1.5,
-        "band": "Moderate"
+        "band": "Elevated"
       },
       {
         "id": "SHARED",
         "name": "Misuse of shared or leftover accounts",
         "risk": 1.2,
-        "band": "Moderate"
+        "band": "Elevated"
       }
     ],
     "topActions": [
@@ -105,8 +112,8 @@
         "cost": "Free",
         "time": "Under 1 hour",
         "effort": 1,
-        "priority": 4.834,
-        "pctReduction": 0.265,
+        "priority": 4.79,
+        "pctReduction": 0.268,
         "timeframe": 30,
         "cccs": [
           "BC.5.1"
@@ -120,7 +127,7 @@
         "time": "Under 1 hour",
         "effort": 1,
         "priority": 2.42,
-        "pctReduction": 0.133,
+        "pctReduction": 0.135,
         "timeframe": 30,
         "cccs": []
       },
@@ -132,7 +139,7 @@
         "time": "Under 1 hour",
         "effort": 1,
         "priority": 2.304,
-        "pctReduction": 0.126,
+        "pctReduction": 0.129,
         "timeframe": 30,
         "cccs": []
       },
@@ -143,7 +150,7 @@
         "cost": "Free",
         "time": "Half a day",
         "effort": 2,
-        "priority": 1.847,
+        "priority": 1.817,
         "pctReduction": 0.203,
         "timeframe": 30,
         "cccs": [
@@ -159,7 +166,7 @@
         "time": "Under 1 hour",
         "effort": 1,
         "priority": 1.64,
-        "pctReduction": 0.09,
+        "pctReduction": 0.092,
         "timeframe": 30,
         "cccs": [
           "BC.12.3",
@@ -176,7 +183,7 @@
       {
         "control": "BC.2",
         "name": "Automatic patching",
-        "status": "Not yet met"
+        "status": "Partially met"
       },
       {
         "control": "BC.3",
@@ -231,9 +238,13 @@
       {
         "control": "BC.13",
         "name": "Secure portable media",
-        "status": "Not assessed"
+        "status": "Not yet met"
       }
-    ]
+    ],
+    "coverage": {
+      "answered": 30,
+      "total": 30
+    }
   },
   "dns": {
     "domain": "peelvalleyfresh.ca",

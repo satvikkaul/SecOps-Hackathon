@@ -57,12 +57,26 @@ describe('request', () => {
 });
 
 describe('endpoints', () => {
-  it('reads a missing or expired share link as an answer rather than an error', async () => {
+  it('reads a locked, missing or expired share link as an answer rather than an error', async () => {
     const { getShare } = await load();
+    fetchMock.mockResolvedValueOnce(json(401));
+    await expect(getShare('secret')).resolves.toEqual({ status: 'locked' });
     fetchMock.mockResolvedValueOnce(json(404));
     await expect(getShare('nope')).resolves.toEqual({ status: 'missing' });
     fetchMock.mockResolvedValueOnce(json(410));
     await expect(getShare('old')).resolves.toEqual({ status: 'expired' });
+  });
+
+  it('sends the unlock password in the body, never the URL', async () => {
+    const { unlockShare } = await load();
+    fetchMock.mockResolvedValueOnce(json(200, { company: 'X' }));
+    await expect(unlockShare('tok', 'grocer-2026')).resolves.toEqual({ company: 'X' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('http://api.test/api/share/tok/unlock');
+    expect(String(url)).not.toContain('grocer');
+    expect(init).toMatchObject({ method: 'POST', body: '{"password":"grocer-2026"}' });
+    fetchMock.mockResolvedValueOnce(json(401));
+    await expect(unlockShare('tok', 'nope')).rejects.toMatchObject({ status: 401 });
   });
 
   it('reads a missing invite token as an answer rather than an error', async () => {
@@ -137,6 +151,24 @@ describe('endpoints', () => {
     fetchMock.mockResolvedValueOnce(json(200, body));
     await expect(getSupplyChain('a 1')).resolves.toEqual(body);
     expect(fetchMock.mock.calls[0][0]).toBe('http://api.test/api/assessments/a%201/supply-chain');
+  });
+
+  it('leaves the password out entirely when no link is being handed out', async () => {
+    const { createShare } = await load();
+    // load() resets the module registry, so the catalog the global setup seeded is gone with it —
+    // appStore reads it at import time, and hooks imports appStore. Re-seed before importing hooks.
+    const [{ setCatalog }, { repoCatalog }] = await Promise.all([import('../engine/data'), import('../dev/repoCatalog')]);
+    setCatalog(repoCatalog());
+    const { shareRequest } = await import('./hooks');
+    const state = { company: 'Acme', domain: '', profile: {}, answers: {}, rankingMode: 'effort' as const };
+    // A fresh Response per call: one Response object can only be read once.
+    fetchMock.mockImplementation(async () => json(201, { id: 'a1', shareUrl: 'u', expiresAt: 'e' }));
+
+    await createShare(shareRequest(state));
+    expect(JSON.parse(fetchMock.mock.calls[0][1]!.body as string)).not.toHaveProperty('password');
+
+    await createShare(shareRequest(state, 'grocer-2026'));
+    expect(JSON.parse(fetchMock.mock.calls[1][1]!.body as string)).toMatchObject({ password: 'grocer-2026' });
   });
 });
 

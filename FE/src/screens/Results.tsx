@@ -32,7 +32,7 @@ import SupplyChainPanel from '../components/SupplyChainPanel';
 import { BAND_STYLES, BandBadge, Button, Card, SCENARIO_COLORS, SectionTitle } from '../components/ui';
 import { profileQuestions, scenarioById, templateById } from '../engine/data';
 import { chainFor, explainRisk } from '../engine/explain';
-import type { ScenarioResult } from '../engine/scoring';
+import { riskFraction, type ScenarioResult } from '../engine/scoring';
 import type { AnswerValue, Band, Expertise, Profile, ScenarioId } from '../engine/types';
 import { useShallow } from 'zustand/react/shallow';
 import { stashPendingSave, useAppStore, wasAssessmentAutoSaved } from '../store/appStore';
@@ -221,7 +221,7 @@ function SaveScoreCard() {
 
 /** Half-circle meter for the overall score out of 5. */
 function RiskGauge({ score, band, showScore = true }: { score: number; band: Band; showScore?: boolean }) {
-  const frac = Math.min(1, Math.max(0, score / 5));
+  const frac = riskFraction(score);
   const r = 80;
   const arc = Math.PI * r;
   return (
@@ -760,7 +760,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
                       <span className={`text-xs font-semibold ${BAND_STYLES[s.band].text}`}>{s.band}</span>
                     </div>
                     <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
-                      <div className="h-full rounded-full" style={{ width: `${Math.min(100, (s.risk / 5) * 100)}%`, background: BAND_STYLES[s.band].hex }} />
+                      <div className="h-full rounded-full" style={{ width: `${riskFraction(s.risk) * 100}%`, background: BAND_STYLES[s.band].hex }} />
                     </div>
                   </button>
                 </li>

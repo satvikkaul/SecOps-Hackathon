@@ -19,7 +19,12 @@ export interface SharedAssessment {
   expiresAt: string | null;
 }
 
-export type ShareLookup = { status: 'found'; assessment: SharedAssessment } | { status: 'missing' } | { status: 'expired' };
+export type ShareLookup =
+  | { status: 'found'; assessment: SharedAssessment }
+  /** Password-protected: the viewer has to unlock it. */
+  | { status: 'locked' }
+  | { status: 'missing' }
+  | { status: 'expired' };
 
 export interface CreatedShare {
   /** The saved row's id. Also what a supplier invite hangs off, via `parentAssessmentId`. */
@@ -28,13 +33,22 @@ export interface CreatedShare {
   expiresAt: string;
 }
 
-export interface CreateShareRequest {
+/** The check-up itself. Mirrors the BE's AssessmentPayload — the part both a share link and a
+ * supplier's invite submission carry. */
+export interface AssessmentPayload {
   company: string;
   domain: string | null;
   profile: Profile;
   answers: Answers;
   rankingMode: RankingMode;
   results: Snapshot;
+}
+
+export interface CreateShareRequest extends AssessmentPayload {
+  /** Viewers must enter it; the BE keeps only a salted hash. Omitted when no link is being handed
+   * out (an account save, or the auto-save behind a supplier invite) — the BE then locks the row
+   * with a password nobody holds, so its share link is a dead end rather than an open one. */
+  password?: string;
 }
 
 export interface Personalized {
@@ -67,7 +81,9 @@ export type InviteLookup = { status: 'found'; invite: InviteStatus } | { status:
 
 export type ShareChoice = 'score' | 'report' | 'both';
 
-export interface SubmitInviteRequest extends CreateShareRequest {
+/** No password: the supplier isn't creating a share link. The BE locks the row it writes with one
+ * nobody holds, so the only way in is the buyer's share_choice-filtered supply-chain view. */
+export interface SubmitInviteRequest extends AssessmentPayload {
   pin: string;
   shareChoice: ShareChoice;
   filledByBuyer: boolean;
@@ -88,11 +104,16 @@ export async function getShare(token: string, signal?: AbortSignal): Promise<Sha
   try {
     return { status: 'found', assessment: await request<SharedAssessment>(`/api/share/${encodeURIComponent(token)}`, { signal }) };
   } catch (err) {
+    if (err instanceof ApiError && err.status === 401) return { status: 'locked' };
     if (err instanceof ApiError && err.status === 404) return { status: 'missing' };
     if (err instanceof ApiError && err.status === 410) return { status: 'expired' };
     throw err;
   }
 }
+
+/** The password goes in the body, never the URL. 401 = wrong password, 429 = too many guesses. */
+export const unlockShare = (token: string, password: string) =>
+  request<SharedAssessment>(`/api/share/${encodeURIComponent(token)}/unlock`, { method: 'POST', body: { password } });
 
 /** Gemini's rewording of the engine's results. The BE answers 429/503 when it can't, or when the rewording fails validation. */
 export const personalize = (body: PersonalizeRequest, signal?: AbortSignal) =>

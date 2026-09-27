@@ -68,11 +68,28 @@ export function coverage(profile: Profile, answers: Answers, data: Dataset = def
   return { answered: visible.length - notAsked.length, total: visible.length, notAsked, complete: notAsked.length === 0 };
 }
 
+/**
+ * Lower edge of Moderate, Elevated, and High. Answers can only lower likelihood from the sector's base, so
+ * real scores sit between about 0.3 (all Yes) and 4.5 (all No, worst profile). For a typical business these
+ * cut-offs make all Yes read Low, all Partial Moderate, and all No High.
+ */
+export const BAND_THRESHOLDS = { Moderate: 0.6, Elevated: 1.2, High: 2 } as const;
+const MAX_RISK = 5;
+
 export function bandFor(risk: number): Band {
-  if (risk >= 3) return 'High';
-  if (risk >= 2) return 'Elevated';
-  if (risk >= 1) return 'Moderate';
+  if (risk >= BAND_THRESHOLDS.High) return 'High';
+  if (risk >= BAND_THRESHOLDS.Elevated) return 'Elevated';
+  if (risk >= BAND_THRESHOLDS.Moderate) return 'Moderate';
   return 'Low';
+}
+
+/** Where a risk sits on a meter, 0 to 1, with each band taking a quarter so the fill agrees with the label. */
+export function riskFraction(risk: number): number {
+  const edges = [0, BAND_THRESHOLDS.Moderate, BAND_THRESHOLDS.Elevated, BAND_THRESHOLDS.High, MAX_RISK];
+  const r = Math.min(MAX_RISK, Math.max(0, risk));
+  let i = 0;
+  while (i < 3 && r >= edges[i + 1]) i++;
+  return (i + (r - edges[i]) / (edges[i + 1] - edges[i])) / 4;
 }
 
 // ---------- Likelihood ----------
