@@ -10,8 +10,10 @@ create table if not exists assessments (
   ranking_mode text not null check (ranking_mode in ('effort', 'cost')),
   results      jsonb not null,                -- FE-computed snapshot: posture, scenarios, topActions, cccs
   dns          jsonb,                         -- BE-verified DNS result at creation time
-  created_at   timestamptz not null default now()
+  created_at   timestamptz not null default now(),
+  expires_at   timestamptz                    -- link stops working after this; null = never (demo rows)
 );
+alter table assessments add column if not exists expires_at timestamptz;
 
 create table if not exists dns_checks (
   domain     text primary key,

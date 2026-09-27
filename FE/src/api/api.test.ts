@@ -57,10 +57,12 @@ describe('request', () => {
 });
 
 describe('endpoints', () => {
-  it('reads a missing share link as null rather than an error', async () => {
+  it('reads a missing or expired share link as an answer rather than an error', async () => {
     const { getShare } = await load();
-    fetchMock.mockResolvedValue(json(404));
-    await expect(getShare('nope')).resolves.toBeNull();
+    fetchMock.mockResolvedValueOnce(json(404));
+    await expect(getShare('nope')).resolves.toEqual({ status: 'missing' });
+    fetchMock.mockResolvedValueOnce(json(410));
+    await expect(getShare('old')).resolves.toEqual({ status: 'expired' });
   });
 });
 

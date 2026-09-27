@@ -26,6 +26,7 @@ HERE = Path(__file__).parent
 FRONTEND_URL = os.environ.get("FRONTEND_URL", "https://secops-hackathon-production.up.railway.app").rstrip("/")
 MAX_BODY = 64 * 1024
 DNS_TTL = "24 hours"
+SHARE_TTL_DAYS = 90
 
 DATABASE_URL = os.environ.get("DATABASE_URL")
 if not DATABASE_URL:
@@ -49,11 +50,11 @@ def seed() -> None:
         for token, file in DEMOS.items():
             d = json.loads((HERE / file).read_text())
             conn.execute(
-                """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns)
-                   values (%s, %s, %s, %s, %s, %s, %s, %s)
+                """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at)
+                   values (%s, %s, %s, %s, %s, %s, %s, %s, null)
                    on conflict (share_token) do update set company = excluded.company, domain = excluded.domain,
                      profile = excluded.profile, answers = excluded.answers, ranking_mode = excluded.ranking_mode,
-                     results = excluded.results, dns = excluded.dns""",
+                     results = excluded.results, dns = excluded.dns, expires_at = null""",
                 (token, d["company"], d["domain"], Jsonb(d["profile"]), Jsonb(d["answers"]), d["rankingMode"], Jsonb(d["results"]), Jsonb(d["dns"])),
             )
             conn.execute(
@@ -125,6 +126,45 @@ def dns_for(domain: str) -> dict:
         return {**result, "checkedAt": saved["checked_at"].isoformat(), "cached": False}
 
 
+class RateLimit:
+    """Sliding-window caps per client IP and across everyone.
+    ponytail: in-memory, per process; fine for one Railway replica. Move to Postgres if we scale out."""
+
+    def __init__(self, per_ip_per_minute: int, total_per_hour: int):
+        self.per_ip_per_minute = per_ip_per_minute
+        self.total_per_hour = total_per_hour
+        self._by_ip: dict[str, deque] = {}
+        self._all: deque = deque()
+        self._lock = threading.Lock()
+
+    def allow(self, ip: str) -> bool:
+        now = time.monotonic()
+        with self._lock:
+            if len(self._by_ip) > 10_000:
+                self._by_ip = {k: q for k, q in self._by_ip.items() if q and now - q[-1] <= 60}
+            q = self._by_ip.setdefault(ip, deque())
+            while q and now - q[0] > 60:
+                q.popleft()
+            while self._all and now - self._all[0] > 3600:
+                self._all.popleft()
+            if len(q) >= self.per_ip_per_minute or len(self._all) >= self.total_per_hour:
+                return False
+            q.append(now)
+            self._all.append(now)
+            return True
+
+
+def client_ip(request: Request) -> str:
+    # Railway's proxy puts the real client first in X-Forwarded-For.
+    return (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "")).split(",")[0].strip()
+
+
+# Each new link is a DB row plus possibly a live DNS lookup, so cap how fast anyone can make them.
+share_limit = RateLimit(per_ip_per_minute=10, total_per_hour=500)
+# Uncached calls spend the Gemini key, so cap them. Cache hits are free and unlimited.
+personalize_limit = RateLimit(per_ip_per_minute=6, total_per_hour=300)
+
+
 def valid_domain_or_400(value: str) -> str:
     domain = normalize_domain(value)
     if not is_valid_domain(domain):
@@ -191,29 +231,42 @@ class AssessmentIn(BaseModel):
 
 
 @app.post("/api/assessments", status_code=201)
-def create_assessment(body: AssessmentIn):
+def create_assessment(body: AssessmentIn, request: Request):
+    if not share_limit.allow(client_ip(request)):
+        raise HTTPException(429, "Too many links, try again in a minute")
     domain = valid_domain_or_400(body.domain) if body.domain else None
     # Only our own lookup is stored: the "verified" part must not come from the client.
     dns = dns_for(domain) if domain else None
     token = secrets.token_urlsafe(16)
     with pool.connection() as conn:
         row = conn.execute(
-            """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns)
-               values (%s, %s, %s, %s, %s, %s, %s, %s) returning id""",
-            (token, body.company, domain, Jsonb(body.profile), Jsonb(body.answers), body.rankingMode, Jsonb(body.results), Jsonb(dns) if dns else None),
+            """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at)
+               values (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s)) returning id, expires_at""",
+            (token, body.company, domain, Jsonb(body.profile), Jsonb(body.answers), body.rankingMode, Jsonb(body.results), Jsonb(dns) if dns else None, SHARE_TTL_DAYS),
         ).fetchone()
-    return {"id": str(row["id"]), "shareToken": token, "shareUrl": f"{FRONTEND_URL}/?share={token}"}
+    return {
+        "id": str(row["id"]),
+        "shareToken": token,
+        "shareUrl": f"{FRONTEND_URL}/?share={token}",
+        "expiresAt": row["expires_at"].isoformat(),
+    }
 
 
 @app.get("/api/share/{token}")
-def get_share(token: str):
+def get_share(token: str, response: Response):
+    # A share link is a bearer secret: keep it (and the company's summary) out of search results.
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
     with pool.connection() as conn:
         row = conn.execute(
-            "select company, domain, ranking_mode, results, dns, created_at from assessments where share_token = %s",
+            """select company, domain, ranking_mode, results, dns, created_at, expires_at,
+                      expires_at is not null and expires_at <= now() as expired
+               from assessments where share_token = %s""",
             (token,),
         ).fetchone()
     if not row:
         raise HTTPException(404, "Not found")
+    if row["expired"]:
+        raise HTTPException(410, "This link has expired")
     # Raw answers are deliberately not returned: partners see the summary, not the questionnaire.
     return {
         "company": row["company"],
@@ -222,6 +275,7 @@ def get_share(token: str):
         "results": row["results"],
         "dns": row["dns"],
         "createdAt": row["created_at"].isoformat(),
+        "expiresAt": row["expires_at"].isoformat() if row["expires_at"] else None,
     }
 
 
@@ -260,30 +314,6 @@ class PersonalizeIn(BaseModel):
     actions: list[ActionIn] = Field(max_length=5)
 
 
-# Uncached calls spend the Gemini key, so cap them. Cache hits are free and unlimited.
-# ponytail: in-memory, per process; fine for one Railway replica. Move to Postgres if we scale out.
-_calls: dict[str, deque] = {}
-_all_calls: deque = deque()
-_lock = threading.Lock()
-PER_IP_PER_MIN = 6
-ALL_PER_HOUR = 300
-
-
-def _allow(ip: str) -> bool:
-    now = time.monotonic()
-    with _lock:
-        q = _calls.setdefault(ip, deque())
-        while q and now - q[0] > 60:
-            q.popleft()
-        while _all_calls and now - _all_calls[0] > 3600:
-            _all_calls.popleft()
-        if len(q) >= PER_IP_PER_MIN or len(_all_calls) >= ALL_PER_HOUR:
-            return False
-        q.append(now)
-        _all_calls.append(now)
-        return True
-
-
 @app.post("/api/personalize")
 def post_personalize(body: PersonalizeIn, request: Request):
     req = body.model_dump()
@@ -293,8 +323,7 @@ def post_personalize(body: PersonalizeIn, request: Request):
     if row:
         return {**row["result"], "cached": True}
 
-    ip = (request.headers.get("x-forwarded-for") or (request.client.host if request.client else "")).split(",")[0].strip()
-    if not _allow(ip):
+    if not personalize_limit.allow(client_ip(request)):
         raise HTTPException(429, "Too many requests, try again in a minute")
     try:
         result = ai.personalize(req)

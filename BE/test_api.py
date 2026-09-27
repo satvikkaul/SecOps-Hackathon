@@ -40,9 +40,12 @@ def test_api(c):
     token = created.json()["shareToken"]
     assert created.json()["shareUrl"].endswith(f"/?share={token}")
 
-    shared = c.get(f"/api/share/{token}").json()
+    res = c.get(f"/api/share/{token}")
+    shared = res.json()
     assert shared["company"] == "Test Carrier" and shared["results"] == BODY["results"]
     assert "answers" not in shared
+    assert shared["expiresAt"] == created.json()["expiresAt"]
+    assert res.headers["x-robots-tag"] == "noindex, nofollow"
 
     assert c.get("/api/share/nope").status_code == 404
     assert c.post("/api/assessments", json={**BODY, "answers": {"Q1": "maybe"}}).status_code == 422
@@ -51,9 +54,44 @@ def test_api(c):
 
     demo = c.get("/api/share/demo-peel-valley").json()
     assert [a["id"] for a in demo["results"]["topActions"]] == ["A1", "A19", "A7", "A8", "A4"]
+    assert demo["expiresAt"] is None
     # Pinned demo DNS never hits the network.
     assert c.get("/api/dns/peelvalleyfresh.ca").json()["cached"] is True
     assert c.get("/api/dns/peelvalleyfresh.ca").json()["cached"] is True
+
+
+def test_share_link_expires(c):
+    from datetime import datetime, timedelta, timezone
+
+    from app.main import SHARE_TTL_DAYS, pool
+
+    created = c.post("/api/assessments", json=BODY).json()
+    expires = datetime.fromisoformat(created["expiresAt"])
+    # Calendar days in the DB's time zone, so a daylight-saving change can shift it by an hour.
+    assert abs(expires - datetime.now(timezone.utc) - timedelta(days=SHARE_TTL_DAYS)) <= timedelta(hours=1, minutes=5)
+
+    with pool.connection() as conn:
+        conn.execute("update assessments set expires_at = now() - interval '1 second' where share_token = %s", (created["shareToken"],))
+    assert c.get(f"/api/share/{created['shareToken']}").status_code == 410
+
+
+def test_share_creation_is_rate_limited(c, monkeypatch):
+    from app import main
+
+    monkeypatch.setattr(main, "share_limit", main.RateLimit(per_ip_per_minute=1, total_per_hour=100))
+    assert c.post("/api/assessments", json=BODY).status_code == 201
+    assert c.post("/api/assessments", json=BODY).status_code == 429
+
+
+def test_rate_limit_counts_per_ip_and_overall():
+    from app.main import RateLimit
+
+    per_ip = RateLimit(per_ip_per_minute=2, total_per_hour=100)
+    assert [per_ip.allow("a") for _ in range(3)] == [True, True, False]
+    assert per_ip.allow("b") is True
+
+    overall = RateLimit(per_ip_per_minute=100, total_per_hour=2)
+    assert [overall.allow(ip) for ip in "abc"] == [True, True, False]
 
 
 # ---------- Gemini guardrails (no network: Gemini is stubbed) ----------

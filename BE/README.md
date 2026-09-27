@@ -80,8 +80,8 @@ Without an AI key everything else still works: rewording answers 503 and the fro
 | GET | `/api/catalog/questions/{id}` | One question, e.g. `Q26`. 404 if unknown. |
 | GET | `/api/catalog/actions/{id}` | One fix, e.g. `A19`. 404 if unknown. |
 | GET | `/api/dns/{domain}` | SPF, DMARC, and mail-provider check. Cached for 24 hours; falls back to the last good result if a live lookup fails. |
-| POST | `/api/assessments` | Saves a results snapshot and returns `{id, shareToken, shareUrl}`. The DNS result stored with it is always the server's own lookup. |
-| GET | `/api/share/{token}` | The read-only summary behind a share link. Raw answers are never returned. |
+| POST | `/api/assessments` | Saves a results snapshot and returns `{id, shareToken, shareUrl, expiresAt}`. Links expire after 90 days. The DNS result stored with it is always the server's own lookup. Limited to 10 per IP per minute and 500 per hour overall. |
+| GET | `/api/share/{token}` | The read-only summary behind a share link: 404 if unknown, 410 once expired. Raw answers are never returned. Sent with `X-Robots-Tag: noindex`. |
 | POST | `/api/personalize` | Gemini's rewording of the results. Cached; uncached calls are limited to 6 per IP per minute and 300 per hour overall. |
 | POST | `/api/chat` | One chat turn. `sessionId` ties turns together in memory. |
 
@@ -109,7 +109,7 @@ To add a field to the content, add a column or table in `catalog.sql`, then writ
 
 `schema.sql` (public schema, RLS on, no policies):
 
-- `assessments`: shared snapshots, keyed by an unguessable `share_token`.
+- `assessments`: shared snapshots, keyed by an unguessable `share_token` (128 random bits). `expires_at` null means the link never expires (demo rows only).
 - `dns_checks`: cached DNS results. `pinned` rows (the demo company) are never refreshed.
 - `ai_texts`: validated rewording, keyed by request hash.
 
@@ -133,4 +133,4 @@ DATABASE_URL=postgresql://... uv run pytest
 
 - Service root directory `BE`, start command `uvicorn app.main:app --host 0.0.0.0 --port $PORT`, health check `/api/health`.
 - Deploy the backend **before** a frontend that depends on a new endpoint or catalog change. The frontend won't render without `/api/catalog`.
-- One replica is assumed: the rewording rate limit and chat history are in-process memory.
+- One replica is assumed: the rate limits and chat history are in-process memory.

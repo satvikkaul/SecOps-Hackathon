@@ -52,7 +52,6 @@ export default function RiskStory({
   story,
   onClose,
   onSeeFix,
-  onSeeMath,
   onSeeFlow,
   chain,
   expertise = 'medium',
@@ -62,7 +61,6 @@ export default function RiskStory({
   expertise?: Expertise;
   onClose: () => void;
   onSeeFix: (actionId: string) => void;
-  onSeeMath: () => void;
   onSeeFlow: () => void;
 }) {
   const sc = scenarioById[story.id];
@@ -145,7 +143,7 @@ export default function RiskStory({
             <p className="mt-3 text-sm text-emerald-700">Every protection we ask about is already in place.</p>
           )}
           {story.drivers.length > shownDrivers.length && (
-            <p className="mt-2 text-xs text-slate-500">+ {story.drivers.length - shownDrivers.length} smaller gaps, see the full math.</p>
+            <p className="mt-2 text-xs text-slate-500">+ {story.drivers.length - shownDrivers.length} smaller gaps.</p>
           )}
           {story.protections.length > 0 && (
             <div className="mt-4">
@@ -253,12 +251,6 @@ export default function RiskStory({
             See it in the supply chain diagram ↓
           </button>
         </Part>
-      </div>
-
-      <div className="no-print flex justify-end border-t border-slate-100 px-5 py-3">
-        <button type="button" onClick={onSeeMath} className="text-sm font-semibold text-brand-700 hover:text-brand-900">
-          See every number for this risk in Show the math →
-        </button>
       </div>
     </div>
   );

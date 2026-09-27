@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { useSharedAssessment } from '../api/hooks';
 import { StatusPill } from '../components/StandardsPanel';
 import { BandBadge, Card } from '../components/ui';
@@ -8,12 +9,15 @@ const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-CA', { yea
 
 /** Read-only view of a shared assessment (`?share=<token>`). Renders the stored snapshot; nothing is re-scored. */
 export default function SharedSummary({ token }: { token: string }) {
-  const { data, isPending, isError } = useSharedAssessment(token);
+  const lookup = useSharedAssessment(token);
+  useNoIndex();
 
-  if (isError) return <Message title="Couldn't load this summary" body="Check your connection and refresh the page." />;
-  if (isPending) return <Message title="Loading…" />;
-  if (data === null) return <Message title="Link not found" body="This link is wrong or no longer exists. Ask the sender for a new one." />;
+  if (lookup.isError) return <Message title="Couldn't load this summary" body="Check your connection and refresh the page." />;
+  if (lookup.isPending) return <Message title="Loading…" />;
+  if (lookup.data.status === 'missing') return <Message title="Link not found" body="This link is wrong or no longer exists. Ask the sender for a new one." />;
+  if (lookup.data.status === 'expired') return <Message title="This link has expired" body="Share links stop working after a while. Ask the sender for a new one." />;
 
+  const data = lookup.data.assessment;
   const { results: r, dns } = data;
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
@@ -29,6 +33,7 @@ export default function SharedSummary({ token }: { token: string }) {
           </div>
           <div className="text-right text-sm text-slate-600">
             <div className="font-semibold text-slate-800">Assessed {fmtDate(data.createdAt)}</div>
+            {data.expiresAt && <div className="text-xs text-slate-500">Link valid until {fmtDate(data.expiresAt)}</div>}
             <div className="mt-1 flex items-center justify-end gap-2">
               Overall risk <BandBadge band={r.posture.band} />
             </div>
@@ -116,6 +121,17 @@ export default function SharedSummary({ token }: { token: string }) {
       </article>
     </div>
   );
+}
+
+/** A share link is a bearer secret: keep the page, and the company's summary, out of search results. */
+function useNoIndex() {
+  useEffect(() => {
+    const meta = document.createElement('meta');
+    meta.name = 'robots';
+    meta.content = 'noindex, nofollow';
+    document.head.appendChild(meta);
+    return () => meta.remove();
+  }, []);
 }
 
 function Message({ title, body }: { title: string; body?: string }) {

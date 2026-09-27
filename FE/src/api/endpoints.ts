@@ -15,6 +15,15 @@ export interface SharedAssessment {
   results: Snapshot;
   dns: ServerDnsResult | null;
   createdAt: string;
+  /** null = never expires (the demo company). */
+  expiresAt: string | null;
+}
+
+export type ShareLookup = { status: 'found'; assessment: SharedAssessment } | { status: 'missing' } | { status: 'expired' };
+
+export interface CreatedShare {
+  shareUrl: string;
+  expiresAt: string;
 }
 
 export interface CreateShareRequest {
@@ -48,15 +57,15 @@ export const getCatalog = (signal?: AbortSignal) => request<Catalog>('/api/catal
 export const getDomainCheck = (domain: string, signal?: AbortSignal) =>
   request<ServerDnsResult>(`/api/dns/${encodeURIComponent(domain)}`, { signal });
 
-export const createShare = async (body: CreateShareRequest) =>
-  (await request<{ shareUrl: string }>('/api/assessments', { method: 'POST', body })).shareUrl;
+export const createShare = (body: CreateShareRequest) => request<CreatedShare>('/api/assessments', { method: 'POST', body });
 
-/** null = no such link. */
-export async function getShare(token: string, signal?: AbortSignal): Promise<SharedAssessment | null> {
+/** A wrong or expired link is an answer, not a failure. */
+export async function getShare(token: string, signal?: AbortSignal): Promise<ShareLookup> {
   try {
-    return await request<SharedAssessment>(`/api/share/${encodeURIComponent(token)}`, { signal });
+    return { status: 'found', assessment: await request<SharedAssessment>(`/api/share/${encodeURIComponent(token)}`, { signal }) };
   } catch (err) {
-    if (err instanceof ApiError && err.status === 404) return null;
+    if (err instanceof ApiError && err.status === 404) return { status: 'missing' };
+    if (err instanceof ApiError && err.status === 410) return { status: 'expired' };
     throw err;
   }
 }

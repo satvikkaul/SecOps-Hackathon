@@ -7,6 +7,7 @@ import BootScreen from './components/BootScreen';
 import { setCatalog } from './engine/data';
 import './index.css';
 import { queryClient } from './lib/queryClient';
+import { isSharePage, scrubShareTokens } from './lib/sentryScrub';
 import { startAuthListener } from './store/authStore';
 
 const QueryDevtools = import.meta.env.DEV
@@ -15,7 +16,15 @@ const QueryDevtools = import.meta.env.DEV
 
 Sentry.init({
   dsn: 'https://9fbcc11a8b19f02d52ef68580e59f2f7@o4509746519474176.ingest.us.sentry.io/4512154703233024',
-  integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration(), Sentry.feedbackIntegration({ colorScheme: 'system' })],
+  integrations: [
+    Sentry.browserTracingIntegration(),
+    // A recording of a shared summary would copy that company's report to Sentry.
+    ...(isSharePage() ? [] : [Sentry.replayIntegration()]),
+    Sentry.feedbackIntegration({ colorScheme: 'system' }),
+  ],
+  beforeSend: scrubShareTokens,
+  beforeSendTransaction: scrubShareTokens,
+  beforeBreadcrumb: scrubShareTokens,
   tracesSampleRate: 1.0, // fine for a hackathon demo; would need real sampling in production
   tracePropagationTargets: ['localhost', 'imaginative-tenderness-production-be96.up.railway.app'],
   replaysSessionSampleRate: 0.1,

@@ -32,7 +32,7 @@ export function shareRequest(state: Pick<AppState, 'company' | 'domain' | 'profi
   };
 }
 
-/** Saves a snapshot of the current assessment; resolves to the read-only link. */
+/** Saves a snapshot of the current assessment; resolves to the read-only link and when it expires. */
 export function useCreateShare() {
   return useMutation({ mutationFn: () => createShare(shareRequest(useAppStore.getState())) });
 }

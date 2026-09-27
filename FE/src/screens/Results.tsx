@@ -4,10 +4,8 @@ import { ExpertiseSwitch } from '../components/Expertise';
 import ActionCard, { CompactAction, pct } from '../components/ActionCard';
 import RiskFlow from '../components/RiskFlow';
 import RiskStory from '../components/RiskStory';
-import ShowTheMath from '../components/ShowTheMath';
 import RankingToggle from '../components/RankingToggle';
 import RiskRegisterButton from '../components/RiskRegisterButton';
-import StandardsPanel from '../components/StandardsPanel';
 import ShareButton from '../components/ShareButton';
 import { BAND_STYLES, BandBadge, Button, Card, SCENARIO_COLORS, SectionTitle } from '../components/ui';
 import { profileQuestions, scenarioById, templateById } from '../engine/data';
@@ -125,13 +123,12 @@ function RiskCard({
   );
 }
 
-type Tab = 'overview' | 'fixes' | 'risks' | 'chain' | 'proof';
+type Tab = 'overview' | 'fixes' | 'risks' | 'chain';
 const TABS: { id: Tab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'fixes', label: 'Fix first' },
   { id: 'risks', label: 'Your risks' },
   { id: 'chain', label: 'Supply chain' },
-  { id: 'proof', label: 'How we scored' },
 ];
 
 function Block({ children, className = '' }: { children: ReactNode; className?: string }) {
@@ -207,17 +204,14 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
   const loadDemo = useAppStore((s) => s.loadDemo);
   const { profile, answers } = state;
   const results = useResults(profile, answers, state.rankingMode);
-  const { assessment, plan, ranked, unsure, flow, cccs, cis, ciosc } = results;
+  const { assessment, plan, ranked, unsure, flow } = results;
   // Gemini rewords the engine's results for this business and level. It never changes a score or the order.
   const ai = usePersonalized(profile.sector ? personalizeRequest(state, results) : null);
   const [showOriginal, setShowOriginal] = useState(false);
   const personal = showOriginal ? null : ai.data;
   const aiAction = (id: string) => personal?.actions.find((a) => a.id === id);
   const aiRisk = (id: string) => personal?.risks.find((r) => r.id === id)?.why;
-  const [mathOpen, setMathOpen] = useState(false);
-  const [standardsOpen, setStandardsOpen] = useState(false);
   const [openRisk, setOpenRisk] = useState<ScenarioId | null>(null);
-  const [mathFocus, setMathFocus] = useState<ScenarioId | null>(null);
   const [flowFocus, setFlowFocus] = useState<string | null>(null);
   const [tab, setTab] = useState<Tab>('overview');
 
@@ -287,11 +281,6 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
       expertise={expertise}
       onClose={() => setOpenRisk(null)}
       onSeeFix={(id) => goTo('fixes', `fix-${id}`)}
-      onSeeMath={() => {
-        setMathOpen(true);
-        setMathFocus(story.id);
-        goTo('proof', `math-${story.id}`);
-      }}
       onSeeFlow={() => {
         setFlowFocus(story.id);
         goTo('chain', 'risk-flow');
@@ -303,21 +292,6 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
     setOpenRisk(id);
     goTo('risks', `risk-story-${id}`);
   };
-
-  const accordion = (open: boolean, onClick: () => void, title: ReactNode, sub: ReactNode) => (
-    <button
-      type="button"
-      onClick={onClick}
-      className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white px-6 py-4 text-left shadow-sm hover:bg-slate-50"
-      aria-expanded={open}
-    >
-      <div>
-        <div className="text-xl font-bold text-slate-900">{title}</div>
-        <div className="text-slate-600">{sub}</div>
-      </div>
-      <span className={`text-2xl text-slate-400 transition-transform ${open ? 'rotate-90' : ''}`}>›</span>
-    </button>
-  );
 
   return (
     <div className="mx-auto max-w-7xl px-4 pb-10 pt-6 sm:px-6">
@@ -622,44 +596,6 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
             </Block>
           )}
 
-          {tab === 'proof' && (
-            <Block className="space-y-4">
-              {basic && (
-                <p className="rounded-xl bg-sky-50 px-4 py-3 text-sky-900">
-                  This part is for your IT person, or a customer's security team. It shows exactly how every score was worked out, and which official standards each
-                  answer counts toward.
-                </p>
-              )}
-              <div>
-                {accordion(mathOpen, () => setMathOpen((o) => !o), 'Show the math', 'Every number on these pages, traced back to your answers.')}
-                {mathOpen && (
-                  <div className="fade-in mt-4">
-                    <ShowTheMath assessment={assessment} ranked={ranked} profile={profile} mode={state.rankingMode} focusId={mathFocus} />
-                  </div>
-                )}
-              </div>
-              <div>
-                {state.template === 'ciosc'
-                  ? accordion(
-                      standardsOpen,
-                      () => setStandardsOpen((o) => !o),
-                      'How this maps to CyberSecure Canada',
-                      'The 18 sections of CAN/CIOSC 104:2021, numbered as in the OCI Cybersecurity Workbook, traced to your answers.',
-                    )
-                  : accordion(
-                      standardsOpen,
-                      () => setStandardsOpen((o) => !o),
-                      'How this maps to CCCS and CIS',
-                      'Canadian Centre for Cyber Security baseline controls and CIS Controls v8.1, traced to your answers.',
-                    )}
-                {standardsOpen && (
-                  <div className="fade-in mt-4">
-                    <StandardsPanel key={state.template} template={state.template} cccs={cccs} cis={cis} ciosc={ciosc} />
-                  </div>
-                )}
-              </div>
-            </Block>
-          )}
         </div>
 
         {/* Sidebar */}
