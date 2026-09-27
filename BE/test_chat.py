@@ -1,7 +1,15 @@
 """Pure unit tests for app.chat — no DATABASE_URL, no network. app.main needs a real Postgres
 (see test_api.py), so these import app.chat directly instead of going through the FastAPI app."""
 
-from app import chat
+import pytest
+
+from app import catalog, chat
+
+
+@pytest.fixture(autouse=True)
+def catalog_from_files():
+    files = catalog.read_files()
+    catalog.set_cached(catalog.Snapshot(catalog.version_of(files), files))
 
 
 def test_lookup_action_known_and_unknown():
@@ -10,6 +18,7 @@ def test_lookup_action_known_and_unknown():
     assert "steps" in a1
 
     assert "error" in chat.lookup_action("A999")
+    assert chat.lookup_action("A19")["questionIds"] == ["Q26"]
 
 
 def test_explain_question_known_and_unknown():

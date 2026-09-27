@@ -1,5 +1,6 @@
-import { useEffect, useState } from 'react';
-import { personalize, type Personalized } from './api';
+import { useQuery } from '@tanstack/react-query';
+import { hasApi } from './api/client';
+import { personalizeQuery } from './api/queries';
 import { profileQuestions, questionById } from './engine/data';
 import { chainFor } from './engine/explain';
 import { visibleQuestions } from './engine/scoring';
@@ -56,23 +57,11 @@ export function personalizeRequest(state: Pick<AppState, 'profile' | 'answers' |
 export type PersonalizeRequest = ReturnType<typeof personalizeRequest>;
 export type PersonalizeStatus = 'loading' | 'ready' | 'unavailable';
 
-/** Fetches Gemini's rewording for the current results. Re-fetches when the level or answers change; the BE caches repeats. */
+/** Gemini's rewording for the current results, keyed by the request so text written for a different level
+ * or different answers is never shown. */
 export function usePersonalized(request: PersonalizeRequest | null) {
-  const key = request ? JSON.stringify(request) : '';
-  const [state, setState] = useState<{ key: string; status: PersonalizeStatus; data: Personalized | null }>({ key: '', status: 'unavailable', data: null });
-
-  useEffect(() => {
-    if (!key) return;
-    let current = true;
-    setState({ key, status: 'loading', data: null });
-    personalize(JSON.parse(key)).then((data) => {
-      if (current) setState({ key, status: data ? 'ready' : 'unavailable', data });
-    });
-    return () => {
-      current = false;
-    };
-  }, [key]);
-
-  // Never show text generated for a different level or different answers.
-  return state.key === key ? state : { key, status: key ? ('loading' as const) : ('unavailable' as const), data: null };
+  const enabled = hasApi && request !== null;
+  const query = useQuery({ ...personalizeQuery(request!), enabled });
+  const status: PersonalizeStatus = !enabled || query.isError ? 'unavailable' : query.isPending ? 'loading' : 'ready';
+  return { status, data: status === 'ready' ? query.data! : null };
 }

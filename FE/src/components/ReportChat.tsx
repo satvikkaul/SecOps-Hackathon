@@ -1,6 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { sendChatMessage } from '../api';
-import { buildChatContext } from '../chatContext';
+import { useSendChatMessage } from '../api/hooks';
 import { useAppStore } from '../store/appStore';
 import { AssistantMessage } from './ChatReply';
 import { Button, Card } from './ui';
@@ -26,25 +25,16 @@ export default function ReportChat() {
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
-  const [sending, setSending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const chat = useSendChatMessage(sessionId);
+  const sending = chat.isPending;
 
-  const submit = async (e: FormEvent) => {
+  const submit = (e: FormEvent) => {
     e.preventDefault();
     const text = input.trim();
     if (!text || sending) return;
     setInput('');
-    setError(null);
     setMessages((m) => [...m, { role: 'user', text }]);
-    setSending(true);
-    try {
-      const reply = await sendChatMessage(sessionId, text, buildChatContext(useAppStore.getState()));
-      setMessages((m) => [...m, { role: 'assistant', text: reply }]);
-    } catch {
-      setError("Couldn't reach the assistant. Check your connection and try again.");
-    } finally {
-      setSending(false);
-    }
+    chat.mutate(text, { onSuccess: (reply) => setMessages((m) => [...m, { role: 'assistant', text: reply }]) });
   };
 
   if (!open)
@@ -87,7 +77,9 @@ export default function ReportChat() {
             </div>
           ))}
           {sending && <div className="text-sm text-slate-500">Thinking…</div>}
-          {error && <div className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">{error}</div>}
+          {chat.isError && (
+            <div className="rounded-xl bg-rose-50 px-3 py-2 text-sm text-rose-700">Couldn't reach the assistant. Check your connection and try again.</div>
+          )}
         </div>
 
         <form onSubmit={submit} className="flex items-center gap-2 border-t border-slate-200 p-3">

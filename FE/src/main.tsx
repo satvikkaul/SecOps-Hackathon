@@ -1,9 +1,17 @@
 import * as Sentry from '@sentry/react';
-import React from 'react';
+import { QueryClientProvider } from '@tanstack/react-query';
+import React, { lazy, Suspense } from 'react';
 import ReactDOM from 'react-dom/client';
-import App from './App';
+import { catalogQuery } from './api/queries';
+import BootScreen from './components/BootScreen';
+import { setCatalog } from './engine/data';
 import './index.css';
+import { queryClient } from './lib/queryClient';
 import { startAuthListener } from './store/authStore';
+
+const QueryDevtools = import.meta.env.DEV
+  ? lazy(() => import('@tanstack/react-query-devtools').then((m) => ({ default: () => <m.ReactQueryDevtools buttonPosition="top-right" /> })))
+  : () => null;
 
 Sentry.init({
   dsn: 'https://9fbcc11a8b19f02d52ef68580e59f2f7@o4509746519474176.ingest.us.sentry.io/4512154703233024',
@@ -27,8 +35,28 @@ window.__testSentryError = () => {
 
 startAuthListener();
 
-ReactDOM.createRoot(document.getElementById('root')!).render(
-  <React.StrictMode>
-    <App />
-  </React.StrictMode>,
-);
+const root = ReactDOM.createRoot(document.getElementById('root')!);
+
+/** The app's modules read the catalog when they are first imported, so App is imported only after it has loaded. */
+async function boot() {
+  root.render(<BootScreen />);
+  try {
+    setCatalog(await queryClient.fetchQuery(catalogQuery));
+  } catch {
+    root.render(<BootScreen failed onRetry={boot} />);
+    return;
+  }
+  const { default: App } = await import('./App');
+  root.render(
+    <React.StrictMode>
+      <QueryClientProvider client={queryClient}>
+        <App />
+        <Suspense>
+          <QueryDevtools />
+        </Suspense>
+      </QueryClientProvider>
+    </React.StrictMode>,
+  );
+}
+
+void boot();

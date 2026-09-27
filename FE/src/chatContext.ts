@@ -1,9 +1,7 @@
-import { dataset, sections } from './engine/data';
+import { questionById, sections } from './engine/data';
 import { promptQuestionIds, visiblePrompts } from './engine/prompts';
 import { buildSnapshot, type Snapshot } from './engine/snapshot';
 import type { AppState } from './store/appStore';
-
-const questionById = Object.fromEntries(dataset.questions.map((q) => [q.id, q]));
 
 /** The check-up questions currently on screen, so the chatbot can answer "what does this mean?"
  * without the user having to name a question id. */

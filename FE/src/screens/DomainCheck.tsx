@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Button, Card, OptionCard, ProgressBar } from '../components/ui';
-import { demoPersona, profileQuestions } from '../engine/data';
+import { profileQuestions } from '../engine/data';
 import { prompts } from '../engine/prompts';
-import { describeFindings, dmarcToAnswer, isValidDomain, normalizeDomain, type Indicator } from '../engine/dns';
+import { describeFindings, dmarcToAnswer, isValidDomain, normalizeDomain, type DnsResult, type Indicator } from '../engine/dns';
 import type { AnswerValue } from '../engine/types';
 import { useShallow } from 'zustand/react/shallow';
-import { lookupDomain } from '../api';
+import { useDomainCheck } from '../api/hooks';
 import { useAppStore } from '../store/appStore';
 
 const DOT: Record<Indicator, string> = {
@@ -37,21 +37,21 @@ export default function DomainCheck() {
   const setProfile = useAppStore((s) => s.setProfile);
   const setAnswer = useAppStore((s) => s.setAnswer);
   const [input, setInput] = useState(state.domain);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const check = useDomainCheck();
+  const loading = check.isPending;
 
-  const run = async () => {
+  const run = () => {
     const domain = normalizeDomain(input);
     if (!isValidDomain(domain)) {
       setError('That does not look like a domain. Try something like yourcompany.ca');
       return;
     }
     setError(null);
-    setLoading(true);
-    // The demo company uses stored results so the demo never depends on the network.
-    const result = domain === demoPersona.domain ? demoPersona.dnsResult : await lookupDomain(domain);
-    setLoading(false);
+    check.mutate(domain, { onSuccess: (result) => applyResult(domain, result) });
+  };
 
+  const applyResult = (domain: string, result: DnsResult) => {
     const q11 = dmarcToAnswer(result.dmarc);
     const provider = result.mx.provider;
     const { profile, answers } = useAppStore.getState();
@@ -82,7 +82,7 @@ export default function DomainCheck() {
         <form
           onSubmit={(e) => {
             e.preventDefault();
-            void run();
+            run();
           }}
           className="flex flex-col gap-3 sm:flex-row"
         >

@@ -10,7 +10,7 @@ Answer a short plain-language questionnaire and get:
 4. A risk flow diagram showing how your gaps could reach your supply chain partners
 5. A one-page, printable Supplier Security Summary for large customers
 
-Everything runs in the browser. No login, no database, no backend. State lives in Zustand stores (`src/store/`). The company name, domain, profile, answers, and DNS results stay in memory and are cleared on refresh or tab close. Only display preferences (detail level, report template, ranking mode) are saved to `localStorage`. Supabase sign-in tokens are also held in memory, so a refresh signs you out.
+Scoring runs in the browser; the content it scores against (questions, fixes, standards) is loaded from the backend when the app starts. State lives in Zustand stores (`src/store/`). Everything from the backend goes through TanStack Query (`src/api/`: `client.ts` for the HTTP call, `endpoints.ts` for each route, `queries.ts` and `hooks.ts` for caching, retries, and Sentry reporting). The company name, domain, profile, answers, and DNS results stay in memory and are cleared on refresh or tab close. Only display preferences (detail level, report template, ranking mode) are saved to `localStorage`. Supabase sign-in tokens are also held in memory, so a refresh signs you out.
 
 ## Run it
 
@@ -28,9 +28,10 @@ Shortcuts for presenting:
 
 ## Project layout
 
+The questions, fixes, standards and other content live in the database. The backend seeds its tables from `BE/app/catalog/*.json` on startup (only when the files have changed), and the app loads them from `GET /api/catalog` before it renders. That means the app needs the backend running (`VITE_API_URL`); if it cannot reach it, it shows a "try again" screen. Tests and `gen_demo.ts` read the same JSON files directly, so there is one copy.
+
 ```
-src/
-  data/                 All tunable content. Edit these, not the code.
+BE/app/catalog/         All tunable content. Edit these, not the code or the database rows.
     scenarios.json      8 threat scenarios, base likelihood per sector, and a plain-language consequence chain per sector
     profile.json        Business profile questions
     questions.json      26 underlying security questions: weights, help text, technical label, CCCS + CIS mappings, showIf
@@ -41,7 +42,9 @@ src/
     supplyChain.json    Right-hand column of the risk flow diagram
     cccs.json           CCCS Baseline Controls v1.2: 13 controls and their 42 sub-requirements
     cis.json            The 27 CIS Controls v8.1 safeguards the questions map to, with Implementation Group
-    demoPersona.json    Peel Valley Fresh Logistics, including stored DNS results
+    …                   plus ciosc.json, frameworks.json, templates.json, rules.json
+src/
+  data/demoPersona.json Peel Valley Fresh Logistics, including stored DNS results (bundled with the app)
   engine/               Pure TypeScript scoring, no React. Fully unit tested.
     scoring.ts          Likelihood, impact, risk, bands, posture
     actions.ts          Action simulation, prioritization, 30/60/90 plan
@@ -83,7 +86,7 @@ People answer **10 cards** (`prompts.json`), not 26 separate questions. Each car
 - **"Not sure"** is a smaller link under every row and ladder. It still scores as No and appears in "Things worth checking".
 - **Sector wording**, e.g. the portals row mentions load boards for carriers and brokers, and co-op or grain marketing accounts for farms.
 
-`prompts.test.ts` checks that every one of the 25 questions is asked exactly once, in the right section, with valid answers; that "does not apply" is only offered on those four questions and never on impact reducers; that the backup ladder runs from least to most protected; and that every demo company answer is still selectable.
+`prompts.test.ts` checks that every one of the 26 questions is asked exactly once, in the right section, with valid answers; that "does not apply" is only offered on those four questions and never on impact reducers; that the backup ladder runs from least to most protected; and that every demo company answer is still selectable.
 
 ## Tuning weights (JSON only)
 

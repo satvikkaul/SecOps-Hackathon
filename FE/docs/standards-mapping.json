@@ -1,10 +1,10 @@
 {
   "title": "Chain of Custody: CCCS and CIS standards mapping",
   "generatedFrom": [
-    "src/data/questions.json",
-    "src/data/cccs.json",
-    "src/data/cis.json",
-    "src/data/actions.json"
+    "BE/app/catalog/questions.json",
+    "BE/app/catalog/cccs.json",
+    "BE/app/catalog/cis.json",
+    "BE/app/catalog/actions.json"
   ],
   "sources": {
     "cccs": {
@@ -28,7 +28,7 @@
     "implementationGroup": "CIS Implementation Group: 1 = essential cyber hygiene, 2 and 3 = progressively larger or more mature organizations."
   },
   "summary": {
-    "questions": 25,
+    "questions": 26,
     "cccsControls": 13,
     "cccsControlsAssessed": 11,
     "cccsRequirements": 42,
@@ -94,6 +94,12 @@
           "riskName": "Stolen logins to online business tools",
           "effect": "likelihood",
           "weight": 0.5
+        },
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.4
         }
       ],
       "cccs": [
@@ -176,6 +182,12 @@
           "riskName": "Fake payment request or invoice fraud",
           "effect": "likelihood",
           "weight": 0.2
+        },
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.3
         }
       ],
       "cccs": [
@@ -250,6 +262,12 @@
           "riskName": "Stolen logins to online business tools",
           "effect": "likelihood",
           "weight": 0.2
+        },
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.15
         }
       ],
       "cccs": [
@@ -402,6 +420,12 @@
           "riskName": "Misuse of shared or leftover accounts",
           "effect": "likelihood",
           "weight": 0.2
+        },
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.1
         }
       ],
       "cccs": [
@@ -504,13 +528,13 @@
     },
     {
       "id": "Q7",
-      "section": "Payments and email",
+      "section": "Payments, loads, and email",
       "topic": "Call-back rule for bank changes",
       "question": "Before changing a supplier's or carrier's bank details, do you call them at a number you already had on file to confirm?",
       "shownOnlyIf": "payments is yes",
       "askedIn": {
         "card": "P3",
-        "cardTitle": "Paying suppliers",
+        "cardTitle": "Payments and load changes",
         "label": "Before changing a supplier's or carrier's bank details, do you call them at a number you already had on file?",
         "labelBySector": null,
         "answers": [
@@ -552,13 +576,13 @@
     },
     {
       "id": "Q8",
-      "section": "Payments and email",
+      "section": "Payments, loads, and email",
       "topic": "Second approval on large payments",
       "question": "Do large payments need approval from a second person?",
       "shownOnlyIf": null,
       "askedIn": {
         "card": "P3",
-        "cardTitle": "Paying suppliers",
+        "cardTitle": "Payments and load changes",
         "label": "Do large payments need a second person to approve them?",
         "labelBySector": null,
         "answers": [
@@ -600,7 +624,7 @@
     },
     {
       "id": "Q9",
-      "section": "Payments and email",
+      "section": "Payments, loads, and email",
       "topic": "Fake email training",
       "question": "Has staff had any training on spotting fake emails in the past year?",
       "shownOnlyIf": null,
@@ -646,6 +670,12 @@
           "riskName": "Stolen logins to online business tools",
           "effect": "likelihood",
           "weight": 0.2
+        },
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.2
         }
       ],
       "cccs": [
@@ -686,7 +716,7 @@
     },
     {
       "id": "Q10",
-      "section": "Payments and email",
+      "section": "Payments, loads, and email",
       "topic": "External email warning",
       "question": "Does your email show a warning on messages from outside the company?",
       "shownOnlyIf": null,
@@ -726,6 +756,12 @@
           "riskName": "Ransomware shuts down operations",
           "effect": "likelihood",
           "weight": 0.1
+        },
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.15
         }
       ],
       "cccs": [
@@ -753,7 +789,7 @@
     },
     {
       "id": "Q11",
-      "section": "Payments and email",
+      "section": "Payments, loads, and email",
       "topic": "DMARC spoofing protection",
       "question": "Is your email domain protected against spoofing (DMARC)?",
       "shownOnlyIf": null,
@@ -1723,7 +1759,7 @@
       "askedIn": {
         "card": "P9",
         "cardTitle": "Vendors and IT providers",
-        "label": "Do your contracts require vendors to tell you if they're hacked?",
+        "label": "Do your contracts require vendors to tell you if they're compromised?",
         "labelBySector": null,
         "answers": [
           {
@@ -1786,12 +1822,12 @@
       "id": "Q24",
       "section": "Vendors and planning",
       "topic": "Written incident plan",
-      "question": "Do you have a written list of who to call and what to do if you get hacked?",
+      "question": "Do you have a written list of who to call and what to do if your business is compromised?",
       "shownOnlyIf": null,
       "askedIn": {
         "card": "P10",
         "cardTitle": "If something goes wrong",
-        "label": "Do you have a written list of who to call and what to do if you get hacked?",
+        "label": "Do you have a written list of who to call and what to do if your business is compromised?",
         "labelBySector": null,
         "answers": [
           {
@@ -1898,7 +1934,7 @@
       "fixedByActions": [
         {
           "id": "A17",
-          "title": "Write a one-page \"we got hacked\" plan"
+          "title": "Write a one-page \"if we're compromised\" plan"
         }
       ]
     },
@@ -1966,6 +2002,63 @@
         {
           "id": "A18",
           "title": "Get a cyber insurance quote"
+        }
+      ]
+    },
+    {
+      "id": "Q26",
+      "section": "Payments, loads, and email",
+      "topic": "Second check on load changes",
+      "question": "If someone asks to change a pickup or delivery address, does that need a call-back to a number on file and a second person's OK?",
+      "shownOnlyIf": null,
+      "askedIn": {
+        "card": "P3",
+        "cardTitle": "Payments and load changes",
+        "label": "If someone emails to change a pickup or delivery address, can one person make the change on their own?",
+        "labelBySector": {
+          "carrier": "If a broker or shipper emails to change a pickup or delivery address, can one dispatcher make the change on their own?",
+          "broker": "If a shipper or carrier emails to change a pickup or delivery address, can one person make the change on their own?"
+        },
+        "answers": [
+          {
+            "value": "yes",
+            "label": "No, we call back on a known number and a second person OKs it"
+          },
+          {
+            "value": "partial",
+            "label": "We call back, but one person can still change it"
+          },
+          {
+            "value": "no",
+            "label": "Yes, one person can change it from the email"
+          },
+          {
+            "value": "unsure",
+            "label": "Not sure"
+          }
+        ]
+      },
+      "affectsRisks": [
+        {
+          "risk": "CARGO",
+          "riskName": "Load redirected to bad actors",
+          "effect": "likelihood",
+          "weight": 0.6
+        },
+        {
+          "risk": "BEC",
+          "riskName": "Fake payment request or invoice fraud",
+          "effect": "likelihood",
+          "weight": 0.1
+        }
+      ],
+      "cccs": [],
+      "cis": [],
+      "mappingNote": "Confirming shipment changes is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary.",
+      "fixedByActions": [
+        {
+          "id": "A19",
+          "title": "Lock down load changes: call back and get a second OK"
         }
       ]
     }
@@ -3117,6 +3210,11 @@
         "id": "Q8",
         "topic": "Second approval on large payments",
         "reason": "Dual approval of payments is a financial control. CCCS BC.12 and CIS Control 6 cover access to IT systems, not payment approval. Shown separately on the Supplier Security Summary."
+      },
+      {
+        "id": "Q26",
+        "topic": "Second check on load changes",
+        "reason": "Confirming shipment changes is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary."
       }
     ],
     "questionsWithNoCisMapping": [
@@ -3139,6 +3237,11 @@
         "id": "Q25",
         "topic": "Cyber insurance",
         "reason": "CIS 17.2 lists your insurer as an incident contact but does not ask whether you have cyber insurance."
+      },
+      {
+        "id": "Q26",
+        "topic": "Second check on load changes",
+        "reason": "Confirming shipment changes is an operational procedure. Neither the CCCS baseline nor the CIS Controls cover it. Shown with the payment and shipment safeguards on the Supplier Security Summary."
       }
     ]
   }

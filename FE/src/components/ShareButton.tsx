@@ -1,26 +1,12 @@
 import { useState } from 'react';
-import { createShare } from '../api';
-import { useAppStore } from '../store/appStore';
+import { useCreateShare } from '../api/hooks';
 import { Button } from './ui';
 
 /** Saves a snapshot to the BE and shows a read-only link for a broker or grocery DC. */
 export default function ShareButton() {
-  const [url, setUrl] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const share = useCreateShare();
+  const url = share.data;
   const [copied, setCopied] = useState(false);
-
-  const share = async () => {
-    setBusy(true);
-    setError(null);
-    try {
-      setUrl(await createShare(useAppStore.getState()));
-    } catch {
-      setError("Couldn't create a link right now. Try again in a moment.");
-    } finally {
-      setBusy(false);
-    }
-  };
 
   const copy = async () => {
     try {
@@ -34,10 +20,10 @@ export default function ShareButton() {
   if (!url)
     return (
       <div className="flex flex-col gap-1">
-        <Button variant="secondary" onClick={share} disabled={busy}>
-          {busy ? 'Creating link…' : 'Share with a partner'}
+        <Button variant="secondary" onClick={() => share.mutate()} disabled={share.isPending}>
+          {share.isPending ? 'Creating link…' : 'Share with a partner'}
         </Button>
-        {error && <span className="text-sm text-rose-700">{error}</span>}
+        {share.isError && <span className="text-sm text-rose-700">Couldn't create a link right now. Try again in a moment.</span>}
       </div>
     );
 

@@ -1,4 +1,4 @@
-// Builds docs/standards-mapping.json from the app's data files, for human review.
+// Builds docs/standards-mapping.json from the catalog source files in BE/app/catalog, for human review.
 // Run: npm run export:mappings
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -7,12 +7,12 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const read = (p) => JSON.parse(readFileSync(join(root, p), 'utf8'));
 
-const cccs = read('src/data/cccs.json');
-const cis = read('src/data/cis.json');
-const { sections, questions } = read('src/data/questions.json');
-const actions = read('src/data/actions.json');
-const scenarios = read('src/data/scenarios.json');
-const { prompts } = read('src/data/prompts.json');
+const cccs = read('../BE/app/catalog/cccs.json');
+const cis = read('../BE/app/catalog/cis.json');
+const { sections, questions } = read('../BE/app/catalog/questions.json');
+const actions = read('../BE/app/catalog/actions.json');
+const scenarios = read('../BE/app/catalog/scenarios.json');
+const { prompts } = read('../BE/app/catalog/prompts.json');
 const scenarioName = Object.fromEntries(scenarios.map((s) => [s.id, s.name]));
 
 /** Where each question is asked in the questionnaire, and the answers offered. */
@@ -145,7 +145,7 @@ const allMaps = questions.flatMap((q) => [...q.cccs, ...q.cis]);
 
 const out = {
   title: 'Chain of Custody: CCCS and CIS standards mapping',
-  generatedFrom: ['src/data/questions.json', 'src/data/cccs.json', 'src/data/cis.json', 'src/data/actions.json'],
+  generatedFrom: ['BE/app/catalog/questions.json', 'BE/app/catalog/cccs.json', 'BE/app/catalog/cis.json', 'BE/app/catalog/actions.json'],
   sources: {
     cccs: { name: cccs.source, url: cccs.url },
     cis: { name: cis.source, url: cis.url },

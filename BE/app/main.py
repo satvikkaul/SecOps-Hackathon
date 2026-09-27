@@ -11,12 +11,13 @@ from typing import Annotated, Any, Literal
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, Response
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 from psycopg_pool import ConnectionPool
 from pydantic import BaseModel, Field, StringConstraints
 
+from app import catalog
 from app import personalize as ai
 from app.chat import handle_chat
 from app.dns_check import all_failed, check_domain, is_valid_domain, normalize_domain
@@ -67,6 +68,9 @@ async def lifespan(_: FastAPI):
     pool.open(wait=True, timeout=15)
     with pool.connection() as conn:
         conn.execute((HERE.parent / "schema.sql").read_text())
+        conn.execute((HERE.parent / "catalog.sql").read_text())
+        catalog.seed(conn, catalog.read_files())
+        catalog.current(conn)
     seed()
     yield
     pool.close()
@@ -136,6 +140,36 @@ def health():
         return {"ok": True, "db": True}
     except Exception:
         return JSONResponse({"ok": False, "db": False}, status_code=503)
+
+
+@app.get("/api/catalog")
+def get_catalog(request: Request):
+    """Everything the check-up shows and scores with. Revalidated on every load; unchanged content is a 304."""
+    with pool.connection() as conn:
+        snap = catalog.current(conn)
+    etag = f'"{snap.version}"'
+    headers = {"ETag": etag, "Cache-Control": "no-cache"}
+    if etag in [t.strip() for t in request.headers.get("if-none-match", "").split(",")]:
+        return Response(status_code=304, headers=headers)
+    return Response(snap.json, media_type="application/json", headers=headers)
+
+
+@app.get("/api/catalog/questions/{question_id}")
+def get_catalog_question(question_id: str):
+    with pool.connection() as conn:
+        question = catalog.current(conn).questions.get(question_id)
+    if question is None:
+        raise HTTPException(404, "No such question")
+    return question
+
+
+@app.get("/api/catalog/actions/{action_id}")
+def get_catalog_action(action_id: str):
+    with pool.connection() as conn:
+        action = catalog.current(conn).actions.get(action_id)
+    if action is None:
+        raise HTTPException(404, "No such fix")
+    return action
 
 
 @app.get("/api/dns/{domain}")

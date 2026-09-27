@@ -1,5 +1,4 @@
-import { useEffect, useState } from 'react';
-import { getShare, type SharedAssessment } from '../api';
+import { useSharedAssessment } from '../api/hooks';
 import { StatusPill } from '../components/StandardsPanel';
 import { BandBadge, Card } from '../components/ui';
 import { describeFindings, type Indicator } from '../engine/dns';
@@ -9,15 +8,10 @@ const fmtDate = (iso: string) => new Date(iso).toLocaleDateString('en-CA', { yea
 
 /** Read-only view of a shared assessment (`?share=<token>`). Renders the stored snapshot; nothing is re-scored. */
 export default function SharedSummary({ token }: { token: string }) {
-  const [data, setData] = useState<SharedAssessment | null | undefined>(undefined);
-  const [error, setError] = useState(false);
+  const { data, isPending, isError } = useSharedAssessment(token);
 
-  useEffect(() => {
-    getShare(token).then(setData, () => setError(true));
-  }, [token]);
-
-  if (error) return <Message title="Couldn't load this summary" body="Check your connection and refresh the page." />;
-  if (data === undefined) return <Message title="Loading…" />;
+  if (isError) return <Message title="Couldn't load this summary" body="Check your connection and refresh the page." />;
+  if (isPending) return <Message title="Loading…" />;
   if (data === null) return <Message title="Link not found" body="This link is wrong or no longer exists. Ask the sender for a new one." />;
 
   const { results: r, dns } = data;

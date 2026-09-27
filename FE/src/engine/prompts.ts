@@ -1,5 +1,4 @@
-import promptsJson from '../data/prompts.json';
-import { dataset as defaultDataset } from './data';
+import { dataset as defaultDataset, prompts } from './data';
 import { isVisible } from './scoring';
 import type { Answers, AnswerValue, Dataset, Expertise, Profile } from './types';
 
@@ -50,8 +49,7 @@ export interface LadderPrompt extends PromptBase {
 }
 export type Prompt = RowsPrompt | LadderPrompt;
 
-export const promptIntro = promptsJson.intro;
-export const prompts = promptsJson.prompts as Prompt[];
+export { promptIntro, prompts } from './data';
 
 /** Underlying question ids a prompt fills in. */
 export function promptQuestionIds(p: Prompt): string[] {

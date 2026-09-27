@@ -1,7 +1,10 @@
 // Regenerate the seeded demo snapshot from the FE engine: cd FE && npx vite-node ../BE/gen_demo.ts > ../BE/app/demo_peel_valley.json
-import { demoPersona } from '../FE/src/engine/data';
-import { buildSnapshot } from '../FE/src/engine/snapshot';
+import { repoCatalog } from '../FE/src/dev/repoCatalog';
+import { demoPersona, setCatalog } from '../FE/src/engine/data';
 import type { Answers, Profile } from '../FE/src/engine/types';
+
+setCatalog(repoCatalog());
+const { buildSnapshot } = await import('../FE/src/engine/snapshot');
 
 const profile = demoPersona.profile as Profile;
 const answers = demoPersona.answers as Answers;

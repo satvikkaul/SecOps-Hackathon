@@ -8,21 +8,18 @@ steps themselves aren't replayed across turns/providers — each turn re-runs an
 
 import json
 import os
-from pathlib import Path
 from typing import Any
 
 import anthropic
 from google import genai
 from google.genai import types
 
-HERE = Path(__file__).parent
+from app import catalog
+
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3.8-flash")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 ANTHROPIC_MODEL = os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5-20251001")
-
-_ACTIONS: dict[str, dict] = {a["id"]: a for a in json.loads((HERE / "data" / "actions.json").read_text())}
-_QUESTIONS: dict[str, dict] = {q["id"]: q for q in json.loads((HERE / "data" / "questions.json").read_text())["questions"]}
 
 _gemini = genai.Client(api_key=GEMINI_API_KEY) if GEMINI_API_KEY else None
 _claude = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY) if ANTHROPIC_API_KEY else None
@@ -35,7 +32,7 @@ _history: dict[str, list[dict]] = {}
 SYSTEM_INSTRUCTION = (
     "You are the assistant inside Chain of Custody, a free cyber-risk check-up for small food-supply-chain "
     "businesses (farms, processors, cold storage, carriers, brokers) — no signup required to use it. It asks "
-    "about 25 plain-language yes/no/not-sure questions across a few categories (logins & accounts, payments & "
+    "about 26 plain-language yes/no/not-sure questions across a few categories (logins & accounts, payments & "
     "email, computers & backups, equipment & remote access, vendors & planning), takes about 10 minutes, then "
     "gives a ranked 'do these first' list of up to 5 fixes, each mapped to Canadian CCCS Baseline Controls and "
     "CIS Controls. There's a demo company to explore, and a read-only summary link a business can share with a "
@@ -67,13 +64,13 @@ SYSTEM_INSTRUCTION = (
 def lookup_action(action_id: str) -> dict:
     """Look up the full detail for one recommended fix from the report, by its id (e.g. "A1"): title, what to
     do, why it matters, the step-by-step instructions, cost, time, and effort."""
-    return _ACTIONS.get(action_id) or {"error": f"No action with id {action_id!r}"}
+    return catalog.cached().actions.get(action_id) or {"error": f"No action with id {action_id!r}"}
 
 
 def explain_question(question_id: str) -> dict:
     """Look up the full text and reasoning for one check-up question, by its id (e.g. "Q1"): the question
     itself, why it's asked, and what a gap there means."""
-    return _QUESTIONS.get(question_id) or {"error": f"No question with id {question_id!r}"}
+    return catalog.cached().questions.get(question_id) or {"error": f"No question with id {question_id!r}"}
 
 
 def _prompt_for(message: str, report_context: dict) -> str:

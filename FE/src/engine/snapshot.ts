@@ -1,6 +1,6 @@
 import { buildPlan, prioritizeActions, type Timeframe } from './actions';
 import { cccsStatuses, type ControlStatus } from './controls';
-import { dataset, profileQuestions } from './data';
+import { profileQuestions, questionById } from './data';
 import { assess } from './scoring';
 import type { Answers, Band, Profile, RankingMode, ScenarioId } from './types';
 
@@ -25,7 +25,6 @@ export interface Snapshot {
 }
 
 const round = (n: number, d: number) => +n.toFixed(d);
-const questionById = Object.fromEntries(dataset.questions.map((q) => [q.id, q]));
 
 export function buildSnapshot(profile: Profile, answers: Answers, mode: RankingMode): Snapshot {
   const assessment = assess(profile, answers);

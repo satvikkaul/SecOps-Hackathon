@@ -16,6 +16,8 @@ let storage: MemoryStorage;
 
 async function loadStore() {
   vi.resetModules();
+  const [{ setCatalog }, { repoCatalog }] = await Promise.all([import('../engine/data'), import('../dev/repoCatalog')]);
+  setCatalog(repoCatalog());
   return (await import('./appStore')).useAppStore;
 }
 

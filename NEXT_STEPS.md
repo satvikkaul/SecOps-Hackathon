@@ -4,7 +4,7 @@ _Ordered. Rewrite at the end of every session: remove done items and re-rank the
 
 ## BE (us)
 
-1. **Seed the second demo company** as soon as its profile exists: add it to `FE/src/data`, write a `gen_demo.ts` variant, and add an entry to `DEMOS` in `app/main.py`.
+1. **Seed the second demo company** as soon as its profile exists: add its persona next to `FE/src/data/demoPersona.json`, write a `gen_demo.ts` variant, and add an entry to `DEMOS` in `app/main.py`.
 2. After deploying Gemini: open `?demo` at Simple, Standard, and Expert once on the live site, so the demo's wording is cached in Supabase and loads instantly for judges.
 3. Easier fixes for owners with no IT help: a guided one-step-at-a-time walkthrough plus "mark done" re-scoring, official vendor help links (checked by hand), and stricter Gemini Simple wording (bump `PROMPT_VERSION`, then re-warm the demo cache).
 3. Delete the unused Railway Postgres service.

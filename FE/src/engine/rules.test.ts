@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import rules from '../data/rules.json';
 import { ruleFor, ruleSheetHtml } from '../printRule';
-import { actionById } from './data';
+import { actionById, rules } from './data';
 
 describe('printable rule sheets', () => {
   it('each sheet belongs to a real fix', () => {

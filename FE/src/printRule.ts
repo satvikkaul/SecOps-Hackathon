@@ -1,4 +1,4 @@
-import rulesJson from './data/rules.json';
+import { rules } from './engine/data';
 
 /** A fix that is a rule people follow (not a setting), printed as a one-page sign for the desk. */
 export interface RuleSheet {
@@ -12,8 +12,6 @@ export interface RuleSheet {
   logColumns?: string[];
   contacts?: { role: string; phone: string }[];
 }
-
-const rules = rulesJson as RuleSheet[];
 
 export function ruleFor(actionId: string): RuleSheet | undefined {
   return rules.find((r) => r.actionId === actionId);

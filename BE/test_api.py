@@ -1,10 +1,7 @@
 """Needs a real Postgres: DATABASE_URL=postgresql://... uv run pytest"""
 import pytest
-from fastapi.testclient import TestClient
 
 from app.dns_check import normalize_domain, parse_dmarc_policy, provider_from_mx
-from app.main import app
-
 BODY = {
     "company": "Test Carrier",
     "profile": {"sector": "carrier"},
@@ -19,13 +16,6 @@ def test_dns_parsing():
     assert normalize_domain("bob@example.ca") == "example.ca"
     assert parse_dmarc_policy("v=DMARC1; p=quarantine; rua=x") == "quarantine"
     assert provider_from_mx(["0 x.mail.protection.outlook.com."]) == "m365"
-
-
-@pytest.fixture(scope="module")
-def c():
-    # One app for the module: the DB pool opens once per process, as in production.
-    with TestClient(app) as client:
-        yield client
 
 
 def test_personalize_preflight_allows_sentry_headers(c):
