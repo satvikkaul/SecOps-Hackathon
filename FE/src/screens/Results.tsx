@@ -200,7 +200,12 @@ function RiskGauge({ score, band, showScore = true }: { score: number; band: Ban
           strokeLinecap="round"
           strokeDasharray={`${arc * frac} ${arc}`}
         />
-        <text x="100" y="84" textAnchor="middle" className="fill-slate-900 text-[30px] font-extrabold">
+        <text
+          x="100"
+          y={showScore ? 84 : 92}
+          textAnchor="middle"
+          className={`fill-slate-900 font-extrabold ${band.length > 4 ? 'text-[23px]' : 'text-[30px]'}`}
+        >
           {band}
         </text>
         {showScore && (
