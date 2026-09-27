@@ -3,11 +3,13 @@ import { checkDomain } from '../engine/dns';
 import { reportApiError } from '../lib/queryClient';
 import type { PersonalizeRequest } from '../personalize';
 import { hasApi } from './client';
-import { getCatalog, getDomainCheck, getShare, personalize } from './endpoints';
+import { getCatalog, getDomainCheck, getInvite, getShare, getSupplyChain, personalize } from './endpoints';
 
 export const queryKeys = {
   catalog: ['catalog'] as const,
   share: (token: string) => ['share', token] as const,
+  invite: (token: string) => ['invite', token] as const,
+  supplyChain: (assessmentId: string) => ['supplyChain', assessmentId] as const,
   domainCheck: (domain: string) => ['domainCheck', domain] as const,
   personalize: (request: PersonalizeRequest) => ['personalize', request] as const,
 };
@@ -25,6 +27,26 @@ export const shareQuery = (token: string) =>
     queryKey: queryKeys.share(token),
     queryFn: ({ signal }) => getShare(token, signal),
     staleTime: Infinity,
+  });
+
+/** The no-PIN existence/expired/completed check, run once when the invite link is opened. Not
+ * cached across a PIN attempt — pinQuery below (a mutation, since it's a deliberate action) is
+ * what re-checks with a PIN and gets the fuller response. */
+export const inviteQuery = (token: string) =>
+  queryOptions({
+    queryKey: queryKeys.invite(token),
+    queryFn: ({ signal }) => getInvite(token, undefined, signal),
+    staleTime: Infinity,
+    retry: false,
+  });
+
+/** The buyer's view down their chain. Suppliers answer on their own schedule, so unlike the two
+ * queries above this one is refetched rather than cached forever — and invalidated on a new invite. */
+export const supplyChainQuery = (assessmentId: string) =>
+  queryOptions({
+    queryKey: queryKeys.supplyChain(assessmentId),
+    queryFn: ({ signal }) => getSupplyChain(assessmentId, signal),
+    staleTime: 30_000,
   });
 
 /** Falls back to the browser's DNS-over-HTTPS check when the BE is unreachable, so this never fails. */

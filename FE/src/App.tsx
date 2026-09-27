@@ -12,10 +12,13 @@ import Questionnaire from "./screens/Questionnaire";
 import Results from "./screens/Results";
 import Summary from "./screens/Summary";
 import SharedSummary from "./screens/SharedSummary";
+import InviteFlow from "./screens/InviteFlow";
 import SignIn from "./screens/SignIn";
 
 // ?share=<token> opens a partner's read-only view instead of the app.
 const shareToken = new URLSearchParams(window.location.search).get("share");
+// ?invite=<token> opens a supplier's PIN-gated check-up instead of the app.
+const inviteToken = new URLSearchParams(window.location.search).get("invite");
 
 export default function App() {
     const screen = useAppStore((s) => s.screen);
@@ -41,6 +44,18 @@ export default function App() {
                     </div>
                 </header>
                 <SharedSummary token={shareToken} />
+            </div>
+        );
+
+    if (inviteToken)
+        return (
+            <div className="min-h-screen">
+                <header className="no-print border-b border-slate-200 bg-white/90">
+                    <div className="mx-auto max-w-6xl px-4 py-3 sm:px-6">
+                        <Logo onClick={() => window.location.assign("/")} />
+                    </div>
+                </header>
+                <InviteFlow token={inviteToken} />
             </div>
         );
 

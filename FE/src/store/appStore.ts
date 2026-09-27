@@ -24,6 +24,10 @@ export interface AssessmentState {
   /** Which fields were filled in by the domain check (cleared when the user overrides them). */
   autoFilled: { Q11?: boolean; emailProvider?: boolean };
   isDemo: boolean;
+  /** The id this check-up got when it was saved to the BE, or null while it only exists in the
+   * browser. Supplier invites hang off it, so saving once and reusing the id keeps every invite
+   * on the same row instead of creating a new assessment per invite. */
+  assessmentId: string | null;
 }
 
 /** Display choices with nothing about the business in them. The only part of the store saved to localStorage. */
@@ -78,6 +82,7 @@ const emptyAssessment: AssessmentState = {
   dns: null,
   autoFilled: {},
   isDemo: false,
+  assessmentId: null,
 };
 
 function demoAssessment(screen: Screen = 'results'): AssessmentState {
@@ -92,6 +97,7 @@ function demoAssessment(screen: Screen = 'results'): AssessmentState {
     dns: demoPersona.dnsResult,
     autoFilled: { Q11: true, emailProvider: true },
     isDemo: true,
+    assessmentId: null,
   };
 }
 

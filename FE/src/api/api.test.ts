@@ -64,6 +64,80 @@ describe('endpoints', () => {
     fetchMock.mockResolvedValueOnce(json(410));
     await expect(getShare('old')).resolves.toEqual({ status: 'expired' });
   });
+
+  it('reads a missing invite token as an answer rather than an error', async () => {
+    const { getInvite } = await load();
+    fetchMock.mockResolvedValueOnce(json(404));
+    await expect(getInvite('nope')).resolves.toEqual({ status: 'missing' });
+  });
+
+  it('only sends a pin query param when one is given', async () => {
+    const { getInvite } = await load();
+    fetchMock.mockImplementation(async () => json(200, { expired: false, completed: false, verified: false }));
+    await getInvite('tok');
+    expect(fetchMock.mock.calls[0][0]).toBe('http://api.test/api/invites/tok');
+    await getInvite('tok', '123456');
+    expect(fetchMock.mock.calls[1][0]).toBe('http://api.test/api/invites/tok?pin=123456');
+  });
+
+  it('returns the fuller invite response once a pin verifies', async () => {
+    const { getInvite } = await load();
+    fetchMock.mockResolvedValueOnce(json(200, { expired: false, completed: false, verified: true, inviterCompany: 'Acme', level: 1 }));
+    await expect(getInvite('tok', '123456')).resolves.toEqual({
+      status: 'found',
+      invite: { expired: false, completed: false, verified: true, inviterCompany: 'Acme', level: 1 },
+    });
+  });
+
+  it('posts the submit body to the token-scoped submit endpoint', async () => {
+    const { submitInvite } = await load();
+    fetchMock.mockResolvedValueOnce(json(201, { assessmentId: 'a1' }));
+    const body = {
+      company: 'Acme',
+      domain: null,
+      profile: {},
+      answers: {},
+      rankingMode: 'effort' as const,
+      results: {} as never,
+      pin: '123456',
+      shareChoice: 'both' as const,
+      filledByBuyer: false,
+    };
+    await expect(submitInvite('tok', body)).resolves.toEqual({ assessmentId: 'a1' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('http://api.test/api/invites/tok/submit');
+    expect(init).toMatchObject({ method: 'POST' });
+    expect(JSON.parse(init!.body as string)).toMatchObject({ pin: '123456', shareChoice: 'both' });
+  });
+
+  it('passes an invite through with the PIN the BE returns when it could not email one', async () => {
+    const { createInvite } = await load();
+    fetchMock.mockResolvedValueOnce(
+      json(201, { inviteId: 'i1', inviteUrl: 'http://app/?invite=tok', emailSent: false, stubbed: true, pin: '004321' }),
+    );
+    await expect(createInvite({ parentAssessmentId: 'a1', supplierName: 'Acme', supplierEmail: 'a@b.com' })).resolves.toMatchObject({
+      emailSent: false,
+      pin: '004321',
+    });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('http://api.test/api/invites');
+    expect(JSON.parse(init!.body as string)).toEqual({ parentAssessmentId: 'a1', supplierName: 'Acme', supplierEmail: 'a@b.com' });
+  });
+
+  it('carries no pin through when the email really sent', async () => {
+    const { createInvite } = await load();
+    fetchMock.mockResolvedValueOnce(json(201, { inviteId: 'i1', inviteUrl: 'http://app/?invite=tok', emailSent: true, stubbed: false }));
+    const created = await createInvite({ parentAssessmentId: 'a1', supplierName: 'Acme', supplierEmail: 'a@b.com' });
+    expect(created.pin).toBeUndefined();
+  });
+
+  it('reads the supply chain from the assessment-scoped path', async () => {
+    const { getSupplyChain } = await load();
+    const body = { invited: 1, responded: 1, respondedPct: 100, highestRiskBand: 'Low', suppliers: [] };
+    fetchMock.mockResolvedValueOnce(json(200, body));
+    await expect(getSupplyChain('a 1')).resolves.toEqual(body);
+    expect(fetchMock.mock.calls[0][0]).toBe('http://api.test/api/assessments/a%201/supply-chain');
+  });
 });
 
 describe('query client', () => {

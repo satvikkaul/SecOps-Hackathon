@@ -194,6 +194,8 @@ share_limit = RateLimit(per_ip_per_minute=10, total_per_hour=500)
 personalize_limit = RateLimit(per_ip_per_minute=6, total_per_hour=300)
 # Each invite is a DB row plus an outbound email, so cap how fast anyone can send them.
 invite_limit = RateLimit(per_ip_per_minute=5, total_per_hour=100)
+# A 6-digit PIN is only ~1M combinations; cap attempts per IP so it can't be brute-forced.
+invite_pin_limit = RateLimit(per_ip_per_minute=10, total_per_hour=200)
 
 
 def valid_domain_or_400(value: str) -> str:
@@ -252,7 +254,7 @@ Key = Annotated[str, StringConstraints(pattern=r"^[A-Za-z][A-Za-z0-9_]{0,49}$")]
 QuestionId = Annotated[str, StringConstraints(pattern=r"^Q\d{1,3}$")]
 
 
-class AssessmentIn(BaseModel):
+class AssessmentPayload(BaseModel):
     company: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
     domain: Annotated[str, StringConstraints(max_length=253)] | None = None
     profile: dict[Key, Annotated[str, StringConstraints(max_length=100)]] = Field(max_length=50)
@@ -261,27 +263,37 @@ class AssessmentIn(BaseModel):
     results: dict[str, Any]
 
 
+class AssessmentIn(AssessmentPayload):
+    pass
+
+
+def create_assessment_row(conn, payload: AssessmentPayload, *, user_id: str | None = None) -> dict:
+    """The one place an `assessments` row gets created — used by both POST /api/assessments and the
+    supplier-invite submit endpoint. Normalizes/validates the domain, attaches the BE's own DNS
+    result (never the client's), and generates a share token. Returns id, share_token, expires_at."""
+    domain = valid_domain_or_400(payload.domain) if payload.domain else None
+    dns = dns_for(domain) if domain else None
+    token = secrets.token_urlsafe(16)
+    return conn.execute(
+        """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at, user_id)
+           values (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s), %s) returning id, share_token, expires_at""",
+        (token, payload.company, domain, Jsonb(payload.profile), Jsonb(payload.answers), payload.rankingMode, Jsonb(payload.results), Jsonb(dns) if dns else None, SHARE_TTL_DAYS, user_id),
+    ).fetchone()
+
+
 @app.post("/api/assessments", status_code=201)
 def create_assessment(body: AssessmentIn, request: Request):
     if not share_limit.allow(client_ip(request)):
         raise HTTPException(429, "Too many links, try again in a minute")
-    domain = valid_domain_or_400(body.domain) if body.domain else None
-    # Only our own lookup is stored: the "verified" part must not come from the client.
-    dns = dns_for(domain) if domain else None
-    token = secrets.token_urlsafe(16)
     # Optional: an Authorization header attaches this row to a signed-in user. No header, or a
     # header that doesn't check out, saves the same anonymous share it always has (user_id null).
     user_id = verify_user(request.headers.get("authorization"))
     with pool.connection() as conn:
-        row = conn.execute(
-            """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at, user_id)
-               values (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s), %s) returning id, expires_at""",
-            (token, body.company, domain, Jsonb(body.profile), Jsonb(body.answers), body.rankingMode, Jsonb(body.results), Jsonb(dns) if dns else None, SHARE_TTL_DAYS, user_id),
-        ).fetchone()
+        row = create_assessment_row(conn, body, user_id=user_id)
     return {
         "id": str(row["id"]),
-        "shareToken": token,
-        "shareUrl": f"{FRONTEND_URL}/?share={token}",
+        "shareToken": row["share_token"],
+        "shareUrl": f"{FRONTEND_URL}/?share={row['share_token']}",
         "expiresAt": row["expires_at"].isoformat(),
     }
 
@@ -374,11 +386,158 @@ def create_invite(body: InviteIn, request: Request):
 
     invite_url = f"{FRONTEND_URL}/?invite={token}"
     email = send_invite_email(body.supplierName, body.supplierEmail, invite_url, pin)
-    return {
+    out = {
         "inviteId": str(row["id"]),
         "inviteUrl": invite_url,
         "emailSent": email.sent,
         "stubbed": email.stubbed,
+    }
+    # Deliberate: when we couldn't email the PIN, hand it back to the buyer who just created this
+    # invite so they can relay it themselves. They're already authorized to know it. Never included
+    # alongside a real send — then the supplier's email is the only place it appears.
+    if not email.sent:
+        out["pin"] = pin
+    return out
+
+
+def _invite_or_404(conn, token: str) -> dict:
+    row = conn.execute(
+        """select i.id, i.pin_hash, i.status, i.level, i.deadline, i.deadline <= now() as past_deadline,
+                  a.company as inviter_company
+           from supplier_invites i join assessments a on a.id = i.parent_assessment_id
+           where i.token = %s""",
+        (token,),
+    ).fetchone()
+    if not row:
+        raise HTTPException(404, "Not found")
+    return row
+
+
+@app.get("/api/invites/{token}")
+def get_invite(token: str, request: Request, pin: str | None = None):
+    with pool.connection() as conn:
+        row = _invite_or_404(conn, token)
+
+    completed = row["status"] in ("submitted", "filled_by_buyer")
+    # A completed invite isn't "expired" even if its deadline has since passed — it did its job.
+    expired = row["status"] == "pending" and bool(row["past_deadline"])
+    verified = False
+    if pin is not None:
+        if not invite_pin_limit.allow(client_ip(request)):
+            raise HTTPException(429, "Too many attempts, try again in a minute")
+        verified = hashlib.sha256(pin.encode()).hexdigest() == row["pin_hash"]
+
+    base = {"expired": expired, "completed": completed, "verified": verified}
+    if not verified:
+        # Pre-PIN (or wrong PIN): existence, expired, and completed only — nothing that names anyone.
+        return base
+    return {
+        **base,
+        "inviterCompany": row["inviter_company"],
+        "level": row["level"],
+        "deadline": row["deadline"].isoformat(),
+        "status": row["status"],
+    }
+
+
+class InviteSubmitIn(AssessmentPayload):
+    pin: Annotated[str, StringConstraints(pattern=r"^\d{6}$")]
+    shareChoice: Literal["score", "report", "both"]
+    filledByBuyer: bool = False
+
+
+@app.post("/api/invites/{token}/submit", status_code=201)
+def submit_invite(token: str, body: InviteSubmitIn, request: Request):
+    if not invite_pin_limit.allow(client_ip(request)):
+        raise HTTPException(429, "Too many attempts, try again in a minute")
+    with pool.connection() as conn:
+        row = _invite_or_404(conn, token)
+        if hashlib.sha256(body.pin.encode()).hexdigest() != row["pin_hash"]:
+            raise HTTPException(401, "Incorrect PIN")
+        if row["status"] == "pending" and row["past_deadline"]:
+            raise HTTPException(410, "This invite has expired")
+        if row["status"] in ("submitted", "filled_by_buyer"):
+            raise HTTPException(409, "This invite has already been completed")
+
+        # Not signed in: a supplier fills this in on their own link, not their (possibly nonexistent) account.
+        assessment = create_assessment_row(conn, body)
+        status = "filled_by_buyer" if body.filledByBuyer else "submitted"
+        conn.execute(
+            "update supplier_invites set child_assessment_id = %s, status = %s, share_choice = %s where id = %s",
+            (assessment["id"], status, body.shareChoice, row["id"]),
+        )
+    return {"assessmentId": str(assessment["id"])}
+
+
+# Which `results` (Snapshot) fields each share_choice permits, in this codebase's own field names.
+# An allow-list, never "take everything and delete some": a field added to Snapshot later stays
+# hidden until someone deliberately lists it here.
+SHARE_FIELDS: dict[str, tuple[str, ...]] = {
+    "score": ("posture",),
+    "report": ("sector", "scenarios", "topActions", "cccs", "coverage"),
+    "both": ("posture", "sector", "scenarios", "topActions", "cccs", "coverage"),
+}
+BAND_ORDER = ("Low", "Moderate", "Elevated", "High")
+
+
+@app.get("/api/assessments/{assessment_id}/supply-chain")
+def get_supply_chain(assessment_id: str):
+    """The buyer's view down their own supply chain: every invite descending from this assessment,
+    carrying only what each supplier chose to share.
+
+    Note: the assessment id is an unguessable uuid and acts as the bearer secret here, the same
+    way a share token does. There's no owner check because an anonymous buyer has no user_id to
+    check against, and requiring one would break the main (signed-out) flow."""
+    with pool.connection() as conn:
+        if not conn.execute("select 1 from assessments where id = %s", (assessment_id,)).fetchone():
+            raise HTTPException(404, "Not found")
+        rows = conn.execute(
+            """with recursive chain as (
+                   select i.id, i.level, i.status, i.deadline, i.supplier_name, i.share_choice,
+                          i.child_assessment_id, i.created_at, 1 as depth
+                     from supplier_invites i
+                    where i.parent_assessment_id = %s
+                   union all
+                   select i.id, i.level, i.status, i.deadline, i.supplier_name, i.share_choice,
+                          i.child_assessment_id, i.created_at, c.depth + 1
+                     from supplier_invites i
+                     join chain c on i.parent_assessment_id = c.child_assessment_id
+                    where c.child_assessment_id is not null and c.depth < %s
+               )
+               select chain.level, chain.status, chain.supplier_name, chain.share_choice,
+                      chain.deadline <= now() as past_deadline, a.results
+                 from chain left join assessments a on a.id = chain.child_assessment_id
+                order by chain.level, chain.created_at""",
+            (assessment_id, MAX_INVITE_LEVEL),
+        ).fetchall()
+
+    suppliers = []
+    responded = 0
+    worst = -1
+    for r in rows:
+        # Same compute-on-read rule as the expiry check: a passed deadline reads as timed out,
+        # and nothing is written back to the status column.
+        status = "timed_out" if r["status"] == "pending" and r["past_deadline"] else r["status"]
+        if status in ("submitted", "filled_by_buyer"):
+            responded += 1
+        results = r["results"] or {}
+        shared = {field: results[field] for field in SHARE_FIELDS.get(r["share_choice"] or "", ()) if field in results}
+        # Only counts toward the headline number when the score is actually shared — a supplier who
+        # chose 'report' must not have their posture reach the buyer, not even as an aggregate.
+        band = shared.get("posture", {}).get("band")
+        if band in BAND_ORDER:
+            worst = max(worst, BAND_ORDER.index(band))
+        suppliers.append(
+            {"level": r["level"], "status": status, "supplierName": r["supplier_name"], "shareChoice": r["share_choice"], "shared": shared}
+        )
+
+    invited = len(rows)
+    return {
+        "invited": invited,
+        "responded": responded,
+        "respondedPct": round(responded / invited * 100) if invited else 0,
+        "highestRiskBand": BAND_ORDER[worst] if worst >= 0 else None,
+        "suppliers": suppliers,
     }
 
 

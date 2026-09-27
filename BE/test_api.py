@@ -224,6 +224,239 @@ def test_invite_level_climbs_one_hop_at_a_time_and_stops_at_the_max(c):
     assert rejected.status_code == 400, rejected.text
 
 
+def _new_invite(c, monkeypatch, parent_id: str) -> tuple[str, str]:
+    """Creates an invite and returns (token, pin). The API never returns the PIN — it only ever
+    goes out by email — so this captures it via a patched send hook instead of guessing it."""
+    from app import main
+    from app.email import EmailResult
+
+    captured = {}
+
+    def fake_send(name, email_addr, invite_url, pin):
+        captured["pin"] = pin
+        return EmailResult(sent=True, stubbed=False, detail="test")
+
+    monkeypatch.setattr(main, "send_invite_email", fake_send)
+    res = c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": parent_id})
+    assert res.status_code == 201, res.text
+    token = res.json()["inviteUrl"].split("?invite=")[1]
+    return token, captured["pin"]
+
+
+def _submit_body(pin: str, share_choice: str = "score", filled_by_buyer: bool = False) -> dict:
+    return {**BODY, "pin": pin, "shareChoice": share_choice, "filledByBuyer": filled_by_buyer}
+
+
+def test_get_invite_hides_everything_without_the_correct_pin(c, monkeypatch):
+    token, pin = _new_invite(c, monkeypatch, _new_assessment_id(c))
+    wrong_pin = "000000" if pin != "000000" else "111111"
+
+    for res in (c.get(f"/api/invites/{token}"), c.get(f"/api/invites/{token}", params={"pin": wrong_pin})):
+        assert res.status_code == 200, res.text
+        assert res.json() == {"expired": False, "completed": False, "verified": False}
+
+    assert c.get("/api/invites/does-not-exist").status_code == 404
+
+
+def test_get_invite_with_the_correct_pin_returns_full_info(c, monkeypatch):
+    parent_id = _new_assessment_id(c)
+    token, pin = _new_invite(c, monkeypatch, parent_id)
+
+    res = c.get(f"/api/invites/{token}", params={"pin": pin})
+    assert res.status_code == 200, res.text
+    body = res.json()
+    assert body["verified"] is True
+    assert body["expired"] is False and body["completed"] is False
+    assert body["level"] == 1
+    assert body["status"] == "pending"
+    assert "deadline" in body
+    # BODY's company is the inviter's, since parent_id's assessment was created from BODY.
+    assert body["inviterCompany"] == BODY["company"]
+
+
+def test_get_invite_expired_is_computed_not_written_to_status(c, monkeypatch):
+    from app.main import pool
+
+    token, pin = _new_invite(c, monkeypatch, _new_assessment_id(c))
+    with pool.connection() as conn:
+        conn.execute("update supplier_invites set deadline = now() - interval '1 second' where token = %s", (token,))
+
+    res = c.get(f"/api/invites/{token}", params={"pin": pin})
+    assert res.json()["expired"] is True
+
+    with pool.connection() as conn:
+        stored_status = conn.execute("select status from supplier_invites where token = %s", (token,)).fetchone()["status"]
+    assert stored_status == "pending"  # never mutated by a read
+
+
+def test_submit_creates_the_assessment_and_marks_the_invite_submitted(c, monkeypatch):
+    from app.main import pool
+
+    parent_id = _new_assessment_id(c)
+    token, pin = _new_invite(c, monkeypatch, parent_id)
+
+    res = c.post(f"/api/invites/{token}/submit", json=_submit_body(pin, share_choice="both"))
+    assert res.status_code == 201, res.text
+    assessment_id = res.json()["assessmentId"]
+
+    with pool.connection() as conn:
+        assessment = conn.execute("select company from assessments where id = %s", (assessment_id,)).fetchone()
+        invite = conn.execute(
+            "select status, share_choice, child_assessment_id from supplier_invites where token = %s", (token,)
+        ).fetchone()
+    assert assessment["company"] == BODY["company"]
+    assert invite["status"] == "submitted"
+    assert invite["share_choice"] == "both"
+    assert str(invite["child_assessment_id"]) == assessment_id
+
+
+def test_submit_filled_by_buyer_sets_that_status(c, monkeypatch):
+    token, pin = _new_invite(c, monkeypatch, _new_assessment_id(c))
+    res = c.post(f"/api/invites/{token}/submit", json=_submit_body(pin, filled_by_buyer=True))
+    assert res.status_code == 201, res.text
+
+    from app.main import pool
+
+    with pool.connection() as conn:
+        status = conn.execute("select status from supplier_invites where token = %s", (token,)).fetchone()["status"]
+    assert status == "filled_by_buyer"
+
+
+def test_submit_rejects_wrong_pin_expired_and_double_submit(c, monkeypatch):
+    from app.main import pool
+
+    token, pin = _new_invite(c, monkeypatch, _new_assessment_id(c))
+    wrong_pin = "000000" if pin != "000000" else "111111"
+    assert c.post(f"/api/invites/{token}/submit", json=_submit_body(wrong_pin)).status_code == 401
+
+    expired_token, expired_pin = _new_invite(c, monkeypatch, _new_assessment_id(c))
+    with pool.connection() as conn:
+        conn.execute("update supplier_invites set deadline = now() - interval '1 second' where token = %s", (expired_token,))
+    assert c.post(f"/api/invites/{expired_token}/submit", json=_submit_body(expired_pin)).status_code == 410
+
+    first = c.post(f"/api/invites/{token}/submit", json=_submit_body(pin))
+    assert first.status_code == 201, first.text
+    second = c.post(f"/api/invites/{token}/submit", json=_submit_body(pin))
+    assert second.status_code == 409, second.text
+
+
+def test_invite_returns_the_pin_only_when_the_email_did_not_send(c, monkeypatch):
+    from app import main
+    from app.email import EmailResult
+
+    parent_id = _new_assessment_id(c)
+
+    # Stubbed (no BREVO_API_KEY): the buyer gets the PIN back so they can relay it themselves.
+    monkeypatch.setattr(main, "send_invite_email", lambda *a: EmailResult(sent=False, stubbed=True, detail="no key"))
+    stubbed = c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": parent_id}).json()
+    assert stubbed["stubbed"] is True and stubbed["emailSent"] is False
+    assert stubbed["pin"].isdigit() and len(stubbed["pin"]) == 6
+
+    # A real send failing (not stubbed, still not sent) also hands the PIN back.
+    monkeypatch.setattr(main, "send_invite_email", lambda *a: EmailResult(sent=False, stubbed=False, detail="brevo 500"))
+    failed = c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": parent_id}).json()
+    assert failed["stubbed"] is False and "pin" in failed
+
+    # Sent for real: the PIN lives only in the supplier's inbox, never in this response.
+    monkeypatch.setattr(main, "send_invite_email", lambda *a: EmailResult(sent=True, stubbed=False, detail="<msg-1>"))
+    sent = c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": parent_id}).json()
+    assert sent["emailSent"] is True
+    assert "pin" not in sent
+
+
+# ---------- Supply-chain report: share_choice is enforced here and nowhere else ----------
+
+CHAIN_RESULTS = {
+    "sector": "Trucking or freight carrier",
+    "posture": {"score": 3.2, "band": "High"},
+    "scenarios": [{"id": "BEC", "name": "Fake payment request", "risk": 3.2, "band": "High"}],
+    "topActions": [{"id": "A1", "title": "Turn on two-step login", "whatToDo": "x", "cost": "Free", "time": "Under 1 hour",
+                    "effort": 1, "priority": 0.7, "pctReduction": 0.2, "timeframe": 30, "cccs": ["BC.5.1"]}],
+    "cccs": [{"control": "BC.5", "name": "Access control", "status": "Not yet met"}],
+    "coverage": {"answered": 26, "total": 26},
+}
+REPORT_FIELDS = {"sector", "scenarios", "topActions", "cccs", "coverage"}
+
+
+def _submit_supplier(c, monkeypatch, parent_id: str, share_choice: str, results: dict | None = None) -> str:
+    """Creates an invite under parent_id and submits it with the given share_choice. Returns the
+    new (child) assessment id, so a caller can hang a deeper supplier off it."""
+    token, pin = _new_invite(c, monkeypatch, parent_id)
+    res = c.post(
+        f"/api/invites/{token}/submit",
+        json={**BODY, "results": results or CHAIN_RESULTS, "pin": pin, "shareChoice": share_choice, "filledByBuyer": False},
+    )
+    assert res.status_code == 201, res.text
+    return res.json()["assessmentId"]
+
+
+def test_supply_chain_returns_only_what_each_supplier_chose_to_share(c, monkeypatch):
+    buyer = _new_assessment_id(c)
+    _submit_supplier(c, monkeypatch, buyer, "score")
+    _submit_supplier(c, monkeypatch, buyer, "report")
+    _submit_supplier(c, monkeypatch, buyer, "both")
+    _new_invite(c, monkeypatch, buyer)  # left pending, never submitted
+
+    chain = c.get(f"/api/assessments/{buyer}/supply-chain")
+    assert chain.status_code == 200, chain.text
+    by_choice = {s["shareChoice"]: s for s in chain.json()["suppliers"]}
+
+    # 'score' means the posture and strictly nothing else.
+    assert set(by_choice["score"]["shared"]) == {"posture"}
+
+    # 'report' means the report content and, critically, NOT the score.
+    assert "posture" not in by_choice["report"]["shared"]
+    assert set(by_choice["report"]["shared"]) == REPORT_FIELDS
+
+    # 'both' is the only one that carries the score alongside the report.
+    assert set(by_choice["both"]["shared"]) == REPORT_FIELDS | {"posture"}
+
+    # Nothing at all leaks from an invite that was never submitted.
+    assert by_choice[None]["shared"] == {}
+    assert by_choice[None]["status"] == "pending"
+
+
+def test_supply_chain_headline_score_ignores_suppliers_who_did_not_share_it(c, monkeypatch):
+    """The subtle leak: a 'report'-only supplier's posture must not reach the buyer even folded
+    into the highest-risk number."""
+    buyer = _new_assessment_id(c)
+    _submit_supplier(c, monkeypatch, buyer, "report", {**CHAIN_RESULTS, "posture": {"score": 3.4, "band": "High"}})
+    _submit_supplier(c, monkeypatch, buyer, "score", {**CHAIN_RESULTS, "posture": {"score": 0.4, "band": "Low"}})
+
+    body = c.get(f"/api/assessments/{buyer}/supply-chain").json()
+    # Low, from the only supplier who shared a score — not High from the one who didn't.
+    assert body["highestRiskBand"] == "Low"
+    assert body["invited"] == 2 and body["responded"] == 2 and body["respondedPct"] == 100
+
+
+def test_supply_chain_walks_deeper_levels_and_computes_timed_out_without_writing_it(c, monkeypatch):
+    from app.main import pool
+
+    buyer = _new_assessment_id(c)
+    tier1 = _submit_supplier(c, monkeypatch, buyer, "both")
+    _submit_supplier(c, monkeypatch, tier1, "score")  # a supplier's own supplier
+
+    # A pending invite whose deadline has passed reads as timed out, without the column changing.
+    stale_token, _ = _new_invite(c, monkeypatch, buyer)
+    with pool.connection() as conn:
+        conn.execute("update supplier_invites set deadline = now() - interval '1 second' where token = %s", (stale_token,))
+
+    body = c.get(f"/api/assessments/{buyer}/supply-chain").json()
+    assert sorted(s["level"] for s in body["suppliers"]) == [1, 1, 2]
+    assert any(s["status"] == "timed_out" for s in body["suppliers"])
+    assert body["responded"] == 2 and body["invited"] == 3  # the timed-out one doesn't count as a response
+
+    with pool.connection() as conn:
+        stored = conn.execute("select status from supplier_invites where token = %s", (stale_token,)).fetchone()["status"]
+    assert stored == "pending"
+
+
+def test_supply_chain_404s_for_an_unknown_assessment(c):
+    import uuid
+
+    assert c.get(f"/api/assessments/{uuid.uuid4()}/supply-chain").status_code == 404
+
+
 # ---------- Gemini guardrails (no network: Gemini is stubbed) ----------
 import copy
 import uuid

@@ -28,6 +28,7 @@ import RiskStory from '../components/RiskStory';
 import RankingToggle from '../components/RankingToggle';
 import RiskRegisterButton from '../components/RiskRegisterButton';
 import ShareButton from '../components/ShareButton';
+import SupplyChainPanel from '../components/SupplyChainPanel';
 import { BAND_STYLES, BandBadge, Button, Card, SCENARIO_COLORS, SectionTitle } from '../components/ui';
 import { profileQuestions, scenarioById, templateById } from '../engine/data';
 import { chainFor, explainRisk } from '../engine/explain';
@@ -735,6 +736,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
               <Card id="risk-flow" className="scroll-mt-24 p-4 md:p-6">
                 <RiskFlow graph={flow} focusId={flowFocus} />
               </Card>
+              <SupplyChainPanel />
             </Block>
           )}
 
