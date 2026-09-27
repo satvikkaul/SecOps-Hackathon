@@ -57,12 +57,26 @@ describe('request', () => {
 });
 
 describe('endpoints', () => {
-  it('reads a missing or expired share link as an answer rather than an error', async () => {
+  it('reads a locked, missing or expired share link as an answer rather than an error', async () => {
     const { getShare } = await load();
+    fetchMock.mockResolvedValueOnce(json(401));
+    await expect(getShare('secret')).resolves.toEqual({ status: 'locked' });
     fetchMock.mockResolvedValueOnce(json(404));
     await expect(getShare('nope')).resolves.toEqual({ status: 'missing' });
     fetchMock.mockResolvedValueOnce(json(410));
     await expect(getShare('old')).resolves.toEqual({ status: 'expired' });
+  });
+
+  it('sends the unlock password in the body, never the URL', async () => {
+    const { unlockShare } = await load();
+    fetchMock.mockResolvedValueOnce(json(200, { company: 'X' }));
+    await expect(unlockShare('tok', 'grocer-2026')).resolves.toEqual({ company: 'X' });
+    const [url, init] = fetchMock.mock.calls[0];
+    expect(url).toBe('http://api.test/api/share/tok/unlock');
+    expect(String(url)).not.toContain('grocer');
+    expect(init).toMatchObject({ method: 'POST', body: '{"password":"grocer-2026"}' });
+    fetchMock.mockResolvedValueOnce(json(401));
+    await expect(unlockShare('tok', 'nope')).rejects.toMatchObject({ status: 401 });
   });
 });
 

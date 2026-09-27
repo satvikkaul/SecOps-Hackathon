@@ -432,7 +432,7 @@ export default function Landing() {
                   [Lock, 'Scored in your browser', 'Your scores are calculated on your computer, not on our servers.'],
                   [EyeOff, 'Gone when you close the tab', 'Answers live in memory only. Nothing about your business is saved on your device.'],
                   [Sparkles, 'AI never sees who you are', 'Tailored wording uses your answers, never your company name or domain.'],
-                  [Link2, 'Sharing is your call', 'Links are only made when you ask, expire after 90 days, and stay out of search engines.'],
+                  [Link2, 'Sharing is your call', 'Links are only made when you ask, need a password you choose, expire after 90 days, and stay out of search engines.'],
                 ] as const
               ).map(([Icon, title, body]) => (
                 <li key={title} className="rounded-xl border border-slate-200 p-4">

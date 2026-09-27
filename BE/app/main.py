@@ -1,4 +1,6 @@
+import base64
 import hashlib
+import hmac
 import json
 import os
 import secrets
@@ -161,6 +163,26 @@ def client_ip(request: Request) -> str:
 
 # Each new link is a DB row plus possibly a live DNS lookup, so cap how fast anyone can make them.
 share_limit = RateLimit(per_ip_per_minute=10, total_per_hour=500)
+# Password guesses: capped per client IP, and per link so spreading guesses over many IPs doesn't help.
+unlock_ip_limit = RateLimit(per_ip_per_minute=10, total_per_hour=2000)
+unlock_token_limit = RateLimit(per_ip_per_minute=10, total_per_hour=2000)
+
+SCRYPT_N, SCRYPT_R, SCRYPT_P = 2**14, 8, 1
+
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_bytes(16)
+    digest = hashlib.scrypt(password.encode(), salt=salt, n=SCRYPT_N, r=SCRYPT_R, p=SCRYPT_P, dklen=32)
+    return f"scrypt${SCRYPT_N}${SCRYPT_R}${SCRYPT_P}${base64.b64encode(salt).decode()}${base64.b64encode(digest).decode()}"
+
+
+def verify_password(password: str, stored: str) -> bool:
+    try:
+        _, n, r, p, salt, digest = stored.split("$")
+        actual = hashlib.scrypt(password.encode(), salt=base64.b64decode(salt), n=int(n), r=int(r), p=int(p), dklen=32)
+    except ValueError:
+        return False
+    return hmac.compare_digest(actual, base64.b64decode(digest))
 # Uncached calls spend the Gemini key, so cap them. Cache hits are free and unlimited.
 personalize_limit = RateLimit(per_ip_per_minute=6, total_per_hour=300)
 
@@ -228,6 +250,12 @@ class AssessmentIn(BaseModel):
     answers: dict[QuestionId, Literal["yes", "partial", "no", "unsure", "na"]] = Field(max_length=100)
     rankingMode: Literal["effort", "cost"]
     results: dict[str, Any]
+    # Whoever opens the link must enter it. Only a salted scrypt hash is stored.
+    password: Annotated[str, StringConstraints(min_length=8, max_length=128)]
+
+
+class UnlockIn(BaseModel):
+    password: Annotated[str, StringConstraints(min_length=1, max_length=128)]
 
 
 @app.post("/api/assessments", status_code=201)
@@ -240,9 +268,10 @@ def create_assessment(body: AssessmentIn, request: Request):
     token = secrets.token_urlsafe(16)
     with pool.connection() as conn:
         row = conn.execute(
-            """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at)
-               values (%s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s)) returning id, expires_at""",
-            (token, body.company, domain, Jsonb(body.profile), Jsonb(body.answers), body.rankingMode, Jsonb(body.results), Jsonb(dns) if dns else None, SHARE_TTL_DAYS),
+            """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, password_hash, expires_at)
+               values (%s, %s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s)) returning id, expires_at""",
+            (token, body.company, domain, Jsonb(body.profile), Jsonb(body.answers), body.rankingMode, Jsonb(body.results), Jsonb(dns) if dns else None,
+             hash_password(body.password), SHARE_TTL_DAYS),
         ).fetchone()
     return {
         "id": str(row["id"]),
@@ -252,13 +281,10 @@ def create_assessment(body: AssessmentIn, request: Request):
     }
 
 
-@app.get("/api/share/{token}")
-def get_share(token: str, response: Response):
-    # A share link is a bearer secret: keep it (and the company's summary) out of search results.
-    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+def shared_row(token: str) -> dict:
     with pool.connection() as conn:
         row = conn.execute(
-            """select company, domain, ranking_mode, results, dns, created_at, expires_at,
+            """select company, domain, ranking_mode, results, dns, created_at, expires_at, password_hash,
                       expires_at is not null and expires_at <= now() as expired
                from assessments where share_token = %s""",
             (token,),
@@ -267,6 +293,33 @@ def get_share(token: str, response: Response):
         raise HTTPException(404, "Not found")
     if row["expired"]:
         raise HTTPException(410, "This link has expired")
+    return row
+
+
+@app.get("/api/share/{token}")
+def get_share(token: str, response: Response):
+    # A share link is a bearer secret: keep it (and the company's summary) out of search results.
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    row = shared_row(token)
+    if row["password_hash"]:
+        # Says nothing about the company until the password is given.
+        raise HTTPException(401, "Password required", headers={"X-Robots-Tag": "noindex, nofollow"})
+    return shared_view(row)
+
+
+@app.post("/api/share/{token}/unlock")
+def unlock_share(token: str, body: UnlockIn, request: Request, response: Response):
+    """The password travels in the body, never the URL, so it stays out of logs and browser history."""
+    response.headers["X-Robots-Tag"] = "noindex, nofollow"
+    if not unlock_ip_limit.allow(client_ip(request)) or not unlock_token_limit.allow(token):
+        raise HTTPException(429, "Too many attempts, try again in a minute")
+    row = shared_row(token)
+    if row["password_hash"] and not verify_password(body.password, row["password_hash"]):
+        raise HTTPException(401, "Wrong password")
+    return shared_view(row)
+
+
+def shared_view(row: dict) -> dict:
     # Raw answers are deliberately not returned: partners see the summary, not the questionnaire.
     return {
         "company": row["company"],

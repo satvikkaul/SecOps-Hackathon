@@ -4,7 +4,7 @@ import { demoPersona } from '../engine/data';
 import type { DnsResult } from '../engine/dns';
 import { buildSnapshot } from '../engine/snapshot';
 import { useAppStore, type AppState } from '../store/appStore';
-import { createShare, sendChatMessage, type CreateShareRequest } from './endpoints';
+import { createShare, sendChatMessage, unlockShare, type CreateShareRequest } from './endpoints';
 import { domainCheckQuery, shareQuery } from './queries';
 
 export function useSharedAssessment(token: string) {
@@ -21,7 +21,10 @@ export function useDomainCheck() {
   });
 }
 
-export function shareRequest(state: Pick<AppState, 'company' | 'domain' | 'profile' | 'answers' | 'rankingMode'>): CreateShareRequest {
+export function shareRequest(
+  state: Pick<AppState, 'company' | 'domain' | 'profile' | 'answers' | 'rankingMode'>,
+  password: string,
+): CreateShareRequest {
   return {
     company: state.company.trim() || 'Unnamed business',
     domain: state.domain || null,
@@ -29,12 +32,18 @@ export function shareRequest(state: Pick<AppState, 'company' | 'domain' | 'profi
     answers: state.answers,
     rankingMode: state.rankingMode,
     results: buildSnapshot(state.profile, state.answers, state.rankingMode),
+    password,
   };
 }
 
-/** Saves a snapshot of the current assessment; resolves to the read-only link and when it expires. */
+/** Saves a password-protected snapshot of the current assessment; resolves to the read-only link and when it expires. */
 export function useCreateShare() {
-  return useMutation({ mutationFn: () => createShare(shareRequest(useAppStore.getState())) });
+  return useMutation({ mutationFn: (password: string) => createShare(shareRequest(useAppStore.getState(), password)) });
+}
+
+/** Wrong passwords and too many guesses are expected, so they aren't reported as errors. */
+export function useUnlockShare(token: string) {
+  return useMutation({ mutationFn: (password: string) => unlockShare(token, password), meta: { silent: true } });
 }
 
 /** Sends one chat turn with whatever is on screen right now as context; resolves to the reply. */

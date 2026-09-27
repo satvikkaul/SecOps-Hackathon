@@ -14,6 +14,8 @@ create table if not exists assessments (
   expires_at   timestamptz                    -- link stops working after this; null = never (demo rows)
 );
 alter table assessments add column if not exists expires_at timestamptz;
+-- scrypt$<n>$<r>$<p>$<salt b64>$<hash b64>. The viewer must enter the password; null = open link (demo rows).
+alter table assessments add column if not exists password_hash text;
 
 create table if not exists dns_checks (
   domain     text primary key,

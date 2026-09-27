@@ -19,7 +19,12 @@ export interface SharedAssessment {
   expiresAt: string | null;
 }
 
-export type ShareLookup = { status: 'found'; assessment: SharedAssessment } | { status: 'missing' } | { status: 'expired' };
+export type ShareLookup =
+  | { status: 'found'; assessment: SharedAssessment }
+  /** Password-protected: the viewer has to unlock it. */
+  | { status: 'locked' }
+  | { status: 'missing' }
+  | { status: 'expired' };
 
 export interface CreatedShare {
   shareUrl: string;
@@ -33,6 +38,8 @@ export interface CreateShareRequest {
   answers: Answers;
   rankingMode: RankingMode;
   results: Snapshot;
+  /** Viewers must enter it. The BE keeps only a salted hash. */
+  password: string;
 }
 
 export interface Personalized {
@@ -64,11 +71,16 @@ export async function getShare(token: string, signal?: AbortSignal): Promise<Sha
   try {
     return { status: 'found', assessment: await request<SharedAssessment>(`/api/share/${encodeURIComponent(token)}`, { signal }) };
   } catch (err) {
+    if (err instanceof ApiError && err.status === 401) return { status: 'locked' };
     if (err instanceof ApiError && err.status === 404) return { status: 'missing' };
     if (err instanceof ApiError && err.status === 410) return { status: 'expired' };
     throw err;
   }
 }
+
+/** The password goes in the body, never the URL. 401 = wrong password, 429 = too many guesses. */
+export const unlockShare = (token: string, password: string) =>
+  request<SharedAssessment>(`/api/share/${encodeURIComponent(token)}/unlock`, { method: 'POST', body: { password } });
 
 /** Gemini's rewording of the engine's results. The BE answers 429/503 when it can't, or when the rewording fails validation. */
 export const personalize = (body: PersonalizeRequest, signal?: AbortSignal) =>

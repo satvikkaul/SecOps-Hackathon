@@ -1,7 +1,11 @@
-import { useEffect } from 'react';
-import { useSharedAssessment } from '../api/hooks';
+import { Lock } from 'lucide-react';
+import { useEffect, useState, type FormEvent } from 'react';
+import { ApiError } from '../api/client';
+import type { SharedAssessment } from '../api/endpoints';
+import { useSharedAssessment, useUnlockShare } from '../api/hooks';
+import { PasswordField } from '../components/PasswordField';
 import { StatusPill } from '../components/StandardsPanel';
-import { BandBadge, Card } from '../components/ui';
+import { BandBadge, Button, Card } from '../components/ui';
 import { describeFindings, type Indicator } from '../engine/dns';
 
 const DOT: Record<Indicator, string> = { green: 'bg-emerald-500', amber: 'bg-amber-400', red: 'bg-rose-500', grey: 'bg-slate-400' };
@@ -16,8 +20,56 @@ export default function SharedSummary({ token }: { token: string }) {
   if (lookup.isPending) return <Message title="Loading…" />;
   if (lookup.data.status === 'missing') return <Message title="Link not found" body="This link is wrong or no longer exists. Ask the sender for a new one." />;
   if (lookup.data.status === 'expired') return <Message title="This link has expired" body="Share links stop working after a while. Ask the sender for a new one." />;
+  if (lookup.data.status === 'locked') return <Unlock token={token} />;
+  return <Summary data={lookup.data.assessment} />;
+}
 
-  const data = lookup.data.assessment;
+/** The unlocked summary lives only in this component's memory; a refresh asks for the password again. */
+function Unlock({ token }: { token: string }) {
+  const unlock = useUnlockShare(token);
+  const [password, setPassword] = useState('');
+
+  if (unlock.data) return <Summary data={unlock.data} />;
+
+  const submit = (e: FormEvent) => {
+    e.preventDefault();
+    if (password) unlock.mutate(password);
+  };
+  const status = unlock.error instanceof ApiError ? unlock.error.status : undefined;
+  const error =
+    status === 401
+      ? 'That password is not right. Check with the person who sent you the link.'
+      : status === 429
+        ? 'Too many attempts. Wait a minute and try again.'
+        : status === 410
+          ? 'This link has expired. Ask the sender for a new one.'
+          : unlock.isError
+            ? "Couldn't check the password right now. Try again in a moment."
+            : null;
+
+  return (
+    <div className="mx-auto max-w-md px-6 py-20">
+      <Card className="p-8">
+        <form onSubmit={submit} className="flex flex-col gap-4">
+          <div className="text-center">
+            <span className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-brand-50 text-brand-700">
+              <Lock size={20} />
+            </span>
+            <h1 className="mt-3 text-2xl font-bold text-slate-900">This summary is password-protected</h1>
+            <p className="mt-1 text-sm text-slate-600">Enter the password the sender gave you.</p>
+          </div>
+          <PasswordField id="unlock-password" label="Password" value={password} onChange={setPassword} autoComplete="current-password" autoFocus />
+          {error && <p className="text-sm text-rose-700">{error}</p>}
+          <Button type="submit" disabled={!password || unlock.isPending} className="py-2 text-sm">
+            {unlock.isPending ? 'Checking…' : 'View summary'}
+          </Button>
+        </form>
+      </Card>
+    </div>
+  );
+}
+
+function Summary({ data }: { data: SharedAssessment }) {
   const { results: r, dns } = data;
   return (
     <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6">
