@@ -33,6 +33,7 @@ import type { ScenarioResult } from '../engine/scoring';
 import type { Band, Expertise, Profile, ScenarioId } from '../engine/types';
 import { useShallow } from 'zustand/react/shallow';
 import { useAppStore } from '../store/appStore';
+import { authEnabled } from '../lib/supabaseClient';
 import { personalizeRequest, usePersonalized } from '../personalize';
 import { printRule, ruleFor } from '../printRule';
 import { timePhrase, useResults } from '../useResults';
@@ -406,7 +407,7 @@ export default function Results({ onReset, onSignIn, signedIn }: { onReset: () =
                 </div>
               </Card>
 
-              {!signedIn && !state.isDemo && (
+              {authEnabled && !signedIn && !state.isDemo && (
                 <Card className="no-print mt-4 flex flex-wrap items-center justify-between gap-4 p-4">
                   <div>
                     <div className="font-bold text-slate-900">Save your score</div>
