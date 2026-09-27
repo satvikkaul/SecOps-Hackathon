@@ -229,7 +229,7 @@ def test_invite_rejects_an_unknown_parent(c):
     import uuid
 
     assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": str(uuid.uuid4())}).status_code == 400
-    assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": "not-a-uuid"}).status_code == 422
+    assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": "not-a-uuid"}).status_code == 400
 
 
 def test_invite_level_climbs_one_hop_at_a_time_and_stops_at_the_max(c):
@@ -504,10 +504,28 @@ def test_supply_chain_404s_for_an_unknown_assessment(c):
     import uuid
 
     assert c.get(f"/api/assessments/{uuid.uuid4()}/supply-chain").status_code == 404
-    # A malformed id used to reach Postgres and blow up as a 500: a uuid column rejects the literal.
+    # Tokens that are not a uuid are looked up as share tokens, not passed to a uuid column.
     for bad in ("not-a-uuid", "1234", "------------------------------------"):
-        assert c.get(f"/api/assessments/{bad}/supply-chain").status_code == 422, bad
-    assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": "not-a-uuid"}).status_code == 422
+        assert c.get(f"/api/assessments/{bad}/supply-chain").status_code == 404, bad
+    assert c.post("/api/invites", json={**INVITE_BODY, "parentAssessmentId": "not-a-uuid"}).status_code == 400
+
+
+def test_demo_company_has_a_seeded_supplier_graph(c):
+    body = c.get("/api/assessments/demo-peel-valley/supply-chain").json()
+    assert body["company"] == "Peel Valley Fresh Logistics"
+    assert body["posture"]["band"] == "High"
+    assert body["invited"] == 6
+    assert body["responded"] == 4
+    names = [s["supplierName"] for s in body["suppliers"]]
+    assert names[:4] == ["Greenfield Produce Co", "Frostline Cold Storage", "Northline Reefer Service", "ByteDock IT"]
+    assert "Huron Seed Co-op" in names and "Lakeshore Labour Crew" in names
+    greenfield = next(s for s in body["suppliers"] if s["supplierName"] == "Greenfield Produce Co")
+    huron = next(s for s in body["suppliers"] if s["supplierName"] == "Huron Seed Co-op")
+    lakeshore = next(s for s in body["suppliers"] if s["supplierName"] == "Lakeshore Labour Crew")
+    assert greenfield["shared"]["posture"]["band"] == "High" and greenfield["parentId"] is None
+    assert huron["level"] == 2 and huron["parentId"] == greenfield["id"]
+    assert lakeshore["status"] == "timed_out"
+    assert body["highestRiskBand"] == "High"
 
 
 # ---------- Gemini guardrails (no network: Gemini is stubbed) ----------

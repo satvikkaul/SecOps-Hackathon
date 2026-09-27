@@ -97,7 +97,8 @@ function demoAssessment(screen: Screen = 'results'): AssessmentState {
     dns: demoPersona.dnsResult,
     autoFilled: { Q11: true, emailProvider: true },
     isDemo: true,
-    assessmentId: null,
+    // The seeded demo chain is looked up by this share token, not a uuid.
+    assessmentId: 'demo-peel-valley',
   };
 }
 

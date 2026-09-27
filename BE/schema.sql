@@ -12,10 +12,18 @@ create table if not exists assessments (
   dns          jsonb,                         -- BE-verified DNS result at creation time
   created_at   timestamptz not null default now(),
   expires_at   timestamptz,                   -- link stops working after this; null = never (demo rows)
-  user_id      uuid references auth.users(id) -- who saved this, if signed in; null = anonymous share
+  user_id      uuid                           -- who saved this, if signed in; null = anonymous share
 );
 alter table assessments add column if not exists expires_at timestamptz;
-alter table assessments add column if not exists user_id uuid references auth.users(id);
+alter table assessments add column if not exists user_id uuid;
+-- Supabase has auth.users; local test Postgres does not. Only add the FK when that table exists.
+do $$
+begin
+  if exists (select 1 from information_schema.tables where table_schema = 'auth' and table_name = 'users')
+     and not exists (select 1 from pg_constraint where conname = 'assessments_user_id_fkey') then
+    alter table assessments add constraint assessments_user_id_fkey foreign key (user_id) references auth.users(id);
+  end if;
+end $$;
 -- scrypt$<n>$<r>$<p>$<salt b64>$<hash b64>. The viewer must enter the password; null = open link (demo rows).
 alter table assessments add column if not exists password_hash text;
 

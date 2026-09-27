@@ -116,7 +116,7 @@ To add a field to the content, add a column or table in `catalog.sql`, then writ
 
 `catalog.sql`: the content tables described above.
 
-The demo company (`app/demo_peel_valley.json`, share token `demo-peel-valley`) is regenerated from the frontend engine:
+The demo company (`app/demo_peel_valley.json`, share token `demo-peel-valley`) is regenerated from the frontend engine. Its sample suppliers (`app/demo_suppliers.json`) are seeded on every startup so the Supply chain graph has something to show:
 
 ```bash
 cd FE && npx vite-node ../BE/gen_demo.ts > ../BE/app/demo_peel_valley.json

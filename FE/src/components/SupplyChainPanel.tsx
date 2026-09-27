@@ -3,6 +3,7 @@ import { useState } from 'react';
 import { useInviteSupplier, useSupplyChain } from '../api/hooks';
 import type { CreatedInvite, ShareChoice, SupplyChainSupplier } from '../api/endpoints';
 import { useAppStore } from '../store/appStore';
+import SupplyChainGraph from './SupplyChainGraph';
 import { BAND_STYLES, BandBadge, Button, Card, Pill } from './ui';
 
 const inputClass =
@@ -159,25 +160,28 @@ function SupplyChainReport({ assessmentId }: { assessmentId: string }) {
 
   const band = chain.data.highestRiskBand;
   return (
-    <Card className="overflow-hidden">
-      <div className="flex flex-wrap gap-6 border-b border-slate-100 p-4 md:p-6">
-        <div>
-          <div className="text-3xl font-extrabold tabular-nums text-slate-900">{chain.data.respondedPct}%</div>
-          <div className="text-sm text-slate-600">
-            responded — {chain.data.responded} of {chain.data.invited}
+    <div className="grid gap-4">
+      <SupplyChainGraph chain={chain.data} />
+      <Card className="overflow-hidden">
+        <div className="flex flex-wrap gap-6 border-b border-slate-100 p-4 md:p-6">
+          <div>
+            <div className="text-3xl font-extrabold tabular-nums text-slate-900">{chain.data.respondedPct}%</div>
+            <div className="text-sm text-slate-600">
+              responded — {chain.data.responded} of {chain.data.invited}
+            </div>
+          </div>
+          <div>
+            <div className={`text-3xl font-extrabold ${band ? BAND_STYLES[band].text : 'text-slate-400'}`}>{band ?? '—'}</div>
+            <div className="text-sm text-slate-600">{band ? 'highest risk in your chain' : 'no scores shared yet'}</div>
           </div>
         </div>
-        <div>
-          <div className={`text-3xl font-extrabold ${band ? BAND_STYLES[band].text : 'text-slate-400'}`}>{band ?? '—'}</div>
-          <div className="text-sm text-slate-600">{band ? 'highest risk in your chain' : 'no scores shared yet'}</div>
-        </div>
-      </div>
-      <ul>
-        {chain.data.suppliers.map((s, i) => (
-          <SupplierRow key={`${s.supplierName}-${i}`} supplier={s} />
-        ))}
-      </ul>
-    </Card>
+        <ul>
+          {chain.data.suppliers.map((s) => (
+            <SupplierRow key={s.id} supplier={s} />
+          ))}
+        </ul>
+      </Card>
+    </div>
   );
 }
 
@@ -185,7 +189,7 @@ function SupplyChainReport({ assessmentId }: { assessmentId: string }) {
  * Both need a saved assessment to hang off, so the report only appears once the first invite has
  * saved this check-up — before that there is, by definition, no chain to show. */
 export default function SupplyChainPanel() {
-  const assessmentId = useAppStore((s) => s.assessmentId);
+  const assessmentId = useAppStore((s) => s.assessmentId ?? (s.isDemo ? 'demo-peel-valley' : null));
 
   return (
     <div className="no-print mt-6 grid gap-4">

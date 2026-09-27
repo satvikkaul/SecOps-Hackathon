@@ -147,7 +147,7 @@ describe('endpoints', () => {
 
   it('reads the supply chain from the assessment-scoped path', async () => {
     const { getSupplyChain } = await load();
-    const body = { invited: 1, responded: 1, respondedPct: 100, highestRiskBand: 'Low', suppliers: [] };
+    const body = { company: 'Acme', invited: 1, responded: 1, respondedPct: 100, highestRiskBand: 'Low', suppliers: [] };
     fetchMock.mockResolvedValueOnce(json(200, body));
     await expect(getSupplyChain('a 1')).resolves.toEqual(body);
     expect(fetchMock.mock.calls[0][0]).toBe('http://api.test/api/assessments/a%201/supply-chain');

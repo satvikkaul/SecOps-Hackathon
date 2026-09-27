@@ -3,6 +3,7 @@ import hashlib
 import hmac
 import json
 import os
+import re
 import secrets
 import threading
 import time
@@ -51,6 +52,8 @@ pool = ConnectionPool(
 )
 
 DEMOS = {"demo-peel-valley": "demo_peel_valley.json"}
+# Never a real PIN — demo invites are already submitted or left pending on purpose.
+DEMO_PIN_HASH = hashlib.sha256(b"000000").hexdigest()
 
 
 def seed() -> None:
@@ -71,6 +74,48 @@ def seed() -> None:
                    on conflict (domain) do update set result = excluded.result, pinned = true, checked_at = now()""",
                 (d["domain"], Jsonb(d["dns"])),
             )
+        seed_demo_suppliers(conn)
+
+
+def seed_demo_suppliers(conn) -> None:
+    """Peel Valley's sample chain: a few responded suppliers, one waiting, one past due, and a
+    second hop so the graph has depth. Tokens are fixed so a restart replaces the same rows."""
+    demo = json.loads((HERE / "demo_peel_valley.json").read_text())
+    suppliers = json.loads((HERE / "demo_suppliers.json").read_text())["suppliers"]
+    keep_invites = [s["token"] for s in suppliers]
+    keep_children = [s["childToken"] for s in suppliers if s.get("childToken")]
+    conn.execute("delete from supplier_invites where token like 'demo-invite-%%' and not (token = any(%s))", (keep_invites,))
+    conn.execute(
+        "delete from assessments where share_token like 'demo-child-%%' and not (share_token = any(%s))",
+        (keep_children,),
+    )
+
+    for s in suppliers:
+        child_id = None
+        if s.get("childToken") and s.get("results"):
+            child = conn.execute(
+                """insert into assessments (share_token, company, domain, profile, answers, ranking_mode, results, dns, expires_at)
+                   values (%s, %s, %s, %s, %s, %s, %s, null, null)
+                   on conflict (share_token) do update set company = excluded.company, domain = excluded.domain,
+                     results = excluded.results, expires_at = null
+                   returning id""",
+                (s["childToken"], s["name"], s.get("domain"), Jsonb(demo["profile"]), Jsonb(demo["answers"]), "effort", Jsonb(s["results"])),
+            ).fetchone()
+            child_id = child["id"]
+        parent = conn.execute("select id from assessments where share_token = %s", (s["parentToken"],)).fetchone()
+        if not parent:
+            continue
+        ancestor = conn.execute("select level from supplier_invites where child_assessment_id = %s", (parent["id"],)).fetchone()
+        level = (ancestor["level"] + 1) if ancestor else 1
+        conn.execute(
+            """insert into supplier_invites (token, pin_hash, parent_assessment_id, supplier_name, supplier_email, level, status, share_choice, child_assessment_id, deadline)
+               values (%s, %s, %s, %s, %s, %s, %s, %s, %s, now() + make_interval(days => %s))
+               on conflict (token) do update set parent_assessment_id = excluded.parent_assessment_id,
+                 supplier_name = excluded.supplier_name, supplier_email = excluded.supplier_email, level = excluded.level,
+                 status = excluded.status, share_choice = excluded.share_choice, child_assessment_id = excluded.child_assessment_id,
+                 deadline = excluded.deadline""",
+            (s["token"], DEMO_PIN_HASH, parent["id"], s["name"], s["email"], level, s["status"], s.get("shareChoice"), child_id, s["deadlineDays"]),
+        )
 
 
 @asynccontextmanager
@@ -277,7 +322,19 @@ Key = Annotated[str, StringConstraints(pattern=r"^[A-Za-z][A-Za-z0-9_]{0,49}$")]
 QuestionId = Annotated[str, StringConstraints(pattern=r"^Q\d{1,3}$")]
 # Anything reaching a `where id = %s` on a uuid column: Postgres raises on a malformed literal,
 # which would surface as a 500 rather than the 422 a bad request deserves.
-Uuid = Annotated[str, StringConstraints(pattern=r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")]
+UUID_RE = r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$"
+Uuid = Annotated[str, StringConstraints(pattern=UUID_RE)]
+
+
+def assessment_ref(conn, ref: str) -> dict | None:
+    """A saved row by uuid, or by share token (the demo company is looked up as demo-peel-valley).
+    The uuid column is only queried when `ref` is shaped like one — otherwise Postgres raises."""
+    row = conn.execute("select id, company, results from assessments where share_token = %s", (ref,)).fetchone()
+    if row:
+        return row
+    if re.fullmatch(UUID_RE, ref):
+        return conn.execute("select id, company, results from assessments where id = %s", (ref,)).fetchone()
+    return None
 
 
 class AssessmentPayload(BaseModel):
@@ -413,7 +470,8 @@ EmailAddress = Annotated[str, StringConstraints(strip_whitespace=True, min_lengt
 
 
 class InviteIn(BaseModel):
-    parentAssessmentId: Uuid
+    # UUID of a saved row, or a demo share token such as demo-peel-valley.
+    parentAssessmentId: Annotated[str, StringConstraints(min_length=8, max_length=80)]
     supplierName: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=200)]
     supplierEmail: EmailAddress
     deadlineDays: Annotated[int, Field(ge=1, le=90)] = 7
@@ -424,14 +482,14 @@ def create_invite(body: InviteIn, request: Request):
     if not invite_limit.allow(client_ip(request)):
         raise HTTPException(429, "Too many invites, try again in a minute")
     with pool.connection() as conn:
-        parent = conn.execute("select id from assessments where id = %s", (body.parentAssessmentId,)).fetchone()
+        parent = assessment_ref(conn, body.parentAssessmentId)
         if not parent:
             raise HTTPException(400, "Unknown parentAssessmentId")
         # A hop down the chain: level = the invite that produced the parent assessment, +1. No such
         # invite means the parent is a top-level (self-initiated) assessment, so this is level 1.
         ancestor = conn.execute(
             "select level from supplier_invites where child_assessment_id = %s",
-            (body.parentAssessmentId,),
+            (parent["id"],),
         ).fetchone()
         level = (ancestor["level"] + 1) if ancestor else 1
         if level > MAX_INVITE_LEVEL:
@@ -443,7 +501,7 @@ def create_invite(body: InviteIn, request: Request):
         row = conn.execute(
             """insert into supplier_invites (token, pin_hash, parent_assessment_id, supplier_name, supplier_email, level, deadline)
                values (%s, %s, %s, %s, %s, %s, now() + make_interval(days => %s)) returning id""",
-            (token, pin_hash, body.parentAssessmentId, body.supplierName, body.supplierEmail, level, body.deadlineDays),
+            (token, pin_hash, parent["id"], body.supplierName, body.supplierEmail, level, body.deadlineDays),
         ).fetchone()
 
     invite_url = f"{FRONTEND_URL}/?invite={token}"
@@ -545,34 +603,37 @@ BAND_ORDER = ("Low", "Moderate", "Elevated", "High")
 
 
 @app.get("/api/assessments/{assessment_id}/supply-chain")
-def get_supply_chain(assessment_id: Uuid):
+def get_supply_chain(assessment_id: str):
     """The buyer's view down their own supply chain: every invite descending from this assessment,
     carrying only what each supplier chose to share.
 
-    Note: the assessment id is an unguessable uuid and acts as the bearer secret here, the same
-    way a share token does. There's no owner check because an anonymous buyer has no user_id to
-    check against, and requiring one would break the main (signed-out) flow."""
+    `assessment_id` is either the row uuid or a share token (the demo uses demo-peel-valley). The
+    uuid is an unguessable bearer secret, the same way a share token is. There's no owner check
+    because an anonymous buyer has no user_id to check against."""
     with pool.connection() as conn:
-        if not conn.execute("select 1 from assessments where id = %s", (assessment_id,)).fetchone():
+        root = assessment_ref(conn, assessment_id)
+        if not root:
             raise HTTPException(404, "Not found")
         rows = conn.execute(
             """with recursive chain as (
                    select i.id, i.level, i.status, i.deadline, i.supplier_name, i.share_choice,
-                          i.child_assessment_id, i.created_at, 1 as depth
+                          i.child_assessment_id, i.parent_assessment_id, i.created_at, 1 as depth
                      from supplier_invites i
                     where i.parent_assessment_id = %s
                    union all
                    select i.id, i.level, i.status, i.deadline, i.supplier_name, i.share_choice,
-                          i.child_assessment_id, i.created_at, c.depth + 1
+                          i.child_assessment_id, i.parent_assessment_id, i.created_at, c.depth + 1
                      from supplier_invites i
                      join chain c on i.parent_assessment_id = c.child_assessment_id
                     where c.child_assessment_id is not null and c.depth < %s
                )
-               select chain.level, chain.status, chain.supplier_name, chain.share_choice,
-                      chain.deadline <= now() as past_deadline, a.results
-                 from chain left join assessments a on a.id = chain.child_assessment_id
+               select chain.id, chain.level, chain.status, chain.supplier_name, chain.share_choice,
+                      chain.deadline <= now() as past_deadline, a.results, parent.id as parent_id
+                 from chain
+                 left join assessments a on a.id = chain.child_assessment_id
+                 left join supplier_invites parent on parent.child_assessment_id = chain.parent_assessment_id
                 order by chain.level, chain.created_at""",
-            (assessment_id, MAX_INVITE_LEVEL),
+            (root["id"], MAX_INVITE_LEVEL),
         ).fetchall()
 
     suppliers = []
@@ -592,11 +653,22 @@ def get_supply_chain(assessment_id: Uuid):
         if band in BAND_ORDER:
             worst = max(worst, BAND_ORDER.index(band))
         suppliers.append(
-            {"level": r["level"], "status": status, "supplierName": r["supplier_name"], "shareChoice": r["share_choice"], "shared": shared}
+            {
+                "id": str(r["id"]),
+                "parentId": str(r["parent_id"]) if r["parent_id"] else None,
+                "level": r["level"],
+                "status": status,
+                "supplierName": r["supplier_name"],
+                "shareChoice": r["share_choice"],
+                "shared": shared,
+            }
         )
 
     invited = len(rows)
+    root_results = root["results"] or {}
     return {
+        "company": root["company"],
+        "posture": root_results.get("posture"),
         "invited": invited,
         "responded": responded,
         "respondedPct": round(responded / invited * 100) if invited else 0,

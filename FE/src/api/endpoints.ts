@@ -157,6 +157,9 @@ export const createInvite = (body: CreateInviteRequest) => request<CreatedInvite
 /** One row of the buyer's supply chain. `shared` holds only the fields that supplier's share_choice
  * allows — the BE decides that, so anything absent here was never sent to the browser at all. */
 export interface SupplyChainSupplier {
+  id: string;
+  /** The invite above this one; null for a direct supplier of the buyer. */
+  parentId: string | null;
   level: number;
   status: 'pending' | 'submitted' | 'filled_by_buyer' | 'timed_out';
   supplierName: string;
@@ -165,6 +168,9 @@ export interface SupplyChainSupplier {
 }
 
 export interface SupplyChain {
+  company: string;
+  /** The buyer's own posture, used as the graph's root. */
+  posture?: Snapshot['posture'];
   invited: number;
   responded: number;
   respondedPct: number;

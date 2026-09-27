@@ -1,0 +1,112 @@
+{
+  "suppliers": [
+    {
+      "token": "demo-invite-greenfield",
+      "childToken": "demo-child-greenfield",
+      "parentToken": "demo-peel-valley",
+      "name": "Greenfield Produce Co",
+      "email": "ops@greenfieldproduce.example",
+      "status": "submitted",
+      "shareChoice": "both",
+      "deadlineDays": 30,
+      "domain": "greenfieldproduce.example",
+      "results": {
+        "sector": "Farm or producer",
+        "posture": { "score": 2.45, "band": "High" },
+        "scenarios": [
+          { "id": "BEC", "name": "Fake payment request or invoice fraud", "risk": 2.45, "band": "High" },
+          { "id": "RANSOM", "name": "Ransomware shuts down operations", "risk": 1.8, "band": "Elevated" },
+          { "id": "DATALOSS", "name": "Losing data you cannot get back", "risk": 1.4, "band": "Elevated" }
+        ],
+        "topActions": [
+          { "id": "A1", "title": "Turn on two-step login for email", "whatToDo": "Require a code from a phone app.", "cost": "Free", "time": "Under 1 hour", "effort": 1, "priority": 0.8, "pctReduction": 0.27, "timeframe": 30, "cccs": ["BC.5.1"] }
+        ],
+        "cccs": [{ "control": "BC.5", "name": "Access control", "status": "Not yet met" }],
+        "coverage": { "answered": 31, "total": 31 }
+      }
+    },
+    {
+      "token": "demo-invite-frostline",
+      "childToken": "demo-child-frostline",
+      "parentToken": "demo-peel-valley",
+      "name": "Frostline Cold Storage",
+      "email": "dock@frostline.example",
+      "status": "submitted",
+      "shareChoice": "score",
+      "deadlineDays": 30,
+      "domain": "frostline.example",
+      "results": {
+        "sector": "Cold storage or warehouse",
+        "posture": { "score": 1.55, "band": "Elevated" },
+        "scenarios": [{ "id": "OT", "name": "Tampering with connected equipment", "risk": 1.55, "band": "Elevated" }],
+        "topActions": [],
+        "cccs": [],
+        "coverage": { "answered": 28, "total": 31 }
+      }
+    },
+    {
+      "token": "demo-invite-northline",
+      "childToken": "demo-child-northline",
+      "parentToken": "demo-peel-valley",
+      "name": "Northline Reefer Service",
+      "email": "service@northlinereefer.example",
+      "status": "submitted",
+      "shareChoice": "both",
+      "deadlineDays": 30,
+      "domain": "northlinereefer.example",
+      "results": {
+        "sector": "Food processor",
+        "posture": { "score": 0.85, "band": "Moderate" },
+        "scenarios": [
+          { "id": "THIRD", "name": "A vendor or IT provider gets breached", "risk": 0.85, "band": "Moderate" },
+          { "id": "OT", "name": "Tampering with connected equipment", "risk": 0.7, "band": "Moderate" }
+        ],
+        "topActions": [
+          { "id": "A18", "title": "Turn off unused remote access", "whatToDo": "Disable always-on remote tools on dock equipment.", "cost": "Free", "time": "Under 1 hour", "effort": 1, "priority": 0.4, "pctReduction": 0.12, "timeframe": 30, "cccs": ["BC.13"] }
+        ],
+        "cccs": [{ "control": "BC.13", "name": "Cloud security", "status": "Partly met" }],
+        "coverage": { "answered": 31, "total": 31 }
+      }
+    },
+    {
+      "token": "demo-invite-bytedock",
+      "parentToken": "demo-peel-valley",
+      "name": "ByteDock IT",
+      "email": "help@bytedock.example",
+      "status": "pending",
+      "deadlineDays": 14
+    },
+    {
+      "token": "demo-invite-huron",
+      "childToken": "demo-child-huron",
+      "parentToken": "demo-child-greenfield",
+      "name": "Huron Seed Co-op",
+      "email": "office@huronseed.example",
+      "status": "submitted",
+      "shareChoice": "both",
+      "deadlineDays": 30,
+      "domain": "huronseed.example",
+      "results": {
+        "sector": "Farm or producer",
+        "posture": { "score": 1.35, "band": "Elevated" },
+        "scenarios": [
+          { "id": "SHARED", "name": "Misuse of shared or leftover accounts", "risk": 1.35, "band": "Elevated" },
+          { "id": "ATO", "name": "Stolen logins to online business tools", "risk": 1.1, "band": "Moderate" }
+        ],
+        "topActions": [
+          { "id": "A8", "title": "Give each person their own login", "whatToDo": "Stop sharing the office computer password.", "cost": "Free", "time": "Under 1 hour", "effort": 1, "priority": 0.5, "pctReduction": 0.15, "timeframe": 30, "cccs": ["BC.5.1"] }
+        ],
+        "cccs": [{ "control": "BC.5", "name": "Access control", "status": "Not yet met" }],
+        "coverage": { "answered": 31, "total": 31 }
+      }
+    },
+    {
+      "token": "demo-invite-lakeshore",
+      "parentToken": "demo-child-frostline",
+      "name": "Lakeshore Labour Crew",
+      "email": "dispatch@lakeshorelabour.example",
+      "status": "pending",
+      "deadlineDays": -3
+    }
+  ]
+}
