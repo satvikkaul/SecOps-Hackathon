@@ -48,6 +48,21 @@ SYSTEM_INSTRUCTION = (
     "- neither present (landing or earlier setup screens): there's no report yet — answer general questions "
     "about what Chain of Custody is and how it works from the facts above, and don't imply they have a score "
     "yet.\n\n"
+    "context.controls, when present, is the person's actual answer ('yes'/'partial'/'no'/'unsure'/'na'/'not "
+    "answered') to a handful of specific controls: Q1 (MFA on email), Q7 (calling a supplier back on a known "
+    "number before acting on a bank-detail change), Q8 (a second person approving large payments), Q9 (fake-email "
+    "awareness training), Q18 (vendor remote access to equipment turned off when idle), Q26 (a call-back plus a "
+    "second person's OK before changing a pickup or delivery address). These back the 'Try an example' scenarios "
+    "on Results — fake vendor/IT emails asking to redirect a payment, click a login link, get remote access to "
+    "equipment, or change a shipment's destination (including ones the person triggers with the example buttons, "
+    "not just ones they paste in themselves). Whenever the person pastes or describes a suspicious message like "
+    "that, first say plainly what's suspicious about it (urgency plus the specific ask — a payment, a login, "
+    "remote access, a shipment change), then check the actual answer(s) in context.controls that apply instead "
+    "of assuming: if the relevant one is anything but 'yes', name that specific gap and call lookupAction() for "
+    "the matching fix (A1 for Q1, A7 for Q7/Q8, A8 for Q9, A13 for Q18, A19 for Q26); if it's 'yes', say so and "
+    "explain why that would likely have caught this one; if it's 'na', say that control doesn't apply to their "
+    "business and focus on whichever other relevant answer does. Never guess their answer if context.controls "
+    "isn't present, or if none of its controls are relevant to what they described.\n\n"
     "Write like a person sitting next to them, in plain, non-technical language, the same tone as the product. "
     "No headings. The only markup allowed is the two shapes below — the chat renders them as cards and steps.\n"
     "- When they ask what the questions on screen mean, start with one sentence on what that section is really "
@@ -104,11 +119,16 @@ _CLAUDE_TOOL_FUNCS = {"lookup_action": lookup_action, "explain_question": explai
 
 def _claude_reply(session_id: str, message: str, report_context: dict) -> str:
     messages: list[dict] = [*_history.get(session_id, []), {"role": "user", "content": _prompt_for(message, report_context)}]
+    # Claude can write reasoning text in the same turn it calls a tool (e.g. "here's what's
+    # suspicious... let me check your real answer" before calling lookup_action) — collect text
+    # from every round, not just the last, or that earlier reasoning is silently dropped.
+    text_parts: list[str] = []
     # A handful of tool round-trips is plenty for two lookup-only tools; caps a runaway loop.
     for _ in range(4):
         response = _claude.messages.create(model=ANTHROPIC_MODEL, max_tokens=1024, system=SYSTEM_INSTRUCTION, tools=_CLAUDE_TOOLS, messages=messages)
+        text_parts.extend(block.text for block in response.content if block.type == "text")
         if response.stop_reason != "tool_use":
-            return "".join(block.text for block in response.content if block.type == "text") or "I couldn't come up with an answer to that — try asking it a different way?"
+            return "\n\n".join(text_parts) or "I couldn't come up with an answer to that — try asking it a different way?"
         messages.append({"role": "assistant", "content": response.content})
         results = []
         for block in response.content:
@@ -116,7 +136,7 @@ def _claude_reply(session_id: str, message: str, report_context: dict) -> str:
                 result = _CLAUDE_TOOL_FUNCS[block.name](*block.input.values())
                 results.append({"type": "tool_result", "tool_use_id": block.id, "content": json.dumps(result)})
         messages.append({"role": "user", "content": results})
-    return "That took more digging than I could finish — try asking it a different way?"
+    return "\n\n".join(text_parts) or "That took more digging than I could finish — try asking it a different way?"
 
 
 def handle_chat(session_id: str, message: str, report_context: dict) -> str:
