@@ -136,7 +136,7 @@ Why JSONB and not a table per question: the questions, actions and weights live 
 3. `validate()`: ids and order identical to the request, 3–6 steps, length caps, no links, and no numbers that weren't in the request. Failure → 503 → the FE keeps the engine's text.
 4. Cached in `ai_texts` (sha256 of request + prompt version + model), with RLS on. Uncached calls are rate-limited.
 
-Env on the BE service: `GEMINI_API_KEY` (required), `GEMINI_MODEL` (optional).
+Env on the BE service: `GEMINI_API_KEY` (required), `PERSONALIZE_MODEL` (optional, default `gemini-3.5-flash-lite`). Deliberately separate from `GEMINI_MODEL`, which the chatbot uses.
 
 Judge answer: *"The ranking is deterministic and you can check it. Gemini only rewords it for this business, and the server rejects anything that changes the order or invents a number."*
 

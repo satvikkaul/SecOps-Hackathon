@@ -9,3 +9,12 @@ dist/
 __pycache__/
 .venv/
 .cursor-shots/
+
+# Local-only notes (session context for Claude Code)
+CLAUDE.md
+SESSION.md
+STATUS.md
+NEXT_STEPS.md
+
+# Python build output
+*.egg-info/
